@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>UKS Analytics</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+      body{background:#f5f7fb}
+      .card{border-radius:14px;border:none}
+      .kpi{background:linear-gradient(135deg,#4f46e5,#6366f1);color:white}
+      .filter-bar{position:sticky;top:0;background:white;z-index:1000}
+      .chart-actions{opacity:0;transition:.2s}
+      .card:hover .chart-actions{opacity:1}
+      #kpiRow{flex-wrap:nowrap;overflow-x:auto}
+      body{
+      background:#f4f6fb;
+      font-family: Inter, system-ui;
+      }
+      .app-header{
+      background: linear-gradient(135deg,#ffffff,#f8f9ff);
+      border-bottom:1px solid #eee;
+      height:64px;
+      }
+      .app-title{
+      font-size:20px;
+      font-weight:600;
+      letter-spacing:.3px;
+      }
+      .filter-bar{
+      position:sticky;
+      top:64px;
+      background:white;
+      z-index:1000;
+      border-radius:14px;
+      margin: 5px 12px;
+      }   
+      .filter-bar label{
+      font-size:13px;
+      color:#666;
+      }
+      .form-select, .form-range{
+      border-radius:10px;
+      }
+      .card{
+      border-radius:18px;
+      border:none;
+      background:white;
+      box-shadow: 0 8px 25px rgba(0,0,0,.06);
+      transition:.25s;
+      }
+      .card:hover{
+      /*  transform: translateY(-4px);*/
+      box-shadow: 0 12px 35px rgba(0,0,0,.1);
+      }
+      .kpi{
+      background: linear-gradient(135deg,#5b5df0,#7b7dff);
+      color:white;
+      min-width:220px;
+      }
+      .kpi h3{
+      font-size:28px;
+      margin:0;
+      }
+      #kpiRow{
+      flex-wrap:nowrap;
+      overflow-x:auto;
+      padding:3px;
+      }   
+      #kpiRow::-webkit-scrollbar{
+      height:6px;
+      }
+      #kpiRow::-webkit-scrollbar-thumb{
+      background:#ccc;
+      border-radius:10px;
+      }
+      .chart-actions{
+      opacity:0;
+      transition:.2s;
+      }
+      .card:hover .chart-actions{
+      opacity:1;
+      }
+      .btn-primary{
+      background: linear-gradient(135deg,#4f46e5,#6366f1);
+      border:none;
+      border-radius:10px;
+      }
+      .btn-outline-secondary{
+      border-radius:10px;
+      }
+      .dropdown-menu{
+      border-radius:12px;
+      min-width:180px;
+      }
+      .dropdown-item{
+      font-size:14px;
+      padding:10px 14px;
+      }
+      ul.dropdown-menu.dropdown-menu-end.shadow.show {
+      z-index: 9999;
+      }
+      h5 i{
+      opacity:0.8;
+      } 
+      .kpi-icon{
+      position:absolute;
+      bottom:12px;
+      right:14px;
+      font-size:28px;
+      opacity:0.25;
+      }
+      .btn-group-sm .btn{
+      border-radius:8px;
+      padding:4px 10px;
+      }
+      input[type="date"]{
+      border-radius:8px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- <nav class="navbar bg-white shadow-sm px-4">
+      <b>PDS Analytics</b>
+      
+      </nav> -->
+    <nav class="navbar navbar-expand-lg app-header px-4">
+      <div class="d-flex align-items-center">
+        <img src="assets/img/tn_logo.png" height="36" class="me-2">
+        <span class="app-title">UKS Analytics</span>
+      </div>
+      <div class="ms-auto d-flex align-items-center gap-3">
+        <!-- <span class="text-muted">Welcome, <b>Siva</b></span>
+          <img src="https://i.pravatar.cc/40" class="rounded-circle"> -->
+        <div class="dropdown">
+          <button class="btn btn-link text-decoration-none d-flex align-items-center gap-2"
+            data-bs-toggle="dropdown">
+          <span class="text-muted">Welcome, <b>User Name</b></span>
+          <i class="bi bi-chevron-down"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow">
+            <li>
+              <a class="dropdown-item" href="#">
+              <i class="bi bi-person me-2"></i> Profile
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="#">
+              <i class="bi bi-gear me-2"></i> Settings
+              </a>
+            </li>
+            <li>
+              <hr class="dropdown-divider">
+            </li>
+            <li>
+              <a class="dropdown-item text-danger" href="#">
+              <i class="bi bi-box-arrow-right me-2"></i> Logout
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <!-- FILTERS -->
+    <div class="filter-bar p-3 shadow-sm">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-2">
+          <label>District</label>
+          <select id="district" class="form-select">
+            <option value="ALL">All</option>
+            <option>Chennai</option>
+            <option>Madurai</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label>Taluk</label>
+          <select id="taluk" class="form-select">
+            <option>All</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label>Village</label>
+          <select id="village" class="form-select">
+            <option>All</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label>PDS Code</label>
+          <select id="pds" class="form-select">
+            <option>All</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label>Scheme</label>
+          <div class="border rounded p-2">
+            <input type="checkbox" class="scheme" value="KMUT" checked> KMUT
+            <input type="checkbox" class="scheme ms-2" value="DBT" checked> DBT
+          </div>
+        </div>
+        <div class="col-md-2">
+          <label>Gender</label>
+          <select id="gender" class="form-select">
+            <option value="ALL">All</option>
+            <option>Male</option>
+            <option>Female</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label>Age: <b id="ageVal">24</b></label>
+          <input id="age" type="range" min="18" max="80" value="24" class="form-range">
+        </div>
+        <div class="col-md-5">
+          <label>Date</label>
+          <div class="border rounded p-2 d-flex align-items-center gap-2">
+            <!-- Presets -->
+            <div class="btn-group btn-group-sm">
+              <input type="radio" class="btn-check" name="datePreset" id="today" checked>
+              <label class="btn btn-outline-primary" for="today">Today</label>
+              <input type="radio" class="btn-check" name="datePreset" id="week">
+              <label class="btn btn-outline-primary" for="week">This Week</label>
+              <input type="radio" class="btn-check" name="datePreset" id="month">
+              <label class="btn btn-outline-primary" for="month">This Month</label>
+            </div>
+            <!-- Custom Range -->
+            <div class="d-flex align-items-center gap-1">
+              <input type="date" class="form-control form-control-sm">
+              <span class="text-muted">to</span>
+              <input type="date" class="form-control form-control-sm">
+            </div>
+          </div>
+        </div>
+        <div class="col-md-1">
+          <button class="btn btn-primary w-100" onclick="applyFilters()"><i class="bi bi-funnel me-2"></i> Apply</button>
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-sm btn-outline-danger ms-auto" onclick="resetAll()">
+          <i class="bi bi-arrow-counterclockwise"></i> Reset
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="container-fluid my-1">
+      <div class="row flex-nowrap" id="kpiRow">
+        <!-- All cards will be injected here -->
+      </div>
+    </div>
+    <!-- CHARTS -->
+    <div class="container-fluid">
+      <div class="row g-3">
+        <div class="col-lg-8">
+          <div class="card p-3 shadow">
+            <div class="d-flex justify-content-between">
+              <h5 class="d-flex align-items-center gap-2">
+                <i class="bi bi-pie-chart-fill text-primary"></i>
+                Scheme Distribution
+              </h5>
+              <div class="chart-actions">
+                <button class="btn btn-sm btn-outline-secondary" onclick="exportCSV('sun')">CSV</button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="exportPDF('sun')">PDF</button>
+              </div>
+            </div>
+            <div id="sun" style="height:400px"></div>
+          </div>
+        </div>
+        <div class="col-lg-4 d-flex">
+          <div class="card p-3 shadow w-100">
+            <div class="d-flex justify-content-between">
+              <h5 class="d-flex align-items-center gap-2">
+                <i class="bi bi-bar-chart-fill text-success"></i>
+                District Summary
+              </h5>
+              <div class="chart-actions">
+                <button class="btn btn-sm btn-outline-secondary" onclick="exportCSV('bar')">CSV</button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="exportPDF('bar')">PDF</button>
+              </div>
+            </div>
+            <div id="bar" style="height:350px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      // LIVE AGE VALUE
+      $("#age").on("input",()=>$("#ageVal").text($("#age").val()));
+      
+      // MOCK DATA
+      let DATA = {
+      Chennai:{KMUT:7000,DBT:5000,shops:180},
+      Madurai:{KMUT:4000,DBT:4000,shops:140}
+      };
+      
+      // CASCADING
+      let HIERARCHY = {
+      Chennai:{Ambattur:{A:["PDS101","PDS102"]}},
+      Madurai:{Thirumangalam:{X:["PDS201","PDS202"]}}
+      };
+      
+      $("#district").change(function(){
+      let d=$(this).val();
+      $("#taluk").html("<option>All</option>");
+      if(d!="ALL") Object.keys(HIERARCHY[d]).forEach(t=>$("#taluk").append(`<option>${t}</option>`));
+      });
+      
+      $("#taluk").change(function(){
+      let d=$("#district").val(), t=$(this).val();
+      $("#village").html("<option>All</option>");
+      if(t!="All") Object.keys(HIERARCHY[d][t]).forEach(v=>$("#village").append(`<option>${v}</option>`));
+      });
+      
+      $("#village").change(function(){
+      let d=$("#district").val(), t=$("#taluk").val(), v=$(this).val();
+      $("#pds").html("<option>All</option>");
+      if(v!="All") HIERARCHY[d][t][v].forEach(p=>$("#pds").append(`<option>${p}</option>`));
+      });
+      
+      // CHARTS
+      let sunChart=echarts.init(document.getElementById("sun"));
+      let barChart=echarts.init(document.getElementById("bar"));
+      
+      function renderKPIs(total, shops, schemeTotals){
+        let html="";
+      
+        // Static KPIs
+        html += kpiCard("Total Beneficiaries", total, "bi-people-fill");
+      // html += kpiCard("Active Shops", shops, "bi-shop");
+      
+        // html += kpiCard("Total Beneficiaries", total);
+        // html += kpiCard("Active Shops", shops);
+      
+        // Dynamic schemes
+        // Object.keys(schemeTotals).forEach(s=>{
+        //   html += kpiCard(s, schemeTotals[s]);
+        // });
+      
+        Object.keys(schemeTotals).forEach(s=>{
+          html += kpiCard(s, schemeTotals[s], "bi-cash-stack");
+        });   
+      
+      
+        $("#kpiRow").html(html);
+      }
+      
+      // function kpiCard(title, value){
+      //   return `
+      //   <div class="col-md-3 col-lg-2">
+      //     <div class="card kpi p-3">
+      //       <div>${title}</div>
+      //       <h3>${value}</h3>
+      //     </div>
+      //   </div>`;
+      // }
+      
+      function kpiCard(title, value, icon){
+        return `
+        <div class="col-md-3 col-lg-2">
+          <div class="card kpi p-3 position-relative">
+            <div class="small">${title}</div>
+            <h3>${value}</h3>
+            <i class="bi ${icon} kpi-icon"></i>
+          </div>
+        </div>`;
+      }
+      
+      
+      
+      function applyFilters(){
+      let dist=$("#district").val();
+      let schemes=$(".scheme:checked").map((i,e)=>e.value).get();
+      
+      let sunData=[],schemeTotals={},total=0,shops=0;
+      
+      Object.keys(DATA).forEach(d=>{
+      if(dist!="ALL" && d!=dist) return;
+      let children=[],sum=0;
+      schemes.forEach(s=>{
+      let v=DATA[d][s];
+      children.push({name:s,value:v});
+      schemeTotals[s]=(schemeTotals[s]||0)+v;
+      sum+=v; total+=v;
+      });
+      sunData.push({name:d,value:sum,children});
+      shops+=DATA[d].shops;
+      });
+      
+      $("#kTotal").text(total);
+      $("#kShops").text(shops);
+      renderKPIs(total, shops, schemeTotals);
+       
+      sunChart.setOption({
+      tooltip:{formatter:i=>`${i.name}<br>${i.value}`},
+      series:{type:"sunburst",radius:["0%","90%"],data:sunData,label:{formatter:"{b}\n{c}"}}
+      });
+      
+      barChart.setOption({
+      xAxis:{type:"category",data:sunData.map(d=>d.name)},
+      yAxis:{type:"value"},
+      series:[{type:"bar",data:sunData.map(d=>d.value)}]
+      });
+      }
+      
+      function resetAll(){
+      $("#district").val("ALL");
+      $("#taluk,#village,#pds").html("<option>All</option>");
+      $(".scheme").prop("checked",true);
+      $("#gender").val("ALL");
+      $("#age").val(80); $("#ageVal").text(80);
+      applyFilters();
+      }
+      
+      // EXPORTS
+      function exportCSV(type){
+      let rows="Name,Value\n";
+      if(type=="sun"){
+      sunChart.getOption().series[0].data.forEach(d=>{
+      rows+=`${d.name},${d.value}\n`;
+      d.children.forEach(c=>rows+=`${c.name},${c.value}\n`);
+      });
+      }
+      if(type=="bar"){
+      barChart.getOption().series[0].data.forEach((v,i)=>{
+      rows+=`${barChart.getOption().xAxis[0].data[i]},${v}\n`;
+      });
+      }
+      let blob=new Blob([rows]);
+      let a=document.createElement("a");
+      a.href=URL.createObjectURL(blob);
+      a.download=type+".csv";
+      a.click();
+      }
+      
+      function exportPDF(type){
+      let el=type=="sun"?sun:bar;
+      html2canvas(el).then(c=>{
+      let pdf=new jspdf.jsPDF();
+      pdf.addImage(c.toDataURL(),"PNG",10,10,180,120);
+      pdf.save(type+".pdf");
+      });
+      }
+      
+      applyFilters();
+    </script>
+  </body>
+</html>
