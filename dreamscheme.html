@@ -333,6 +333,143 @@
                 padding: 6px !important;
             }
         }
+
+        /* No Remarks Entry Styling */
+        .no-remarks-entry {
+            border-left: 4px solid #6c757d;
+            background: linear-gradient(135deg, #f8f9fa, #ffffff);
+            transition: all 0.3s ease;
+        }
+
+        .no-remarks-entry:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .no-remarks-entry .badge {
+            font-size: 14px;
+            padding: 6px 12px;
+            min-width: 50px;
+        }
+
+        /* Unique Remarks Styling */
+        .remark-entry {
+            border-left: 4px solid #4f46e5;
+            background: white;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .remark-entry:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+        }
+
+        .remark-entry:before {
+            content: '✓';
+            position: absolute;
+            left: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #4f46e5;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .remark-entry:hover:before {
+            opacity: 1;
+        }
+
+        /* District Header */
+        .district-header {
+            background: linear-gradient(135deg, #f8f9ff, #ffffff);
+            border: 1px solid #e6e8ff;
+            transition: all 0.3s ease;
+        }
+
+        .district-header:hover {
+            border-color: #4f46e5;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+        }
+
+        /* Load More Button */
+        .btn-outline-primary {
+            border-width: 2px;
+            font-weight: 500;
+        }
+
+        .btn-outline-primary:hover {
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* All Entries Styling */
+        .all-entries-list .remark-entry:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .all-entries-list .remark-entry .badge.bg-secondary {
+            background: #6c757d !important;
+        }
+
+        /* Summary Header */
+        .bg-light.rounded {
+            border: 1px solid #e9ecef;
+        }
+
+        /* Scrollbar for scheme descriptions */
+        .scheme-description-card {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .scheme-description-card::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scheme-description-card::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .scheme-description-card::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .scheme-description-card::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .no-remarks-entry {
+                flex-direction: column !important;
+                text-align: center;
+            }
+
+            .no-remarks-entry .d-flex.align-items-center {
+                justify-content: center;
+                margin-bottom: 10px;
+            }
+
+            .no-remarks-entry .text-end {
+                text-align: center !important;
+            }
+
+            .remark-content .bg-light {
+                font-size: 13px;
+            }
+        }
     </style>
 </head>
 
@@ -3275,7 +3412,7 @@
                     "sort_columns": {
                         "created_ts": "desc"
                     },
-                    "limit_rows": 150, // Increased for multiple schemes
+                    "limit_rows": 150000000,
                     "offset_rows": 0
                 };
 
@@ -4065,153 +4202,494 @@
             });
         }
 
-        // Create HTML card for scheme descriptions
+
+        // Create HTML card for scheme descriptions with condensed "No remarks" entries
         function createSchemeDescriptionCard(schemeInfo, descriptions) {
             const hasDescriptions = descriptions && descriptions.length > 0;
 
             let descriptionContent = '';
 
             if (hasDescriptions) {
+                // Calculate correct totals
+                const totalEntries = descriptions.length;
+
+                // Separate entries with actual remarks
+                const entriesWithRemarks = descriptions.filter(desc => {
+                    const remark = desc.suggestion_remarks;
+                    return remark &&
+                        remark.trim() !== '' &&
+                        remark.toLowerCase() !== 'no remarks provided';
+                });
+
+                const entriesWithoutRemarks = descriptions.filter(desc => {
+                    const remark = desc.suggestion_remarks;
+                    return !remark ||
+                        remark.trim() === '' ||
+                        remark.toLowerCase() === 'no remarks provided';
+                });
+
+                // Get truly unique remarks (excluding duplicates)
+                const uniqueRemarksSet = new Set();
+                entriesWithRemarks.forEach(desc => {
+                    uniqueRemarksSet.add(desc.suggestion_remarks.trim());
+                });
+
+                const uniqueRemarksCount = uniqueRemarksSet.size;
+                const withoutRemarksCount = entriesWithoutRemarks.length;
+
+                console.log(`Scheme ${schemeInfo.schemeId} counts:`, {
+                    total: totalEntries,
+                    withRemarks: entriesWithRemarks.length,
+                    withoutRemarks: withoutRemarksCount,
+                    uniqueRemarks: uniqueRemarksCount,
+                    validation: totalEntries === (entriesWithRemarks.length + withoutRemarksCount)
+                });
+
                 // Group descriptions by district
                 const descriptionsByDistrict = {};
 
                 descriptions.forEach(desc => {
                     const district = desc.district_name || 'Unknown District';
                     if (!descriptionsByDistrict[district]) {
-                        descriptionsByDistrict[district] = [];
+                        descriptionsByDistrict[district] = {
+                            allEntries: [],
+                            entriesWithRemarks: [],
+                            entriesWithoutRemarks: []
+                        };
                     }
-                    descriptionsByDistrict[district].push(desc);
+
+                    const remark = desc.suggestion_remarks;
+                    const hasRemark = remark &&
+                        remark.trim() !== '' &&
+                        remark.toLowerCase() !== 'no remarks provided';
+
+                    descriptionsByDistrict[district].allEntries.push(desc);
+
+                    if (hasRemark) {
+                        descriptionsByDistrict[district].entriesWithRemarks.push(desc);
+                    } else {
+                        descriptionsByDistrict[district].entriesWithoutRemarks.push(desc);
+                    }
                 });
 
                 // Create collapsible sections for each district
-                const districtSections = Object.keys(descriptionsByDistrict).map(district => {
-                    const districtDesc = descriptionsByDistrict[district];
-                    const uniqueCount = new Set(districtDesc.map(d => d.suggestion_remarks)).size;
+                let districtSections = '';
 
-                    return `
-                    <div class="accordion-item mb-1">
-                        <h2 class="accordion-header" id="heading-${schemeInfo.schemeId}-${district.replace(/\s+/g, '-')}">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
-                                    data-bs-target="#collapse-${schemeInfo.schemeId}-${district.replace(/\s+/g, '-')}" 
-                                    aria-expanded="false" aria-controls="collapse-${schemeInfo.schemeId}-${district.replace(/\s+/g, '-')}">
+                Object.keys(descriptionsByDistrict).forEach(district => {
+                    const districtData = descriptionsByDistrict[district];
+                    const districtEntries = districtData.allEntries;
+                    const districtWithRemarks = districtData.entriesWithRemarks;
+                    const districtWithoutRemarks = districtData.entriesWithoutRemarks;
+
+                    // Get unique remarks for this district
+                    const districtUniqueRemarksSet = new Set();
+                    const districtUniqueRemarksEntries = [];
+
+                    districtWithRemarks.forEach(desc => {
+                        const remark = desc.suggestion_remarks.trim();
+                        if (!districtUniqueRemarksSet.has(remark)) {
+                            districtUniqueRemarksSet.add(remark);
+                            districtUniqueRemarksEntries.push(desc);
+                        }
+                    });
+
+                    districtSections += `
+                <div class="district-section mb-3">
+                    <div class="district-header d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded">
+                        <div>
+                            <h6 class="mb-0 fw-bold">
                                 <i class="bi bi-geo-alt me-2"></i>
                                 ${district}
-                                <span class="badge bg-primary ms-2">${districtDesc.length} entries</span>
-                                <span class="badge bg-info ms-1">${uniqueCount} unique remarks</span>
+                            </h6>
+                            <small class="text-muted">
+                                ${districtEntries.length} entries • 
+                                ${districtUniqueRemarksEntries.length} unique remarks
+                                ${districtWithoutRemarks.length > 0 ? ` • ${districtWithoutRemarks.length} without remarks` : ''}
+                            </small>
+                        </div>
+                        ${districtEntries.length > (districtUniqueRemarksEntries.length + 1) ? `
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="toggleAllEntries('${schemeInfo.schemeId}', '${district.replace(/\s+/g, '-')}')">
+                                <i class="bi bi-chevron-down"></i> Show All
                             </button>
-                        </h2>
-                        <div id="collapse-${schemeInfo.schemeId}-${district.replace(/\s+/g, '-')}" 
-                             class="accordion-collapse collapse" 
-                             aria-labelledby="heading-${schemeInfo.schemeId}-${district.replace(/\s+/g, '-')}">
-                            <div class="accordion-body p-0">
-                                <div class="list-group list-group-flush">
-                                    ${districtDesc.slice(0, 10).map((desc, idx) => `
-                                        <div class="list-group-item p-2 border-bottom">
-                                            <div class="d-flex justify-content-between align-items-start mb-1">
-                                                <div>
+                        ` : ''}
+                    </div>
+                    
+                    <!-- Condensed View -->
+                    <div class="condensed-view" id="condensed-${schemeInfo.schemeId}-${district.replace(/\s+/g, '-')}">
+                        <!-- Show No Remarks Provided once with count -->
+                        ${districtWithoutRemarks.length > 0 ? `
+                            <div class="no-remarks-entry mb-2 p-2 border rounded bg-light">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-chat-x text-muted me-2 fs-5"></i>
+                                        <div>
+                                            <span class="fw-medium">No remarks provided</span>
+                                            <div class="d-flex gap-2 mt-1">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-calendar me-1"></i>
+                                                    ${districtWithoutRemarks[0].created_ts ? new Date(districtWithoutRemarks[0].created_ts).toLocaleDateString() : 'N/A'}
+                                                </small>
+                                                ${districtWithoutRemarks[0].taluk_name ? `
                                                     <small class="text-muted">
-                                                        <i class="bi bi-calendar me-1"></i>
-                                                        ${desc.created_ts ? new Date(desc.created_ts).toLocaleDateString() : 'N/A'}
+                                                        <i class="bi bi-geo me-1"></i>
+                                                        ${districtWithoutRemarks[0].taluk_name}
                                                     </small>
-                                                    ${desc.taluk_name ? `<small class="text-muted ms-2"><i class="bi bi-geo me-1"></i>${desc.taluk_name}</small>` : ''}
-                                                    ${desc.village_name ? `<small class="text-muted ms-2"><i class="bi bi-geo-alt me-1"></i>${desc.village_name}</small>` : ''}
-                                                </div>
-                                                <span class="badge ${desc.active === 1 ? 'bg-success' : 'bg-secondary'}">
-                                                    ${desc.active === 1 ? 'Active' : 'Inactive'}
-                                                </span>
+                                                ` : ''}
                                             </div>
-                                            <div class="mt-1">
-                                                <p class="mb-1 fw-semibold">Description:</p>
-                                                <div class="bg-light p-1 rounded">
-                                                    ${desc.suggestion_remarks || '<em class="text-muted">No remarks provided</em>'}
-                                                </div>
-                                            </div>
-                                            ${desc.shopcode ? `
-                                                <div class="mt-1">
-                                                    <small class="text-muted">
-                                                        <i class="bi bi-shop me-1"></i>
-                                                        Shop: ${desc.shopcode}
-                                                    </small>
-                                                </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-secondary fs-6">${districtWithoutRemarks.length}</span>
+                                        <small class="d-block text-muted mt-1">entries</small>
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        <!-- Show Unique Remarks -->
+                        ${districtUniqueRemarksEntries.length > 0 ? districtUniqueRemarksEntries.slice(0, 5).map((desc, idx) => `
+                            <div class="remark-entry mb-2 p-2 border rounded bg-white">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar me-1"></i>
+                                            ${desc.created_ts ? new Date(desc.created_ts).toLocaleDateString() : 'N/A'}
+                                        </small>
+                                        ${desc.taluk_name ? `
+                                            <small class="text-muted ms-2">
+                                                <i class="bi bi-geo me-1"></i>
+                                                ${desc.taluk_name}
+                                            </small>
+                                        ` : ''}
+                                        ${desc.village_name ? `
+                                            <small class="text-muted ms-2">
+                                                <i class="bi bi-geo-alt me-1"></i>
+                                                ${desc.village_name}
+                                            </small>
+                                        ` : ''}
+                                    </div>
+                                    <span class="badge ${desc.active === 1 ? 'bg-success' : 'bg-secondary'}">
+                                        ${desc.active === 1 ? 'Active' : 'Inactive'}
+                                    </span>
+                                </div>
+                                <div class="remark-content">
+                                    <p class="mb-1 fw-semibold">Remark:</p>
+                                    <div class="bg-light p-2 rounded">
+                                        ${desc.suggestion_remarks}
+                                    </div>
+                                </div>
+                                ${desc.shopcode ? `
+                                    <div class="mt-2">
+                                        <small class="text-muted">
+                                            <i class="bi bi-shop me-1"></i>
+                                            Shop: ${desc.shopcode}
+                                        </small>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `).join('') : ''}
+                        
+                        <!-- Load More for Unique Remarks -->
+                        ${districtUniqueRemarksEntries.length > 5 ? `
+                            <div class="text-center mt-2">
+                                <button class="btn btn-sm btn-outline-primary" 
+                                        onclick="loadMoreUniqueRemarks('${schemeInfo.schemeId}', '${district.replace(/\s+/g, '-')}', 5)">
+                                    <i class="bi bi-plus-circle me-1"></i>
+                                    Load ${districtUniqueRemarksEntries.length - 5} more unique remarks
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <!-- All Entries View (Hidden by Default) -->
+                    <div class="all-entries d-none" id="all-${schemeInfo.schemeId}-${district.replace(/\s+/g, '-')}">
+                        <div class="all-entries-header d-flex justify-content-between align-items-center p-2 bg-light border rounded mb-2">
+                            <small class="fw-bold">All ${districtEntries.length} Entries</small>
+                            <button class="btn btn-sm btn-outline-secondary" 
+                                    onclick="toggleAllEntries('${schemeInfo.schemeId}', '${district.replace(/\s+/g, '-')}')">
+                                <i class="bi bi-chevron-up"></i> Show Condensed
+                            </button>
+                        </div>
+                        
+                        <div class="all-entries-list">
+                            ${districtEntries.map((desc, idx) => {
+                        const hasRemark = desc.suggestion_remarks &&
+                            desc.suggestion_remarks.trim() !== '' &&
+                            desc.suggestion_remarks.toLowerCase() !== 'no remarks provided';
+
+                        return `
+                                <div class="remark-entry mb-2 p-2 border rounded ${!hasRemark ? 'bg-light' : 'bg-white'} ${idx >= 10 ? 'opacity-75' : ''}">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <small class="text-muted">
+                                                <i class="bi bi-calendar me-1"></i>
+                                                ${desc.created_ts ? new Date(desc.created_ts).toLocaleDateString() : 'N/A'}
+                                            </small>
+                                            ${desc.taluk_name ? `
+                                                <small class="text-muted ms-2">
+                                                    <i class="bi bi-geo me-1"></i>
+                                                    ${desc.taluk_name}
+                                                </small>
+                                            ` : ''}
+                                            ${desc.village_name ? `
+                                                <small class="text-muted ms-2">
+                                                    <i class="bi bi-geo-alt me-1"></i>
+                                                    ${desc.village_name}
+                                                </small>
                                             ` : ''}
                                         </div>
-                                    `).join('')}
-                                    ${districtDesc.length > 10 ? `
-                                        <div class="list-group-item p-2 text-center">
+                                        <div>
+                                            <span class="badge ${desc.active === 1 ? 'bg-success' : 'bg-secondary'}">
+                                                ${desc.active === 1 ? 'Active' : 'Inactive'}
+                                            </span>
+                                            ${!hasRemark ?
+                                '<span class="badge bg-secondary ms-1">No Remark</span>' : ''}
+                                        </div>
+                                    </div>
+                                    ${hasRemark ? `
+                                        <div class="remark-content">
+                                            <p class="mb-1 fw-semibold">Remark:</p>
+                                            <div class="bg-light p-2 rounded">
+                                                ${desc.suggestion_remarks}
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                    ${desc.shopcode ? `
+                                        <div class="mt-2">
                                             <small class="text-muted">
-                                                ...and ${districtDesc.length - 10} more entries
+                                                <i class="bi bi-shop me-1"></i>
+                                                Shop: ${desc.shopcode}
                                             </small>
                                         </div>
                                     ` : ''}
                                 </div>
-                            </div>
+                                `;
+                    }).join('')}
                         </div>
                     </div>
-                `;
-                }).join('');
+                </div>
+            `;
+                });
+
+                // Store data for navigation
+                if (!window[`schemeData_${schemeInfo.schemeId}`]) {
+                    window[`schemeData_${schemeInfo.schemeId}`] = {};
+                }
+
+                Object.keys(descriptionsByDistrict).forEach(district => {
+                    const districtKey = district.replace(/\s+/g, '-');
+                    window[`schemeData_${schemeInfo.schemeId}`][districtKey] = {
+                        allEntries: descriptionsByDistrict[district].allEntries,
+                        entriesWithRemarks: descriptionsByDistrict[district].entriesWithRemarks,
+                        entriesWithoutRemarks: descriptionsByDistrict[district].entriesWithoutRemarks,
+                        showingAll: false
+                    };
+                });
+
+                // Summary validation
+                const calculatedTotal = uniqueRemarksCount + withoutRemarksCount;
+                const validationMessage = calculatedTotal !== totalEntries ?
+                    `<small class="text-warning d-block mt-1">
+                <i class="bi bi-exclamation-triangle"></i> 
+                Note: ${totalEntries - calculatedTotal} entries have duplicate remarks
+            </small>` : '';
 
                 descriptionContent = `
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="mb-3">
+                <div class="summary-header d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded border">
+                    <div>
+                        <h6 class="mb-1 fw-bold">
+                            <i class="bi bi-bar-chart me-2"></i>
+                            Summary Statistics
+                        </h6>
                         <div>
-                            <h6 class="mb-1 fw-bold">${descriptions.length} Description${descriptions.length !== 1 ? 's' : ''} Found</h6>
-                            <small class="text-muted">Across ${Object.keys(descriptionsByDistrict).length} districts</small>
+                            <span class="badge bg-primary">${totalEntries} total entries</span>
+                            <span class="badge bg-success ms-2">${uniqueRemarksCount} unique remarks</span>
+                            <span class="badge bg-secondary ms-2">${withoutRemarksCount} without remarks</span>
                         </div>
-                        <span class="badge bg-warning">${schemeInfo.category}</span>
+                        ${validationMessage}
                     </div>
-                    <div class="accordion" id="accordion-${schemeInfo.schemeId}">
-                        ${districtSections}
-                    </div>
+                 
                 </div>
-            `;
+                
+                ${districtSections}
+            </div>
+        `;
+
             } else {
                 descriptionContent = `
-                <div class="text-center py-3">
-                    <i class="bi bi-chat-dots fs-4 text-muted mb-2 d-block"></i>
-                    <p class="text-muted mb-0">No descriptions found for this scheme</p>
-                    <small class="text-muted">Try adjusting filters or select a different scheme</small>
-                </div>
-            `;
+            <div class="text-center py-4">
+                <i class="bi bi-chat-dots fs-4 text-muted mb-2 d-block"></i>
+                <p class="text-muted mb-0">No descriptions found for this scheme</p>
+                <small class="text-muted">Try adjusting filters or select a different scheme</small>
+            </div>
+        `;
             }
 
             return `
-            <div class="scheme-description-card p-2 mb-2">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <div>
-                        <h5 class="fw-bold mb-1">${schemeInfo.schemeName}</h5>
-                        <small class="text-muted">Dream Scheme ${schemeInfo.position}</small>
-                    </div>
-                    <div class="d-flex gap-1">
-                        <span class="badge bg-warning">${schemeInfo.category}</span>
-                        <span class="badge bg-info">ID: ${schemeInfo.schemeId}</span>
-                    </div>
+        <div class="scheme-description-card p-3 mb-3">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <h5 class="fw-bold mb-1">${schemeInfo.schemeName}</h5>
+                    <small class="text-muted">Dream Scheme ${schemeInfo.position}</small>
                 </div>
-                
-                ${descriptionContent}
-                
-                <div class="mt-2 pt-2 border-top">
-                    <div class="row g-1">
-                        <div class="col-6">
-                            <small class="text-muted">
-                                <i class="bi bi-database me-1"></i>
-                                Total entries: ${hasDescriptions ? descriptions.length : 0}
-                            </small>
-                        </div>
-                        <div class="col-6 text-end">
-                            <small class="text-muted">
-                                <i class="bi bi-clock me-1"></i>
-                                Updated just now
-                            </small>
-                        </div>
+                <div class="d-flex gap-1">
+                    <span class="badge bg-warning">${schemeInfo.category}</span>
+                    <span class="badge bg-info">ID: ${schemeInfo.schemeId}</span>
+                </div>
+            </div>
+            
+            ${descriptionContent}
+            
+            <div class="mt-2 pt-2 border-top">
+                <div class="row g-1">
+                    <div class="col-6">
+                        <small class="text-muted">
+                            <i class="bi bi-database me-1"></i>
+                            Total entries: ${hasDescriptions ? descriptions.length : 0}
+                        </small>
+                    </div>
+                    <div class="col-6 text-end">
+                        <small class="text-muted">
+                            <i class="bi bi-clock me-1"></i>
+                            Updated just now
+                        </small>
                     </div>
                 </div>
             </div>
-        `;
+        </div>
+    `;
+        }
+        // Function to toggle between condensed and all entries
+        function toggleAllEntries(schemeId, district) {
+            const uniqueDiv = $(`#unique-${schemeId}-${district}`);
+            const allDiv = $(`#all-${schemeId}-${district}`);
+            const btn = $(`.district-header button[onclick="toggleAllEntries('${schemeId}', '${district}')"]`);
+
+            if (uniqueDiv.is(':visible')) {
+                uniqueDiv.addClass('d-none');
+                allDiv.removeClass('d-none');
+                if (btn.length) {
+                    btn.html('<i class="bi bi-chevron-up"></i> Show Condensed');
+                    btn.removeClass('btn-outline-primary').addClass('btn-outline-secondary');
+                }
+            } else {
+                uniqueDiv.removeClass('d-none');
+                allDiv.addClass('d-none');
+                if (btn.length) {
+                    btn.html('<i class="bi bi-chevron-down"></i> Show All');
+                    btn.removeClass('btn-outline-secondary').addClass('btn-outline-primary');
+                }
+            }
+
+            // Update stored state
+            if (window[`schemeData_${schemeId}`] && window[`schemeData_${schemeId}`][district]) {
+                window[`schemeData_${schemeId}`][district].showingAll = !window[`schemeData_${schemeId}`][district].showingAll;
+            }
         }
 
-        // ================== CHART FUNCTIONS ==================
+        // Function to load more unique remarks
+        function loadMoreUniqueRemarks(schemeId, district, currentOffset) {
+            const data = window[`schemeData_${schemeId}`];
+            if (!data || !data[district]) return;
 
-        // Update geographic distribution pie chart
+            // Find all unique remarks for this district
+            const districtEntries = data[district].allEntries;
+            const uniqueRemarks = [];
+            const seenRemarks = new Set();
+
+            districtEntries.forEach(desc => {
+                const remark = desc.suggestion_remarks;
+                if (remark && remark.toLowerCase() !== 'no remarks provided' && !seenRemarks.has(remark)) {
+                    seenRemarks.add(remark);
+                    uniqueRemarks.push(desc);
+                }
+            });
+
+            const container = $(`#unique-${schemeId}-${district}`);
+            const loadMoreBtn = $(`#unique-${schemeId}-${district} .btn[onclick*="${district}"]`);
+
+            // Calculate how many more to show
+            const nextOffset = currentOffset + 10;
+            const remaining = uniqueRemarks.length - nextOffset;
+
+            // Add next batch of unique remarks
+            const nextBatch = uniqueRemarks.slice(currentOffset, nextOffset).map((desc, idx) => `
+        <div class="remark-entry mb-2 p-2 border rounded bg-white">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <small class="text-muted">
+                        <i class="bi bi-calendar me-1"></i>
+                        ${desc.created_ts ? new Date(desc.created_ts).toLocaleDateString() : 'N/A'}
+                    </small>
+                    ${desc.taluk_name ? `
+                        <small class="text-muted ms-2">
+                            <i class="bi bi-geo me-1"></i>
+                            ${desc.taluk_name}
+                        </small>
+                    ` : ''}
+                    ${desc.village_name ? `
+                        <small class="text-muted ms-2">
+                            <i class="bi bi-geo-alt me-1"></i>
+                            ${desc.village_name}
+                        </small>
+                    ` : ''}
+                </div>
+                <span class="badge ${desc.active === 1 ? 'bg-success' : 'bg-secondary'}">
+                    ${desc.active === 1 ? 'Active' : 'Inactive'}
+                </span>
+            </div>
+            <div class="remark-content">
+                <p class="mb-1 fw-semibold">Remark:</p>
+                <div class="bg-light p-2 rounded">
+                    ${desc.suggestion_remarks}
+                </div>
+            </div>
+            ${desc.shopcode ? `
+                <div class="mt-2">
+                    <small class="text-muted">
+                        <i class="bi bi-shop me-1"></i>
+                        Shop: ${desc.shopcode}
+                    </small>
+                </div>
+            ` : ''}
+        </div>
+    `).join('');
+
+            // Insert before the load more button
+            if (loadMoreBtn.length) {
+                loadMoreBtn.before(nextBatch);
+            } else {
+                container.append(nextBatch);
+            }
+
+            // Update or remove the load more button
+            if (remaining > 0) {
+                if (loadMoreBtn.length) {
+                    loadMoreBtn.html(`
+                <i class="bi bi-plus-circle me-1"></i>
+                Load ${remaining > 10 ? 10 : remaining} more unique remarks
+            `);
+                    loadMoreBtn.attr('onclick', `loadMoreUniqueRemarks('${schemeId}', '${district}', ${nextOffset})`);
+                }
+            } else {
+                loadMoreBtn.remove();
+            }
+        }
+
+        // Function to show all entries for all districts
+        function toggleShowAllDistricts(schemeId) {
+            const data = window[`schemeData_${schemeId}`];
+            if (!data) return;
+
+            Object.keys(data).forEach(district => {
+                if (!data[district].showingAll) {
+                    toggleAllEntries(schemeId, district);
+                }
+            });
+        }
+
         function updateGeographicDistributionChart(filteredData) {
             if (!pieChart) {
                 pieChart = echarts.init(document.getElementById("pie"));
@@ -4322,7 +4800,7 @@
             $('#filterSummary').text(`(${totalCount} records across ${districtCount} district${districtCount !== 1 ? 's' : ''})`);
         }
 
-        // Update summary cards
+
         function updateSummaryCards(filteredData) {
             const totalCount = filteredData.length;
 
