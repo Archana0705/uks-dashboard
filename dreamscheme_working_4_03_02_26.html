@@ -333,6 +333,143 @@
                 padding: 6px !important;
             }
         }
+
+        /* No Remarks Entry Styling */
+        .no-remarks-entry {
+            border-left: 4px solid #6c757d;
+            background: linear-gradient(135deg, #f8f9fa, #ffffff);
+            transition: all 0.3s ease;
+        }
+
+        .no-remarks-entry:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .no-remarks-entry .badge {
+            font-size: 14px;
+            padding: 6px 12px;
+            min-width: 50px;
+        }
+
+        /* Unique Remarks Styling */
+        .remark-entry {
+            border-left: 4px solid #4f46e5;
+            background: white;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .remark-entry:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+        }
+
+        .remark-entry:before {
+            content: '✓';
+            position: absolute;
+            left: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #4f46e5;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .remark-entry:hover:before {
+            opacity: 1;
+        }
+
+        /* District Header */
+        .district-header {
+            background: linear-gradient(135deg, #f8f9ff, #ffffff);
+            border: 1px solid #e6e8ff;
+            transition: all 0.3s ease;
+        }
+
+        .district-header:hover {
+            border-color: #4f46e5;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+        }
+
+        /* Load More Button */
+        .btn-outline-primary {
+            border-width: 2px;
+            font-weight: 500;
+        }
+
+        .btn-outline-primary:hover {
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* All Entries Styling */
+        .all-entries-list .remark-entry:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .all-entries-list .remark-entry .badge.bg-secondary {
+            background: #6c757d !important;
+        }
+
+        /* Summary Header */
+        .bg-light.rounded {
+            border: 1px solid #e9ecef;
+        }
+
+        /* Scrollbar for scheme descriptions */
+        .scheme-description-card {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .scheme-description-card::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scheme-description-card::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .scheme-description-card::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .scheme-description-card::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .no-remarks-entry {
+                flex-direction: column !important;
+                text-align: center;
+            }
+
+            .no-remarks-entry .d-flex.align-items-center {
+                justify-content: center;
+                margin-bottom: 10px;
+            }
+
+            .no-remarks-entry .text-end {
+                text-align: center !important;
+            }
+
+            .remark-content .bg-light {
+                font-size: 13px;
+            }
+        }
     </style>
 </head>
 
@@ -426,7 +563,7 @@
                     </div>
 
                     <!-- Demographic Filters -->
-                    <div class="filter-section demographic-filter">
+                    <!-- <div class="filter-section demographic-filter">
                         <div class="filter-group-title">
                             <i class="bi bi-people"></i>
                             Demographic Filters
@@ -463,7 +600,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
 
                     <!-- Scheme Filters - Top 3 -->
                     <div class="filter-section scheme-filter">
@@ -589,7 +726,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <!-- <div class="col-md-3">
                                 <div class="card p-2 shadow">
                                     <div class="d-flex align-items-center">
                                         <div class="rounded-circle bg-success bg-opacity-10 p-2 me-2">
@@ -601,7 +738,7 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
                             <div class="col-md-3">
                                 <div class="card p-2 shadow">
                                     <div class="d-flex align-items-center">
@@ -680,6 +817,7 @@
     <script src="assets/js/global.js"></script>
     <script src="assets/js/crypto-js.min.js"></script>
     <script src="assets/js/encrypt_decrypt.js"></script>
+
 
     <script>
         $(document).ready(function () {
@@ -1115,70 +1253,107 @@
             }
         }
 
-        // ================== MAIN FILTER API FUNCTION ==================
+        // ================== MAIN FILTER API FUNCTION WITH PROPER AND/OR STRUCTURE ==================
 
-        // Load filtered data from analytics_suggestionform_smple
         async function loadFilteredData(filters) {
+            debugger;
             try {
-                // Build filter conditions - FIXED: Initialize as empty object, only add conditions if they're not 'ALL'
-                let filterConditions = {};
+                console.log("Building filter conditions with AND/OR structure...");
+                console.log("Current scheme logic:", schemeLogic);
 
-                // Geographic filters - FIXED: Only add if not 'ALL'
+                // Collect geographic filters for AND condition
+                const andConditions = {};
+
                 if (filters.district && filters.district !== 'ALL') {
-                    filterConditions.district_id = filters.district;
+                    andConditions.district_id = filters.district;
                 }
                 if (filters.taluk && filters.taluk !== 'ALL') {
-                    filterConditions.taluk_id = filters.taluk;
+                    andConditions.taluk_id = filters.taluk;
                 }
                 if (filters.village && filters.village !== 'ALL') {
-                    filterConditions.village_id = filters.village;
+                    andConditions.village_id = filters.village;
                 }
                 if (filters.shop && filters.shop !== 'ALL') {
                     const shopOption = $('#shop option:selected');
                     if (shopOption.length > 0 && shopOption.text()) {
-                        filterConditions.shopcode = shopOption.text();
+                        andConditions.shopcode = shopOption.text();
                     }
                 }
 
-                // Gender filter (if applicable)
-                if (filters.gender && filters.gender !== 'ALL') {
-                    // Note: The table structure doesn't show a gender column
-                    // Add if your table has gender column
-                    // filterConditions.gender = filters.gender;
-                }
-
-                // Scheme filters (using OR logic for multiple schemes)
+                // Collect scheme filters (type_id values)
                 const schemeFilters = [];
                 for (let i = 1; i <= 3; i++) {
                     const schemeId = filters[`schemeList${i}`];
                     if (schemeId && schemeId !== 'ALL') {
-                        schemeFilters.push(schemeId);
+                        schemeFilters.push(schemeId.toString());
                     }
                 }
 
                 console.log("Scheme filters found:", schemeFilters);
-                console.log("Scheme logic:", schemeLogic);
 
-                // FIXED: Handle scheme filters properly
-                if (schemeFilters.length > 0) {
-                    if (schemeLogic === 'OR') {
-                        // OR logic: match any of the selected schemes
-                        // Create an array of filter conditions for OR
-                        const orConditions = schemeFilters.map(id => ({ type_id: id }));
-                        if (orConditions.length === 1) {
-                            filterConditions.type_id = schemeFilters[0];
-                        } else {
-                            filterConditions.$or = orConditions;
-                        }
+                // Build filterConditions based on schemeLogic and available filters
+                let filterConditions = {};
+
+                if (schemeFilters.length === 0) {
+                    // No scheme filters, just use geographic filters if any
+                    if (Object.keys(andConditions).length > 0) {
+                        filterConditions = {
+                            "and": andConditions
+                        };
+                    }
+                } else if (schemeLogic === 'AND') {
+                    // AND logic with scheme IDs - use comma-separated string in AND
+                    if (Object.keys(andConditions).length > 0) {
+                        // Combine geographic filters with scheme IDs in AND
+                        andConditions.type_id = schemeFilters.join(',');
+                        filterConditions = {
+                            "and": andConditions
+                        };
                     } else {
-                        // AND logic: For AND logic with multiple schemes, we need to ensure ALL selected schemes are present
-                        // This is more complex - for now, we'll use the first scheme
-                        // Note: True AND logic across multiple schemes would require multiple queries or subqueries
-                        filterConditions.type_id = schemeFilters[0];
+                        // Only scheme IDs with AND
+                        filterConditions = {
+                            "and": {
+                                "type_id": schemeFilters.join(',')
+                            }
+                        };
+                    }
+                } else {
+                    // OR logic with scheme IDs
+                    if (Object.keys(andConditions).length > 0) {
+                        // For OR logic with geographic filters, we need a structure where:
+                        // (district AND taluk AND...) AND (type_id IN [scheme1, scheme2, ...])
+                        // But since your API seems to support comma-separated in OR, we'll use that
+
+                        // Try this structure first:
+                        filterConditions = {
+                            "and": {
+                                "district_id": filters.district
+                            },
+                            "or": {
+                                "type_id": schemeFilters.join(',')
+                            }
+                        };
+
+                        console.log("Using structure: AND(geographic) with OR(schemes)");
+                    } else {
+                        // Only scheme IDs with OR
+                        filterConditions = {
+                            "or": {
+                                "type_id": schemeFilters.join(',')
+                            }
+                        };
                     }
                 }
 
-                console.log("Final filter conditions:", filterConditions);
+                // Clean up empty structures
+                if (JSON.stringify(filterConditions) === '{"and":{}}') {
+                    filterConditions = {};
+                }
+                if (JSON.stringify(filterConditions) === '{"or":{}}') {
+                    filterConditions = {};
+                }
+
+                console.log("Final filter conditions:", JSON.stringify(filterConditions, null, 2));
 
                 const payload = {
                     "action": "select",
@@ -1195,11 +1370,11 @@
                         "district_name": "asc",
                         "taluk_name": "asc"
                     },
-                    "limit_rows": 1000,
+                    "limit_rows": 10000,
                     "offset_rows": 0
                 };
 
-                console.log("Loading filtered data with payload:", payload);
+                console.log("Loading filtered data with payload:", JSON.stringify(payload, null, 2));
                 const response = await makeApiRequest(payload);
 
                 if (response && response.success === 1) {
@@ -1216,8 +1391,9 @@
                     }
 
                     if (Array.isArray(filteredList)) {
+                        console.log(`API returned ${filteredList.length} records`);
+                        // Keep full list for pie chart (no dedupe here); duplicates removed only for scheme descriptions
                         API_DATA.filteredData = filteredList;
-                        console.log(`Loaded ${filteredList.length} filtered records`);
                         return filteredList;
                     } else {
                         console.error("Filtered list is not an array:", filteredList);
@@ -1226,8 +1402,17 @@
                     }
                 } else {
                     console.error("API did not return success: 1 for filtered data");
-                    API_DATA.filteredData = [];
-                    return [];
+                    console.error("API Response:", response);
+
+                    if (response && response.message === 'No data found') {
+                        console.log("API returned 'No data found'");
+                        API_DATA.filteredData = [];
+                        return [];
+                    } else {
+                        // Fallback: return empty; no extra analytics API call
+                        API_DATA.filteredData = [];
+                        return [];
+                    }
                 }
             } catch (error) {
                 console.error('Error loading filtered data:', error);
@@ -1236,37 +1421,75 @@
             }
         }
 
-        // ================== SCHEME DESCRIPTION API FUNCTION ==================
-
-        // Load scheme descriptions
-        async function loadSchemeDescriptions(schemeId) {
+        // Load scheme descriptions for multiple schemes
+        async function loadSchemeDescriptions(schemeIds) {
             try {
-                // Build filter conditions
+                // Build filter conditions structure
                 let filterConditions = {};
 
-                // Always filter by scheme ID
-                filterConditions.type_id = schemeId;
-
-                // Apply current geographic filters if set
+                // Apply current geographic filters to AND condition
                 const district = $('#district').val();
                 const taluk = $('#taluk').val();
                 const village = $('#village').val();
                 const shop = $('#shop').val();
 
+                // Collect AND conditions
+                const andConditions = {};
+
                 if (district && district !== 'ALL') {
-                    filterConditions.district_id = district;
+                    andConditions.district_id = district;
                 }
                 if (taluk && taluk !== 'ALL') {
-                    filterConditions.taluk_id = taluk;
+                    andConditions.taluk_id = taluk;
                 }
                 if (village && village !== 'ALL') {
-                    filterConditions.village_id = village;
+                    andConditions.village_id = village;
                 }
                 if (shop && shop !== 'ALL') {
                     const shopOption = $('#shop option:selected');
                     if (shopOption.length > 0 && shopOption.text()) {
-                        filterConditions.shopcode = shopOption.text();
+                        andConditions.shopcode = shopOption.text();
                     }
+                }
+
+                // Check if schemeIds is an array or single value
+                if (Array.isArray(schemeIds) && schemeIds.length > 0) {
+                    // Convert array to array of strings
+                    const schemeIdsArray = schemeIds.map(id => id.toString());
+
+                    if (Object.keys(andConditions).length > 0) {
+                        // For descriptions with geographic filters: AND(geographic) with OR(schemes)
+                        filterConditions = {
+                            "and": andConditions,
+                            "or": {
+                                "type_id": schemeIdsArray.join(',')
+                            }
+                        };
+                    } else {
+                        // Only scheme IDs with OR
+                        filterConditions = {
+                            "or": {
+                                "type_id": schemeIdsArray.join(',')
+                            }
+                        };
+                    }
+                } else if (schemeIds) {
+                    // Single scheme ID - combine with geographic filters in AND
+                    andConditions.type_id = schemeIds;
+                    filterConditions = {
+                        "and": andConditions
+                    };
+                } else {
+                    console.error("No scheme IDs provided");
+                    return [];
+                }
+
+                // Clean up empty structures
+                if (JSON.stringify(filterConditions) === '{"and":{}}') {
+                    filterConditions = {};
+                }
+                if (JSON.stringify(filterConditions) === '{"or":{}}') {
+                    filterConditions = {};
                 }
 
                 const payload = {
@@ -1275,17 +1498,17 @@
                     "selected_columns": [
                         "district_name", "taluk_name", "village_name",
                         "suggestion_remarks", "created_ts", "shopcode",
-                        "scheme_name", "type", "active"
+                        "scheme_name", "type", "active", "type_id"
                     ],
                     "filter_conditions": filterConditions,
                     "sort_columns": {
                         "created_ts": "desc"
                     },
-                    "limit_rows": 50,
+                    "limit_rows": 1000,
                     "offset_rows": 0
                 };
 
-                console.log("Loading scheme descriptions with payload:", payload);
+                console.log("Loading scheme descriptions with filter:", JSON.stringify(filterConditions, null, 2));
                 const response = await makeApiRequest(payload);
 
                 if (response && response.success === 1) {
@@ -1302,7 +1525,7 @@
                     }
 
                     if (Array.isArray(descriptions)) {
-                        console.log(`Loaded ${descriptions.length} descriptions for scheme ${schemeId}`);
+                        console.log(`Loaded ${descriptions.length} descriptions for scheme(s) ${schemeIds}`);
                         return descriptions;
                     } else {
                         console.error("Description list is not an array:", descriptions);
@@ -1315,6 +1538,70 @@
             } catch (error) {
                 console.error('Error loading scheme descriptions:', error);
                 return [];
+            }
+        }
+
+        async function testAndOrApiStructure() {
+            try {
+                // Test payload with AND/OR structure
+                const testPayload = {
+                    "action": "select",
+                    "_table_name": "analytics.analytics_suggestionform_smple",
+                    "selected_columns": ["id", "type_id", "scheme_name"],
+                    "filter_conditions": {
+                        "and": {
+                            "district_id": "26"
+                        },
+                        "or": {
+                            "type_id": "265,623"
+                        }
+                    },
+                    "sort_columns": {},
+                    "limit_rows": 10,
+                    "offset_rows": 0
+                };
+
+                console.log("Testing AND/OR API structure:", JSON.stringify(testPayload, null, 2));
+                const response = await makeApiRequest(testPayload);
+
+                if (response && response.success === 1) {
+                    console.log("✅ AND/OR API structure accepted successfully!");
+                    const decryptedData = decryptData(response.data);
+                    console.log("Test response data:", decryptedData);
+                    return true;
+                } else {
+                    console.log("❌ API rejected AND/OR structure");
+                    console.log("Response:", response);
+
+                    // Try with only AND condition
+                    const testPayload2 = {
+                        "action": "select",
+                        "_table_name": "analytics.analytics_suggestionform_smple",
+                        "selected_columns": ["id", "type_id", "scheme_name"],
+                        "filter_conditions": {
+                            "and": {
+                                "district_id": "26",
+                                "type_id": "265"
+                            }
+                        },
+                        "sort_columns": {},
+                        "limit_rows": 10,
+                        "offset_rows": 0
+                    };
+
+                    console.log("Testing AND-only structure:", JSON.stringify(testPayload2, null, 2));
+                    const response2 = await makeApiRequest(testPayload2);
+
+                    if (response2 && response2.success === 1) {
+                        console.log("✅ AND-only structure accepted successfully!");
+                        return 'and-only';
+                    }
+
+                    return false;
+                }
+            } catch (error) {
+                console.error("Error testing AND/OR API structure:", error);
+                return false;
             }
         }
 
@@ -1332,7 +1619,7 @@
                     dataType: "json",
                     data: { data: encryptedPayload },
                     success: function (response) {
-                        console.log("API Success Response:", response);
+                        console.log("API Success Response received", response);
                         return response;
                     },
                     error: function (xhr, status, error) {
@@ -1630,6 +1917,14 @@
             $('#village').prop('disabled', true);
             $('#shop').html('<option value="ALL" selected>Select village first</option>');
 
+            // When user changes district (scheme -> district), reset scheme category and scheme list so district -> scheme hierarchy holds
+            for (let i = 1; i <= 3; i++) {
+                $(`#schemeCategory${i}`).val('ALL');
+                populateSchemeDropdown(i, 'ALL');
+                $(`#schemeList${i}`).val('ALL');  // force scheme list to All Schemes (populateSchemeDropdown may restore previous)
+            }
+            showSchemeDescriptionsPlaceholder();
+
             if (districtId !== 'ALL') {
                 try {
                     // Load taluks for selected district
@@ -1738,11 +2033,8 @@
                         console.log(`Loaded ${schemes.length} schemes for category: ${category}`);
                     }
 
-                    // Populate scheme dropdown
+                    // Populate scheme dropdown only; no API call for analytics_suggestionform_smple
                     populateSchemeDropdown(position, category);
-
-                    // Update scheme descriptions if scheme is selected
-                    updateSchemeDescriptions();
 
                 } catch (error) {
                     console.error(`Error loading schemes for category ${category}:`, error);
@@ -1754,11 +2046,10 @@
                     await loadAllSchemes();
                 }
                 populateSchemeDropdown(position, 'ALL');
-                updateSchemeDescriptions();
             }
 
-            // Apply filters
-            applyFilters();
+            // Show placeholder; user must click Apply Filters to load data
+            showSchemeDescriptionsPlaceholder();
         }
 
         // ================== INITIALIZATION FUNCTION ==================
@@ -1784,6 +2075,8 @@
                     populateSchemeDropdown(i, 'ALL');
                 }
 
+                // No test API call on init - analytics_suggestionform_smple is only called when user clicks Apply Filters
+
                 console.log("All data initialized successfully");
 
             } catch (error) {
@@ -1800,6 +2093,51 @@
         }
 
         // ================== EVENT LISTENERS SETUP ==================
+
+        // Debug filters function
+        function debugFilters() {
+            console.log("=== FILTER DEBUG INFO ===");
+
+            // Collect all filter values
+            const filters = {
+                district: $('#district').val(),
+                taluk: $('#taluk').val(),
+                village: $('#village').val(),
+                shop: $('#shop').val(),
+                schemeLogic: schemeLogic
+            };
+
+            // Collect scheme filters
+            const schemeFilters = [];
+            for (let i = 1; i <= 3; i++) {
+                const category = $(`#schemeCategory${i}`).val();
+                const schemeId = $(`#schemeList${i}`).val();
+                if (schemeId !== 'ALL' && category !== 'ALL') {
+                    schemeFilters.push({
+                        position: i,
+                        category: category,
+                        schemeId: schemeId,
+                        schemeName: $(`#schemeList${i} option:selected`).text()
+                    });
+                }
+            }
+
+            console.log("Geographic Filters:", filters);
+            console.log("Scheme Filters:", schemeFilters);
+            console.log("Scheme Logic:", schemeLogic);
+
+            alert(`Debug Info:\n\nScheme Filters: ${schemeFilters.length}\nScheme Logic: ${schemeLogic}\n\nCheck console for details.`);
+        }
+
+        // Add debug button
+        function addDebugButton() {
+            const debugBtn = $('<button>')
+                .addClass('btn btn-sm btn-outline-info ms-2')
+                .html('<i class="bi bi-bug"></i> Debug')
+                .click(debugFilters);
+
+            $('.justify-content-end').append(debugBtn);
+        }
 
         // Set up event listeners
         function setupEventListeners() {
@@ -1821,26 +2159,135 @@
                 });
             }
 
-            // Scheme list filters
+            // Scheme list filters - do NOT call API on change; user must click Apply Filters
             for (let i = 1; i <= 3; i++) {
                 $(`#schemeList${i}`).on('change', function () {
-                    updateSchemeDescriptions();
-                    applyFilters();
+                    showSchemeDescriptionsPlaceholder();
                 });
             }
+
+            // Add debug button
+            addDebugButton();
 
             console.log("Event listeners setup complete");
         }
 
         // ================== SCHEME DESCRIPTIONS ==================
 
-        // Update scheme descriptions with real data
+        // Show placeholder without API call (used when scheme/category changes)
+        function showSchemeDescriptionsPlaceholder() {
+            const descriptionsContainer = $('#schemeDescriptions');
+            descriptionsContainer.empty();
+
+            let selectedCount = 0;
+            for (let i = 1; i <= 3; i++) {
+                const schemeId = $(`#schemeList${i}`).val();
+                const category = $(`#schemeCategory${i}`).val();
+                if (schemeId !== 'ALL' && category !== 'ALL') selectedCount++;
+            }
+
+            if (selectedCount === 0) {
+                descriptionsContainer.html(`
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-stars fs-1 mb-2 d-block"></i>
+                <p>Select dream schemes to view descriptions</p>
+                <small class="text-muted">Select scheme categories and specific schemes, then click Apply Filters</small>
+            </div>
+        `);
+            } else {
+                descriptionsContainer.html(`
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-funnel fs-1 mb-2 d-block"></i>
+                <p>Click <strong>Apply Filters</strong> to load data</p>
+                <small class="text-muted">Scheme selection updated. Apply filters to refresh results.</small>
+            </div>
+        `);
+            }
+        }
+
+        // Update scheme descriptions from already-fetched filtered data (no extra API call)
+        function updateSchemeDescriptionsFromData(filteredData) {
+            const descriptionsContainer = $('#schemeDescriptions');
+            descriptionsContainer.empty();
+
+            let selectedSchemes = [];
+
+            for (let i = 1; i <= 3; i++) {
+                const schemeSelect = $(`#schemeList${i}`);
+                const categorySelect = $(`#schemeCategory${i}`);
+                const selectedSchemeId = schemeSelect.val();
+                const selectedCategory = categorySelect.val();
+
+                if (selectedSchemeId !== 'ALL' && selectedCategory !== 'ALL') {
+                    const scheme = API_DATA.allSchemes.find(s =>
+                        (s.scheme_id || s.id) == selectedSchemeId
+                    );
+                    if (scheme) {
+                        selectedSchemes.push({
+                            schemeId: selectedSchemeId,
+                            schemeName: scheme.scheme_name || scheme.name || 'Unknown Scheme',
+                            category: scheme.schemetype || selectedCategory,
+                            position: i
+                        });
+                    }
+                }
+            }
+
+            if (selectedSchemes.length === 0 || !Array.isArray(filteredData) || filteredData.length === 0) {
+                if (selectedSchemes.length === 0) {
+                    descriptionsContainer.html(`
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-stars fs-1 mb-2 d-block"></i>
+                <p>Select dream schemes to view descriptions</p>
+                <small class="text-muted">Select scheme categories and specific schemes to see details</small>
+            </div>
+        `);
+                } else {
+                    descriptionsContainer.html(`
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-stars fs-1 mb-2 d-block"></i>
+                <p>No descriptions found for selected schemes</p>
+                <small class="text-muted">Try selecting different schemes or adjust filters</small>
+            </div>
+        `);
+                }
+                return;
+            }
+
+            // Remove duplicates by ufcno for scheme descriptions only (pie chart keeps full count)
+            const uniqueByUfcno = new Map();
+            filteredData.forEach((row, idx) => {
+                const key = row.ufcno != null ? String(row.ufcno) : (row.id != null ? `id_${row.id}` : `idx_${idx}`);
+                if (!uniqueByUfcno.has(key)) {
+                    uniqueByUfcno.set(key, row);
+                }
+            });
+            const dataForDescriptions = Array.from(uniqueByUfcno.values());
+
+            const descriptionsByScheme = {};
+            selectedSchemes.forEach(scheme => {
+                descriptionsByScheme[scheme.schemeId] = { scheme: scheme, descriptions: [] };
+            });
+
+            dataForDescriptions.forEach(row => {
+                const schemeId = String(row.type_id);
+                if (descriptionsByScheme[schemeId]) {
+                    descriptionsByScheme[schemeId].descriptions.push(row);
+                }
+            });
+
+            const schemeDescriptionData = Object.values(descriptionsByScheme);
+            displaySchemeDescriptions(schemeDescriptionData);
+        }
+
+        // Update scheme descriptions with real data (legacy - used only when explicit API fetch needed)
         async function updateSchemeDescriptions() {
             const descriptionsContainer = $('#schemeDescriptions');
             descriptionsContainer.empty();
 
             // Check if any schemes are selected
             let selectedSchemes = [];
+            let schemeIds = [];
 
             for (let i = 1; i <= 3; i++) {
                 const schemeSelect = $(`#schemeList${i}`);
@@ -1861,6 +2308,7 @@
                             category: scheme.schemetype || selectedCategory,
                             position: i
                         });
+                        schemeIds.push(selectedSchemeId);
                     }
                 }
             }
@@ -1868,55 +2316,62 @@
             if (selectedSchemes.length === 0) {
                 // No schemes selected
                 descriptionsContainer.html(`
-                    <div class="text-center text-muted py-4">
-                        <i class="bi bi-stars fs-1 mb-2 d-block"></i>
-                        <p>Select dream schemes to view descriptions</p>
-                        <small class="text-muted">Select scheme categories and specific schemes to see details</small>
-                    </div>
-                `);
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-stars fs-1 mb-2 d-block"></i>
+                <p>Select dream schemes to view descriptions</p>
+                <small class="text-muted">Select scheme categories and specific schemes to see details</small>
+            </div>
+        `);
                 return;
             }
 
             // Show loading state
             descriptionsContainer.html(`
-                <div class="text-center py-3">
-                    <div class="spinner-border text-warning" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-2 text-muted">Loading scheme descriptions...</p>
-                </div>
-            `);
-
-            // Load descriptions for all selected schemes
-            const descriptionPromises = selectedSchemes.map(async (scheme) => {
-                try {
-                    const descriptions = await loadSchemeDescriptions(scheme.schemeId);
-                    return {
-                        scheme: scheme,
-                        descriptions: descriptions
-                    };
-                } catch (error) {
-                    console.error(`Error loading descriptions for scheme ${scheme.schemeId}:`, error);
-                    return {
-                        scheme: scheme,
-                        descriptions: [],
-                        error: true
-                    };
-                }
-            });
+        <div class="text-center py-3">
+            <div class="spinner-border text-warning" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2 text-muted">Loading scheme descriptions...</p>
+        </div>
+    `);
 
             try {
-                const allDescriptions = await Promise.all(descriptionPromises);
-                displaySchemeDescriptions(allDescriptions);
+                // Load descriptions for all selected schemes in one API call
+                const allDescriptions = await loadSchemeDescriptions(schemeIds);
+
+                // Group descriptions by scheme ID for display
+                const descriptionsByScheme = {};
+                selectedSchemes.forEach(scheme => {
+                    descriptionsByScheme[scheme.schemeId] = {
+                        scheme: scheme,
+                        descriptions: []
+                    };
+                });
+
+                // Sort descriptions into their respective schemes
+                if (Array.isArray(allDescriptions)) {
+                    allDescriptions.forEach(desc => {
+                        const schemeId = String(desc.type_id);
+                        if (descriptionsByScheme[schemeId]) {
+                            descriptionsByScheme[schemeId].descriptions.push(desc);
+                        }
+                    });
+                }
+
+                // Prepare data for display
+                const schemeDescriptionData = Object.values(descriptionsByScheme);
+
+                displaySchemeDescriptions(schemeDescriptionData);
+
             } catch (error) {
-                console.error('Error loading all scheme descriptions:', error);
+                console.error('Error loading scheme descriptions:', error);
                 descriptionsContainer.html(`
-                    <div class="text-center text-danger py-4">
-                        <i class="bi bi-exclamation-triangle fs-1 mb-2 d-block"></i>
-                        <p>Error loading scheme descriptions</p>
-                        <small class="text-muted">Please try again</small>
-                    </div>
-                `);
+            <div class="text-center text-danger py-4">
+                <i class="bi bi-exclamation-triangle fs-1 mb-2 d-block"></i>
+                <p>Error loading scheme descriptions</p>
+                <small class="text-muted">Please try again</small>
+            </div>
+        `);
             }
         }
 
@@ -1927,12 +2382,12 @@
 
             if (allDescriptions.length === 0) {
                 descriptionsContainer.html(`
-                    <div class="text-center text-muted py-4">
-                        <i class="bi bi-stars fs-1 mb-2 d-block"></i>
-                        <p>No descriptions found for selected schemes</p>
-                        <small class="text-muted">Try selecting different schemes or adjust filters</small>
-                    </div>
-                `);
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-stars fs-1 mb-2 d-block"></i>
+                <p>No descriptions found for selected schemes</p>
+                <small class="text-muted">Try selecting different schemes or adjust filters</small>
+            </div>
+        `);
                 return;
             }
 
@@ -1947,148 +2402,246 @@
             });
         }
 
-        // Create HTML card for scheme descriptions
+        // Create HTML card for scheme descriptions with condensed "No remarks" entries
         function createSchemeDescriptionCard(schemeInfo, descriptions) {
             const hasDescriptions = descriptions && descriptions.length > 0;
 
             let descriptionContent = '';
 
             if (hasDescriptions) {
+                // Calculate correct totals
+                const totalEntries = descriptions.length;
+
+                // Separate entries with actual remarks
+                const entriesWithRemarks = descriptions.filter(desc => {
+                    const remark = desc.suggestion_remarks;
+                    return remark &&
+                        remark.trim() !== '' &&
+                        remark.toLowerCase() !== 'no remarks provided';
+                });
+
+                const entriesWithoutRemarks = descriptions.filter(desc => {
+                    const remark = desc.suggestion_remarks;
+                    return !remark ||
+                        remark.trim() === '' ||
+                        remark.toLowerCase() === 'no remarks provided';
+                });
+
+                // Get truly unique remarks (excluding duplicates)
+                const uniqueRemarksSet = new Set();
+                entriesWithRemarks.forEach(desc => {
+                    uniqueRemarksSet.add(desc.suggestion_remarks.trim());
+                });
+
+                const uniqueRemarksCount = uniqueRemarksSet.size;
+                const withoutRemarksCount = entriesWithoutRemarks.length;
+
                 // Group descriptions by district
                 const descriptionsByDistrict = {};
 
                 descriptions.forEach(desc => {
                     const district = desc.district_name || 'Unknown District';
                     if (!descriptionsByDistrict[district]) {
-                        descriptionsByDistrict[district] = [];
+                        descriptionsByDistrict[district] = {
+                            allEntries: [],
+                            entriesWithRemarks: [],
+                            entriesWithoutRemarks: []
+                        };
                     }
-                    descriptionsByDistrict[district].push(desc);
+
+                    const remark = desc.suggestion_remarks;
+                    const hasRemark = remark &&
+                        remark.trim() !== '' &&
+                        remark.toLowerCase() !== 'no remarks provided';
+
+                    descriptionsByDistrict[district].allEntries.push(desc);
+
+                    if (hasRemark) {
+                        descriptionsByDistrict[district].entriesWithRemarks.push(desc);
+                    } else {
+                        descriptionsByDistrict[district].entriesWithoutRemarks.push(desc);
+                    }
                 });
 
-                // Create collapsible sections for each district
-                const districtSections = Object.keys(descriptionsByDistrict).map(district => {
-                    const districtDesc = descriptionsByDistrict[district];
-                    const uniqueCount = new Set(districtDesc.map(d => d.suggestion_remarks)).size;
+                // Create sections for each district
+                let districtSections = '';
 
-                    return `
-                        <div class="accordion-item mb-1">
-                            <h2 class="accordion-header" id="heading-${schemeInfo.schemeId}-${district.replace(/\s+/g, '-')}">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
-                                        data-bs-target="#collapse-${schemeInfo.schemeId}-${district.replace(/\s+/g, '-')}" 
-                                        aria-expanded="false" aria-controls="collapse-${schemeInfo.schemeId}-${district.replace(/\s+/g, '-')}">
-                                    <i class="bi bi-geo-alt me-2"></i>
-                                    ${district}
-                                    <span class="badge bg-primary ms-2">${districtDesc.length} entries</span>
-                                    <span class="badge bg-info ms-1">${uniqueCount} unique remarks</span>
-                                </button>
-                            </h2>
-                            <div id="collapse-${schemeInfo.schemeId}-${district.replace(/\s+/g, '-')}" 
-                                 class="accordion-collapse collapse" 
-                                 aria-labelledby="heading-${schemeInfo.schemeId}-${district.replace(/\s+/g, '-')}">
-                                <div class="accordion-body p-0">
-                                    <div class="list-group list-group-flush">
-                                        ${districtDesc.slice(0, 10).map((desc, idx) => `
-                                            <div class="list-group-item p-2 border-bottom">
-                                                <div class="d-flex justify-content-between align-items-start mb-1">
-                                                    <div>
-                                                        <small class="text-muted">
-                                                            <i class="bi bi-calendar me-1"></i>
-                                                            ${desc.created_ts ? new Date(desc.created_ts).toLocaleDateString() : 'N/A'}
-                                                        </small>
-                                                        ${desc.taluk_name ? `<small class="text-muted ms-2"><i class="bi bi-geo me-1"></i>${desc.taluk_name}</small>` : ''}
-                                                        ${desc.village_name ? `<small class="text-muted ms-2"><i class="bi bi-geo-alt me-1"></i>${desc.village_name}</small>` : ''}
-                                                    </div>
-                                                    <span class="badge ${desc.active === 1 ? 'bg-success' : 'bg-secondary'}">
-                                                        ${desc.active === 1 ? 'Active' : 'Inactive'}
-                                                    </span>
-                                                </div>
-                                                <div class="mt-1">
-                                                    <p class="mb-1 fw-semibold">Description:</p>
-                                                    <div class="bg-light p-1 rounded">
-                                                        ${desc.suggestion_remarks || '<em class="text-muted">No remarks provided</em>'}
-                                                    </div>
-                                                </div>
-                                                ${desc.shopcode ? `
-                                                    <div class="mt-1">
-                                                        <small class="text-muted">
-                                                            <i class="bi bi-shop me-1"></i>
-                                                            Shop: ${desc.shopcode}
-                                                        </small>
-                                                    </div>
-                                                ` : ''}
-                                            </div>
-                                        `).join('')}
-                                        ${districtDesc.length > 10 ? `
-                                            <div class="list-group-item p-2 text-center">
+                Object.keys(descriptionsByDistrict).forEach(district => {
+                    const districtData = descriptionsByDistrict[district];
+                    const districtEntries = districtData.allEntries;
+                    const districtWithRemarks = districtData.entriesWithRemarks;
+                    const districtWithoutRemarks = districtData.entriesWithoutRemarks;
+
+                    // Get unique remarks for this district
+                    const districtUniqueRemarksSet = new Set();
+                    const districtUniqueRemarksEntries = [];
+
+                    districtWithRemarks.forEach(desc => {
+                        const remark = desc.suggestion_remarks.trim();
+                        if (!districtUniqueRemarksSet.has(remark)) {
+                            districtUniqueRemarksSet.add(remark);
+                            districtUniqueRemarksEntries.push(desc);
+                        }
+                    });
+
+                    districtSections += `
+            <div class="district-section mb-3">
+                <div class="district-header d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded">
+                    <div>
+                        <h6 class="mb-0 fw-bold">
+                            <i class="bi bi-geo-alt me-2"></i>
+                            ${district}
+                        </h6>
+                        <small class="text-muted">
+                            ${districtEntries.length} entries • 
+                            ${districtUniqueRemarksEntries.length} unique remarks
+                            ${districtWithoutRemarks.length > 0 ? ` • ${districtWithoutRemarks.length} without remarks` : ''}
+                        </small>
+                    </div>
+                </div>
+                
+                <!-- Condensed View -->
+                <div class="condensed-view">
+                    <!-- Show No Remarks Provided once with count -->
+                    ${districtWithoutRemarks.length > 0 ? `
+                        <div class="no-remarks-entry mb-2 p-2 border rounded bg-light">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-chat-x text-muted me-2 fs-5"></i>
+                                    <div>
+                                        <span class="fw-medium">No remarks provided</span>
+                                        <div class="d-flex gap-2 mt-1">
+                                            <small class="text-muted">
+                                                <i class="bi bi-calendar me-1"></i>
+                                                ${districtWithoutRemarks[0].created_ts ? new Date(districtWithoutRemarks[0].created_ts).toLocaleDateString() : 'N/A'}
+                                            </small>
+                                            ${districtWithoutRemarks[0].taluk_name ? `
                                                 <small class="text-muted">
-                                                    ...and ${districtDesc.length - 10} more entries
+                                                    <i class="bi bi-geo me-1"></i>
+                                                    ${districtWithoutRemarks[0].taluk_name}
                                                 </small>
-                                            </div>
-                                        ` : ''}
+                                            ` : ''}
+                                        </div>
                                     </div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-secondary fs-6">${districtWithoutRemarks.length}</span>
+                                    <small class="d-block text-muted mt-1">entries</small>
                                 </div>
                             </div>
                         </div>
-                    `;
-                }).join('');
+                    ` : ''}
+                    
+                    <!-- Show Unique Remarks -->
+                    ${districtUniqueRemarksEntries.length > 0 ? districtUniqueRemarksEntries.slice(0, 5).map((desc, idx) => `
+                        <div class="remark-entry mb-2 p-2 border rounded bg-white">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar me-1"></i>
+                                        ${desc.created_ts ? new Date(desc.created_ts).toLocaleDateString() : 'N/A'}
+                                    </small>
+                                    ${desc.taluk_name ? `
+                                        <small class="text-muted ms-2">
+                                            <i class="bi bi-geo me-1"></i>
+                                            ${desc.taluk_name}
+                                        </small>
+                                    ` : ''}
+                                    ${desc.village_name ? `
+                                        <small class="text-muted ms-2">
+                                            <i class="bi bi-geo-alt me-1"></i>
+                                            ${desc.village_name}
+                                        </small>
+                                    ` : ''}
+                                </div>
+                                <span class="badge ${desc.active === 1 ? 'bg-success' : 'bg-secondary'}">
+                                    ${desc.active === 1 ? 'Active' : 'Inactive'}
+                                </span>
+                            </div>
+                            <div class="remark-content">
+                                <p class="mb-1 fw-semibold">Remark:</p>
+                                <div class="bg-light p-2 rounded">
+                                    ${desc.suggestion_remarks}
+                                </div>
+                            </div>
+                            ${desc.shopcode ? `
+                                <div class="mt-2">
+                                    <small class="text-muted">
+                                        <i class="bi bi-shop me-1"></i>
+                                        Shop: ${desc.shopcode}
+                                    </small>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `).join('') : ''}
+                </div>
+            </div>
+        `;
+                });
 
                 descriptionContent = `
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div>
-                                <h6 class="mb-1 fw-bold">${descriptions.length} Description${descriptions.length !== 1 ? 's' : ''} Found</h6>
-                                <small class="text-muted">Across ${Object.keys(descriptionsByDistrict).length} districts</small>
-                            </div>
-                            <span class="badge bg-warning">${schemeInfo.category}</span>
-                        </div>
-                        <div class="accordion" id="accordion-${schemeInfo.schemeId}">
-                            ${districtSections}
-                        </div>
+        <div class="mb-3">
+            <div class="summary-header d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded border">
+                <div>
+                    <h6 class="mb-1 fw-bold">
+                        <i class="bi bi-bar-chart me-2"></i>
+                        Summary Statistics
+                    </h6>
+                    <div>
+                        <span class="badge bg-primary">${totalEntries} total entries</span>
+                        <span class="badge bg-success ms-2">${uniqueRemarksCount} unique remarks</span>
+                        <span class="badge bg-secondary ms-2">${withoutRemarksCount} without remarks</span>
                     </div>
-                `;
+                </div>
+            </div>
+            
+            ${districtSections}
+        </div>
+    `;
+
             } else {
                 descriptionContent = `
-                    <div class="text-center py-3">
-                        <i class="bi bi-chat-dots fs-4 text-muted mb-2 d-block"></i>
-                        <p class="text-muted mb-0">No descriptions found for this scheme</p>
-                        <small class="text-muted">Try adjusting filters or select a different scheme</small>
-                    </div>
-                `;
+        <div class="text-center py-4">
+            <i class="bi bi-chat-dots fs-4 text-muted mb-2 d-block"></i>
+            <p class="text-muted mb-0">No descriptions found for this scheme</p>
+            <small class="text-muted">Try adjusting filters or select a different scheme</small>
+        </div>
+    `;
             }
 
             return `
-                <div class="scheme-description-card p-2 mb-2">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <div>
-                            <h5 class="fw-bold mb-1">${schemeInfo.schemeName}</h5>
-                            <small class="text-muted">Dream Scheme ${schemeInfo.position}</small>
-                        </div>
-                        <div class="d-flex gap-1">
-                            <span class="badge bg-warning">${schemeInfo.category}</span>
-                            <span class="badge bg-info">ID: ${schemeInfo.schemeId}</span>
-                        </div>
-                    </div>
-                    
-                    ${descriptionContent}
-                    
-                    <div class="mt-2 pt-2 border-top">
-                        <div class="row g-1">
-                            <div class="col-6">
-                                <small class="text-muted">
-                                    <i class="bi bi-database me-1"></i>
-                                    Total entries: ${hasDescriptions ? descriptions.length : 0}
-                                </small>
-                            </div>
-                            <div class="col-6 text-end">
-                                <small class="text-muted">
-                                    <i class="bi bi-clock me-1"></i>
-                                    Updated just now
-                                </small>
-                            </div>
-                        </div>
-                    </div>
+    <div class="scheme-description-card p-3 mb-3">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+                <h5 class="fw-bold mb-1">${schemeInfo.schemeName}</h5>
+                <small class="text-muted">Dream Scheme ${schemeInfo.position}</small>
+            </div>
+            <div class="d-flex gap-1">
+                <span class="badge bg-warning">${schemeInfo.category}</span>
+                <span class="badge bg-info">ID: ${schemeInfo.schemeId}</span>
+            </div>
+        </div>
+        
+        ${descriptionContent}
+        
+        <div class="mt-2 pt-2 border-top">
+            <div class="row g-1">
+                <div class="col-6">
+                    <small class="text-muted">
+                        <i class="bi bi-database me-1"></i>
+                        Total entries: ${hasDescriptions ? descriptions.length : 0}
+                    </small>
                 </div>
-            `;
+                <div class="col-6 text-end">
+                    <small class="text-muted">
+                        <i class="bi bi-clock me-1"></i>
+                        Updated just now
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+`;
         }
 
         // ================== CHART FUNCTIONS ==================
@@ -2200,7 +2753,8 @@
             pieChart.setOption(option);
 
             // Update filter summary text
-            $('#filterSummary').text(`(${totalCount} records across ${Object.keys(districtCounts).length} districts)`);
+            const districtCount = Object.keys(districtCounts).length;
+            $('#filterSummary').text(`(${totalCount} records across ${districtCount} district${districtCount !== 1 ? 's' : ''})`);
         }
 
         // Update summary cards
@@ -2218,7 +2772,7 @@
 
             // Update summary cards
             $('#totalFamiliesCount').text(totalCount.toLocaleString());
-            $('#activeFamiliesCount').text(totalCount.toLocaleString()); // Assuming all are active
+            $('#activeFamiliesCount').text(totalCount.toLocaleString());
             $('#totalDistrictsCount').text(uniqueDistricts.size.toLocaleString());
             $('#totalVillagesCount').text(uniqueVillages.size.toLocaleString());
         }
@@ -2229,13 +2783,13 @@
         function updateSchemeLogic(logic) {
             schemeLogic = logic;
             document.getElementById('schemeLogicIndicator').textContent = `${logic} Logic`;
+            console.log(`Scheme logic changed to: ${logic}`);
             applyFilters();
         }
 
         // Main filter function
         async function applyFilters() {
-            console.log("Applying filters...");
-
+            console.log("========== APPLYING FILTERS ==========");
             // Show loading state
             $('#filterSummary').text('Loading data...');
             $('#totalFamiliesCount').text('0');
@@ -2270,14 +2824,16 @@
             updateFilterSummary(filters);
 
             try {
-                // Call the filter API
+                // Single API call for analytics_suggestionform_smple; use result for chart and descriptions
                 const filteredData = await loadFilteredData(filters);
 
                 // Update the chart with filtered data
                 updateGeographicDistributionChart(filteredData);
 
-                // Also update scheme descriptions
-                updateSchemeDescriptions();
+                // Build scheme descriptions from same filtered data (no extra API call)
+                updateSchemeDescriptionsFromData(filteredData);
+
+                console.log("========== FILTERS APPLIED SUCCESSFULLY ==========");
 
             } catch (error) {
                 console.error('Error applying filters:', error);
@@ -2287,6 +2843,9 @@
                 if (pieChart) {
                     pieChart.clear();
                 }
+
+                // Show error message
+                alert('Error loading data. Please check your filters and try again.');
             }
         }
 
@@ -2316,16 +2875,8 @@
                 summaryDiv.append(`<span class="active-filter-badge"><i class="bi bi-shop"></i> Shop: ${shopName}</span>`);
             }
 
-            // Add demographic filters
-            if (filters.gender !== 'ALL') {
-                summaryDiv.append(`<span class="active-filter-badge"><i class="bi bi-gender-ambiguous"></i> Gender: ${filters.gender}</span>`);
-            }
-
-            if (filters.ageMin !== '18' || filters.ageMax !== '80') {
-                summaryDiv.append(`<span class="active-filter-badge"><i class="bi bi-calendar3"></i> Age: ${filters.ageMin}-${filters.ageMax}</span>`);
-            }
-
             // Add scheme filters
+            const selectedSchemes = [];
             for (let i = 1; i <= 3; i++) {
                 const category = filters[`schemeCategory${i}`];
                 const schemeId = filters[`schemeList${i}`];
@@ -2333,17 +2884,26 @@
                 if (category !== 'ALL' && schemeId !== 'ALL') {
                     const schemeName = $(`#schemeList${i} option:selected`).text();
                     const categoryName = $(`#schemeCategory${i} option:selected`).text();
-                    summaryDiv.append(`<span class="active-filter-badge" style="background:#f59e0b;"><i class="bi bi-card-checklist"></i> ${categoryName}: ${schemeName}</span>`);
+                    selectedSchemes.push(`${categoryName}: ${schemeName}`);
                 }
             }
 
-            // Add logic badges
-            summaryDiv.append(`<span class="active-filter-badge" style="background:#f59e0b;"><i class="bi bi-card-checklist"></i> Scheme Logic: ${schemeLogic}</span>`);
+            if (selectedSchemes.length > 0) {
+                const logicText = schemeLogic === 'AND' ? 'AND' : 'OR';
+                const schemesText = selectedSchemes.join(` ${logicText} `);
+                summaryDiv.append(`<span class="active-filter-badge" style="background:#f59e0b;"><i class="bi bi-card-checklist"></i> Schemes (${logicText}): ${schemesText}</span>`);
+
+                // Show API structure info
+                summaryDiv.append(`<span class="active-filter-badge" style="background:#28a745;"><i class="bi bi-code-slash"></i> API: AND/OR Structure</span>`);
+            }
+
+            // Add logic badge
+            summaryDiv.append(`<span class="active-filter-badge" style="background:#6c757d;"><i class="bi bi-funnel"></i> Logic: ${schemeLogic}</span>`);
         }
 
         // Reset all filters
         function resetAll() {
-            console.log("Resetting filters...");
+            console.log("Resetting all filters...");
 
             // Reset geographic filters
             $('#district').val('ALL').trigger('change');
@@ -2374,8 +2934,8 @@
             schemeLogic = 'AND';
             document.getElementById('schemeLogicIndicator').textContent = 'AND Logic';
 
-            // Reset scheme descriptions
-            updateSchemeDescriptions();
+            // Reset scheme descriptions placeholder (no API); applyFilters will load data
+            showSchemeDescriptionsPlaceholder();
 
             // Clear filter summary
             $('#activeFiltersDisplay').empty();
@@ -2392,6 +2952,8 @@
 
             // Apply filters to load default data
             applyFilters();
+
+            console.log("All filters reset successfully");
         }
 
         // ================== EXPORT FUNCTIONS ==================
@@ -2551,7 +3113,7 @@
             // Apply filters to load initial data after a short delay
             setTimeout(() => {
                 applyFilters();
-            }, 1000);
+            }, 1500);
         });
     </script>
 </body>
