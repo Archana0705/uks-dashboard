@@ -869,6 +869,7 @@
                 dynamic_input: 'dynamic_input',
                 get_districts: 'get_districts',
                 count_card_details: 'count_card_details',
+                description_details: 'description_details',
             }
         };
 
@@ -1324,113 +1325,108 @@
             }
         }
 
-        // Function to get detailed data for descriptions (with different table if needed)
+        function isAnySchemeSelected(filters) {
+            for (let i = 1; i <= 3; i++) {
+                const val = filters[`schemeList${i}`];
+                if (val && val !== 'ALL') {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         async function loadDetailedDataForDescriptions(filters) {
             try {
-                // Build filter conditions (same logic)
-                const andConditions = {};
                 const schemeFilters = [];
 
-                // Geographic filters
-                if (filters.district && filters.district !== 'ALL') {
-                    andConditions.district_id = filters.district;
-                }
-                if (filters.taluk && filters.taluk !== 'ALL') {
-                    andConditions.taluk_id = filters.taluk;
-                }
-                if (filters.village && filters.village !== 'ALL') {
-                    andConditions.village_id = filters.village;
-                }
-                if (filters.shop && filters.shop !== 'ALL') {
-                    const shopOption = $('#shop option:selected');
-                    if (shopOption.length > 0 && shopOption.text()) {
-                        andConditions.shopcode = shopOption.text();
-                    }
-                }
-
-                // Scheme filters
+                // Collect selected scheme IDs
                 for (let i = 1; i <= 3; i++) {
                     const schemeId = filters[`schemeList${i}`];
                     if (schemeId && schemeId !== 'ALL') {
-                        schemeFilters.push(schemeId.toString());
+                        schemeFilters.push(Number(schemeId)); // ✅ ARRAY OF NUMBERS
                     }
                 }
 
-                // Build filterConditions
-                let filterConditions = {};
-
+                // 🚫 Do not call API if no schemes selected
                 if (schemeFilters.length === 0) {
-                    if (Object.keys(andConditions).length > 0) {
-                        filterConditions = { "and": andConditions };
-                    }
-                } else if (schemeLogic === 'AND') {
-                    if (Object.keys(andConditions).length > 0) {
-                        andConditions.type_id = schemeFilters.join(',');
-                        filterConditions = { "and": andConditions };
-                    } else {
-                        filterConditions = { "and": { "type_id": schemeFilters.join(',') } };
-                    }
-                } else {
-                    if (Object.keys(andConditions).length > 0) {
-                        filterConditions = {
-                            "and": { "district_id": filters.district },
-                            "or": { "type_id": schemeFilters.join(',') }
-                        };
-                    } else {
-                        filterConditions = { "or": { "type_id": schemeFilters.join(',') } };
-                    }
-                }
-
-                // Payload for DETAILED query (you can change table name if needed)
-                const payload = {
-                    "action": "select",
-                    "function_name": "analytics.analytics_suggestionform_smple_fn",
-                    "selected_columns": [
-                        "out_type_id", "shopcode", "suggestion_remarks", "taluk_name", "village_name", "district_name", "type", "scheme_name",
-                    ],
-                    "filter_conditions": filterConditions,
-                    "sort_columns": {
-                        "district_name": "asc",
-                        "taluk_name": "asc"
-                    },
-                    "limit_rows": 500,
-                    "offset_rows": 0
-
-
-                };
-
-                console.log("Loading detailed data for descriptions with payload for counttttt:", JSON.stringify(payload, null, 2));
-                const response = await makeApiRequest(payload);
-
-                if (response && response.success === 1) {
-                    const decryptedData = decryptData(response.data);
-                    let detailedData = decryptedData;
-
-                    if (typeof decryptedData === 'string') {
-                        try {
-                            detailedData = JSON.parse(decryptedData);
-                        } catch (parseError) {
-                            console.error("Error parsing detailed data:", parseError);
-                            detailedData = decryptedData;
-                        }
-                    }
-
-                    if (Array.isArray(detailedData)) {
-                        console.log(`Detailed API returned ${detailedData.length} records for descriptions`);
-                        return detailedData;
-                    } else {
-                        console.error("Detailed data is not an array:", detailedData);
-                        return [];
-                    }
-                } else {
-                    console.error("API did not return success: 1 for detailed data");
+                    console.log('ℹ️ No schemes selected – skipping description API');
                     return [];
                 }
-            } catch (error) {
-                console.error('Error loading detailed data:', error);
+
+                const payload = {
+                    district_id:
+                        filters.district && filters.district !== 'ALL'
+                            ? Number(filters.district)
+                            : null,
+
+                    taluk_id:
+                        filters.taluk && filters.taluk !== 'ALL'
+                            ? Number(filters.taluk)
+                            : null,
+
+                    village_id:
+                        filters.village && filters.village !== 'ALL'
+                            ? Number(filters.village)
+                            : null,
+
+                    shopcode:
+                        filters.shop && filters.shop !== 'ALL'
+                            ? $('#shop option:selected').text()
+                            : null,
+
+                    // ✅ THIS IS THE KEY FIX
+                    type_ids: schemeFilters,   // 👈 ARRAY
+
+                    condition: schemeLogic === 'AND' ? 'AND' : 'OR',
+
+                    // static pagination
+                    p_page: 1,
+                    p_page_size: 5000
+                };
+
+                console.log(
+                    '📤 Description payload:',
+                    JSON.stringify(payload, null, 2)
+                );
+
+                const response = await makeApiDescriptionRequest(payload);
+
+                if (!response || response.success !== 1) {
+                    console.error('❌ API error:', response);
+                    return [];
+                }
+
+                let decryptedData = decryptData(response.data);
+
+                if (typeof decryptedData === 'string') {
+                    decryptedData = JSON.parse(decryptedData);
+                }
+
+                // Backend may return single object
+                if (!Array.isArray(decryptedData)) {
+                    decryptedData = [decryptedData];
+                }
+
+                // Normalize keys for UI
+                const detailedData = decryptedData.map(row => ({
+                    ...row,
+                    type_id: row.type_id ?? row.scheme_id, // 🔥 IMPORTANT
+                    suggestion_remarks: row.suggestion_remarks ?? '',
+                    district_name: row.district_name ?? 'Unknown District',
+                    taluk_name: row.taluk_name ?? null,
+                    village_name: row.village_name ?? null,
+                    active: row.active ?? 1
+                }));
+
+                console.table(detailedData);
+                return detailedData;
+
+            } catch (err) {
+                console.error('❌ loadDetailedDataForDescriptions error:', err);
                 return [];
             }
         }
+
         // Load scheme descriptions for multiple schemes
         async function loadSchemeDescriptions(schemeIds) {
             try {
@@ -1653,6 +1649,30 @@
             try {
                 var encryptedPayload = encryptData(payload);
                 var url = API_CONFIG.baseUrl + API_CONFIG.endpoints.count_card_details;
+
+                var response = await $.ajax({
+                    url: url,
+                    type: "POST",
+                    contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                    dataType: "json",
+                    data: {
+                        data: encryptedPayload
+                    }
+                });
+                console.log("response", response);
+                return response;
+
+            } catch (err) {
+                console.error("Count API error:", err);
+                return null;
+            }
+        }
+
+
+        async function makeApiDescriptionRequest(payload) {
+            try {
+                var encryptedPayload = encryptData(payload);
+                var url = API_CONFIG.baseUrl + API_CONFIG.endpoints.description_details;
 
                 var response = await $.ajax({
                     url: url,
@@ -2175,10 +2195,10 @@
             $('#district').on('change', handleDistrictChange);
             $('#taluk').on('change', handleTalukChange);
             $('#village').on('change', handleVillageChange);
-            $('#shop').on('change', applyFilters);
+            // $('#shop').on('change', applyFilters);
 
             // Demographic filters
-            $('#gender, #ageMin, #ageMax, #dateFrom, #dateTo').on('change', applyFilters);
+            // $('#gender, #ageMin, #ageMax, #dateFrom, #dateTo').on('change', applyFilters);
 
             // Scheme category filters
             for (let i = 1; i <= 3; i++) {
@@ -2431,6 +2451,9 @@
 
         // Create HTML card for scheme descriptions with condensed "No remarks" entries
         function createSchemeDescriptionCard(schemeInfo, descriptions) {
+            console.log("Creating description card for scheme:", schemeInfo);
+            console.log("Total descriptions received:", descriptions);
+
             const hasDescriptions = descriptions && descriptions.length > 0;
 
             let descriptionContent = '';
@@ -2438,6 +2461,11 @@
             if (hasDescriptions) {
                 // Calculate correct totals
                 const totalEntries = descriptions.length;
+
+                const totalRecordsFromDB =
+                    descriptions[0]?.total_records != null
+                        ? Number(descriptions[0].total_records)
+                        : totalEntries;
 
                 // Separate entries with actual remarks
                 const entriesWithRemarks = descriptions.filter(desc => {
@@ -2520,6 +2548,7 @@
                             ${district}
                         </h6>
                         <small class="text-muted">
+                            
                             ${districtEntries.length} entries • 
                             ${districtUniqueRemarksEntries.length} unique remarks
                             ${districtWithoutRemarks.length > 0 ? ` • ${districtWithoutRemarks.length} without remarks` : ''}
@@ -2615,6 +2644,9 @@
                         Summary Statistics
                     </h6>
                     <div>
+                        <span class="badge bg-primary">
+                            ${totalRecordsFromDB.toLocaleString()} total row records
+                        </span>
                         <span class="badge bg-primary">${totalEntries} total entries</span>
                         <span class="badge bg-success ms-2">${uniqueRemarksCount} unique remarks</span>
                         <span class="badge bg-secondary ms-2">${withoutRemarksCount} without remarks</span>
@@ -2725,7 +2757,7 @@
 
             pieChart.setOption({
                 title: {
-                    text: 'Scheme-wise Distribution',
+                    // text: 'Scheme-wise Distribution',
                     subtext: 'Total: ' + item.total_ufcno_count.toLocaleString(),
                     left: 'center'
                 },
@@ -2733,11 +2765,11 @@
                     trigger: 'item',
                     formatter: '{b}: {c} ({d}%)'
                 },
-                legend: {
-                    orient: 'vertical',
-                    right: 10,
-                    top: 'middle'
-                },
+                // legend: {
+                //     orient: 'vertical',
+                //     right: 10,
+                //     top: 'middle'
+                // },
                 series: [{
                     type: 'pie',
                     radius: ['40%', '70%'],
@@ -2776,9 +2808,7 @@
         // Update scheme filter logic
         function updateSchemeLogic(logic) {
             schemeLogic = logic;
-            document.getElementById('schemeLogicIndicator').textContent = `${logic} Logic`;
-            ////console.log(`Scheme logic changed to: ${logic}`);
-            applyFilters();
+            document.getElementById('schemeLogicIndicator').textContent = `${logic} Logic`;;
         }
 
         async function applyFilters() {
@@ -2803,23 +2833,64 @@
             }
 
             try {
-                var results = await $.when(
-                    loadCountDataForChart(filters),
-                    // loadDetailedDataForDescriptions(filters)
-                );
+                // ✅ ALWAYS call count API
+                const countPromise = loadCountDataForChart(filters);
 
-                var countData = results[0] || [];
-                var detailedData = results[1] || [];
+                // ✅ Call detailed API ONLY if scheme selected
+                let detailedPromise = Promise.resolve([]);
 
+                if (isAnySchemeSelected(filters)) {
+                    detailedPromise = loadDetailedDataForDescriptions(filters);
+                } else {
+                    console.log("No schemes selected → skipping detailed API");
+                }
+
+                const [countData, detailedData] = await Promise.all([
+                    countPromise,
+                    detailedPromise
+                ]);
+
+                if (!hasValidCountData(countData)) {
+                    console.warn("No data found for selected filters");
+
+                    // Reset summary cards
+                    $('#totalFamiliesCount').text('0');
+                    $('#activeFamiliesCount').text('0');
+                    $('#totalDistrictsCount').text('0');
+                    $('#totalVillagesCount').text('0');
+
+                    // Update filter summary
+                    $('#filterSummary').text('No data found for selected filters');
+
+                    // Clear chart with message
+                    showNoGeographicData();
+
+                    // Clear descriptions
+                    $('#schemeDescriptions').html(`
+        <div class="text-center text-muted py-4">
+            <i class="bi bi-search fs-1 mb-2 d-block"></i>
+            <p>No data found</p>
+            <small class="text-muted">
+                Try changing filters or selecting different schemes
+            </small>
+        </div>
+    `);
+
+                    return; // ⛔ STOP further processing
+                }
                 API_DATA.chartData = countData;
                 API_DATA.detailedData = detailedData;
                 API_DATA.filteredData = countData;
 
-                // ✅ THIS WAS THE MISSING PIECE
                 updateSummaryCards(countData);
-
                 updateGeographicDistributionChart(countData);
-                updateSchemeDescriptionsFromData(detailedData);
+
+                // ✅ Only update descriptions if data exists
+                if (detailedData.length) {
+                    updateSchemeDescriptionsFromData(detailedData);
+                } else {
+                    $('#schemeDescriptions').empty(); // optional: clear UI
+                }
 
                 console.log("Filters applied successfully");
 
@@ -2830,6 +2901,16 @@
             }
         }
 
+
+        function hasValidCountData(countData) {
+            if (!countData) return false;
+
+            const arr = normalizeToArray(countData);
+            if (!arr.length) return false;
+
+            // when API returns success but zero records
+            return Number(arr[0].total_ufcno_count || 0) > 0;
+        }
         // Update filter summary display
         function updateFilterSummary(filters) {
             const summaryDiv = $('#activeFiltersDisplay');
@@ -2932,7 +3013,7 @@
             $('#totalVillagesCount').text('0');
 
             // Apply filters to load default data
-            applyFilters();
+            // applyFilters();
 
             ////console.log("All filters reset successfully");
         }
@@ -3098,7 +3179,7 @@
         $(window).on('load', function () {
             // Apply filters to load initial data after a short delay
             setTimeout(() => {
-                applyFilters();
+                // applyFilters();
             }, 1500);
         });
     </script>
