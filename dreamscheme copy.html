@@ -852,14 +852,7 @@
 
             // Chart data
             filteredData: [],
-            currentChartData: null,
-            chartData: [],
-
-            // Detailed data for descriptions
-            detailedData: [],
-
-            // Backward compatibility
-            filteredData: []
+            currentChartData: null
         };
 
         // API endpoints configuration
@@ -867,8 +860,7 @@
             baseUrl: 'https://tngis.tnega.org/state_scholarship_portal_api/sfdb_survey/api/v1/dashboard2/',
             endpoints: {
                 dynamic_input: 'dynamic_input',
-                get_districts: 'get_districts',
-                count_card_details: 'count_card_details',
+                get_districts: 'get_districts'
             }
         };
 
@@ -1099,10 +1091,11 @@
             try {
                 const payload = {
                     "action": "select",
-                    "_table_name": "public.dropdown_scheme_type_master",
-                    "selected_columns": ["id", "display_text_tamil"],
+                    "_table_name": "scheme_type_master",
+                    "selected_columns": ["id", "scheme_type", "scheme_category"],
                     "filter_conditions": {},
                     "sort_columns": {
+                        "scheme_category": "asc"
                     },
                     "limit_rows": 100,
                     "offset_rows": 0
@@ -1149,18 +1142,9 @@
                 const payload = {
                     "action": "select",
                     "_table_name": "schemes",
-                    "selected_columns": [
-                        "dropdown_id",
-                        "scheme_id",
-                        "scheme_name",
-                        "scheme_desc",
-                        "scheme_name_tamil",
-                        "scheme_desc_tamil",
-                        "schemetype",
-                        "schemename_asper_form",
-                        "schemetype_new"],
+                    "selected_columns": ["scheme_id", "scheme_name", "schemetype"],
                     "filter_conditions": {
-                        "dropdown_id": categoryType
+                        "schemetype": categoryType
                     },
                     "sort_columns": {
                         "scheme_name": "asc"
@@ -1211,127 +1195,61 @@
             }
         }
 
-
-        async function loadCountDataForChart(filters) {
-            debugger;
+        // Load all schemes (for "ALL" category)
+        async function loadAllSchemes() {
             try {
-                // Build filter conditions (same logic as before)
-                const andConditions = {};
-                const schemeFilters = [];
-
-                // Geographic filters
-                if (filters.district && filters.district !== 'ALL') {
-                    andConditions.district_id = filters.district;
-                }
-                if (filters.taluk && filters.taluk !== 'ALL') {
-                    andConditions.taluk_id = filters.taluk;
-                }
-                if (filters.village && filters.village !== 'ALL') {
-                    andConditions.village_id = filters.village;
-                }
-                if (filters.shop && filters.shop !== 'ALL') {
-                    const shopOption = $('#shop option:selected');
-                    if (shopOption.length > 0 && shopOption.text()) {
-                        andConditions.shopcode = shopOption.text();
-                    }
-                }
-
-                // Scheme filters
-                for (let i = 1; i <= 3; i++) {
-                    const schemeId = filters[`schemeList${i}`];
-                    if (schemeId && schemeId !== 'ALL') {
-                        schemeFilters.push(schemeId.toString());
-                    }
-                }
-
-                // Build filterConditions
-                let filterConditions = {};
-
-                if (schemeFilters.length === 0) {
-                    if (Object.keys(andConditions).length > 0) {
-                        filterConditions = { "and": andConditions };
-                    }
-                } else if (schemeLogic === 'AND') {
-                    if (Object.keys(andConditions).length > 0) {
-                        andConditions.type_id = schemeFilters.join(',');
-                        filterConditions = { "and": andConditions };
-                    } else {
-                        filterConditions = { "and": { "type_id": schemeFilters.join(',') } };
-                    }
-                } else {
-                    if (Object.keys(andConditions).length > 0) {
-                        filterConditions = {
-                            "and": { "district_id": filters.district },
-                            "or": { "type_id": schemeFilters.join(',') }
-                        };
-                    } else {
-                        filterConditions = { "or": { "type_id": schemeFilters.join(',') } };
-                    }
-                }
-
                 const payload = {
-                    district_id: filters.district && filters.district !== 'ALL'
-                        ? Number(filters.district)
-                        : null,
-
-                    taluk_id: filters.taluk && filters.taluk !== 'ALL'
-                        ? Number(filters.taluk)
-                        : null,
-
-                    village_id: filters.village && filters.village !== 'ALL'
-                        ? Number(filters.village)
-                        : null,
-
-                    shopcode: filters.shop && filters.shop !== 'ALL'
-                        ? $('#shop option:selected').text()
-                        : null,
-
-                    type_ids: schemeFilters.length > 0
-                        ? schemeFilters.map(Number)   // ✅ MUST be array
-                        : null,
-
-                    condition: schemeLogic === 'AND' ? 'AND' : 'OR'
+                    "action": "select",
+                    "_table_name": "schemes",
+                    "selected_columns": ["scheme_id", "scheme_name", "schemetype"],
+                    "filter_conditions": {},
+                    "sort_columns": {
+                        "scheme_name": "asc"
+                    },
+                    "limit_rows": 500,
+                    "offset_rows": 0
                 };
 
-                console.log("Loading count data for chart with payload:", payload);
-                const response = await makeApiCountRequest(payload);
+                const response = await makeApiRequest(payload);
 
                 if (response && response.success === 1) {
-                    var decrypted = decryptData(response.data);
-                    var countData = [];
+                    const decryptedData = decryptData(response.data);
+                    let schemeList = decryptedData;
 
-                    if (typeof decrypted === 'string') {
+                    if (typeof decryptedData === 'string') {
                         try {
-                            countData = JSON.parse(decrypted);
-                        } catch (e) {
-                            console.error("JSON parse failed after decrypt", decrypted);
-                            countData = [];
+                            schemeList = JSON.parse(decryptedData);
+                        } catch (parseError) {
+                            console.error("Error parsing decrypted data:", parseError);
+                            schemeList = decryptedData;
                         }
                     }
-                    // ✅ decrypt may already be object
-                    else if ($.isArray(decrypted)) {
-                        countData = decrypted;
-                    }
 
-                    return $.isArray(countData) ? countData : [];
+                    if (Array.isArray(schemeList)) {
+                        API_DATA.allSchemes = schemeList;
+                        return schemeList;
+                    } else {
+                        console.error("Scheme list is not an array:", schemeList);
+                        return [];
+                    }
                 } else {
-                    console.error("API did not return success: 1 for count data");
+                    console.error("API did not return success: 1 for all schemes");
                     return [];
                 }
             } catch (error) {
-                console.error('Error loading count data:', error);
+                console.error('Error loading all schemes:', error);
                 return [];
             }
         }
 
-        // Function to get detailed data for descriptions (with different table if needed)
-        async function loadDetailedDataForDescriptions(filters) {
-            try {
-                // Build filter conditions (same logic)
-                const andConditions = {};
-                const schemeFilters = [];
+        // ================== MAIN FILTER API FUNCTION WITH PROPER AND/OR STRUCTURE ==================
 
-                // Geographic filters
+        async function loadFilteredData(filters) {
+            debugger;
+            try {
+                // Collect geographic filters for AND condition
+                const andConditions = {};
+
                 if (filters.district && filters.district !== 'ALL') {
                     andConditions.district_id = filters.district;
                 }
@@ -1348,7 +1266,8 @@
                     }
                 }
 
-                // Scheme filters
+                // Collect scheme filters (type_id values)
+                const schemeFilters = [];
                 for (let i = 1; i <= 3; i++) {
                     const schemeId = filters[`schemeList${i}`];
                     if (schemeId && schemeId !== 'ALL') {
@@ -1356,81 +1275,128 @@
                     }
                 }
 
-                // Build filterConditions
+                // Build filterConditions based on schemeLogic and available filters
                 let filterConditions = {};
 
                 if (schemeFilters.length === 0) {
-                    if (Object.keys(andConditions).length > 0) {
-                        filterConditions = { "and": andConditions };
-                    }
-                } else if (schemeLogic === 'AND') {
-                    if (Object.keys(andConditions).length > 0) {
-                        andConditions.type_id = schemeFilters.join(',');
-                        filterConditions = { "and": andConditions };
-                    } else {
-                        filterConditions = { "and": { "type_id": schemeFilters.join(',') } };
-                    }
-                } else {
+                    // No scheme filters, just use geographic filters if any
                     if (Object.keys(andConditions).length > 0) {
                         filterConditions = {
-                            "and": { "district_id": filters.district },
-                            "or": { "type_id": schemeFilters.join(',') }
+                            "and": andConditions
+                        };
+                    }
+                } else if (schemeLogic === 'AND') {
+                    // AND logic with scheme IDs - use comma-separated string in AND
+                    if (Object.keys(andConditions).length > 0) {
+                        // Combine geographic filters with scheme IDs in AND
+                        andConditions.type_id = schemeFilters.join(',');
+                        filterConditions = {
+                            "and": andConditions
                         };
                     } else {
-                        filterConditions = { "or": { "type_id": schemeFilters.join(',') } };
+                        // Only scheme IDs with AND
+                        filterConditions = {
+                            "and": {
+                                "type_id": schemeFilters.join(',')
+                            }
+                        };
+                    }
+                } else {
+                    // OR logic with scheme IDs
+                    if (Object.keys(andConditions).length > 0) {
+                        filterConditions = {
+                            "and": {
+                                "district_id": filters.district
+                            },
+                            "or": {
+                                "type_id": schemeFilters.join(',')
+                            }
+                        };
+
+                    } else {
+                        // Only scheme IDs with OR
+                        filterConditions = {
+                            "or": {
+                                "type_id": schemeFilters.join(',')
+                            }
+                        };
                     }
                 }
 
-                // Payload for DETAILED query (you can change table name if needed)
+                // Clean up empty structures
+                if (JSON.stringify(filterConditions) === '{"and":{}}') {
+                    filterConditions = {};
+                }
+                if (JSON.stringify(filterConditions) === '{"or":{}}') {
+                    filterConditions = {};
+                }
+
                 const payload = {
                     "action": "select",
-                    "function_name": "analytics.analytics_suggestionform_smple_fn",
+                    "_table_name": "analytics.analytics_suggestionform_smple",
                     "selected_columns": [
-                        "out_type_id", "shopcode", "suggestion_remarks", "taluk_name", "village_name", "district_name", "type", "scheme_name",
+                        "id", "taluk_id", "ufcno", "type_id", "schemetype_id",
+                        "suggestion_remarks", "active", "created_by", "created_ts",
+                        "updated_by", "updated_ts", "shopcode", "subscheme_id",
+                        "type", "scheme_name", "district_id", "district_name",
+                        "taluk_name", "village_id", "village_name"
                     ],
                     "filter_conditions": filterConditions,
                     "sort_columns": {
                         "district_name": "asc",
                         "taluk_name": "asc"
                     },
-                    "limit_rows": 500,
+                    "limit_rows": 10000,
                     "offset_rows": 0
-
-
                 };
 
-                console.log("Loading detailed data for descriptions with payload for counttttt:", JSON.stringify(payload, null, 2));
+                console.log("Loading filtered data with payload:", JSON.stringify(payload, null, 2));
                 const response = await makeApiRequest(payload);
 
                 if (response && response.success === 1) {
                     const decryptedData = decryptData(response.data);
-                    let detailedData = decryptedData;
+                    let filteredList = decryptedData;
 
                     if (typeof decryptedData === 'string') {
                         try {
-                            detailedData = JSON.parse(decryptedData);
+                            filteredList = JSON.parse(decryptedData);
                         } catch (parseError) {
-                            console.error("Error parsing detailed data:", parseError);
-                            detailedData = decryptedData;
+                            console.error("Error parsing filtered data:", parseError);
+                            filteredList = decryptedData;
                         }
                     }
 
-                    if (Array.isArray(detailedData)) {
-                        console.log(`Detailed API returned ${detailedData.length} records for descriptions`);
-                        return detailedData;
+                    if (Array.isArray(filteredList)) {
+                        ////console.log(`API returned ${filteredList.length} records`);
+                        // Keep full list for pie chart (no dedupe here); duplicates removed only for scheme descriptions
+                        API_DATA.filteredData = filteredList;
+                        return filteredList;
                     } else {
-                        console.error("Detailed data is not an array:", detailedData);
+                        console.error("Filtered list is not an array:", filteredList);
+                        API_DATA.filteredData = [];
                         return [];
                     }
                 } else {
-                    console.error("API did not return success: 1 for detailed data");
-                    return [];
+                    console.error("API did not return success: 1 for filtered data");
+                    console.error("API Response:", response);
+
+                    if (response && response.message === 'No data found') {
+                        ////console.log("API returned 'No data found'");
+                        API_DATA.filteredData = [];
+                        return [];
+                    } else {
+                        // Fallback: return empty; no extra analytics API call
+                        API_DATA.filteredData = [];
+                        return [];
+                    }
                 }
             } catch (error) {
-                console.error('Error loading detailed data:', error);
+                console.error('Error loading filtered data:', error);
+                API_DATA.filteredData = [];
                 return [];
             }
         }
+
         // Load scheme descriptions for multiple schemes
         async function loadSchemeDescriptions(schemeIds) {
             try {
@@ -1649,29 +1615,6 @@
             }
         }
 
-        async function makeApiCountRequest(payload) {
-            try {
-                var encryptedPayload = encryptData(payload);
-                var url = API_CONFIG.baseUrl + API_CONFIG.endpoints.count_card_details;
-
-                var response = await $.ajax({
-                    url: url,
-                    type: "POST",
-                    contentType: "application/x-www-form-urlencoded; charset=UTF-8",
-                    dataType: "json",
-                    data: {
-                        data: encryptedPayload
-                    }
-                });
-                console.log("response", response);
-                return response;
-
-            } catch (err) {
-                console.error("Count API error:", err);
-                return null;
-            }
-        }
-
         // ================== DROPDOWN POPULATION FUNCTIONS ==================
 
         // Populate district dropdown
@@ -1848,12 +1791,14 @@
                     const seenTypes = new Set();
 
                     API_DATA.schemeCategories.forEach(item => {
-
-                        uniqueCategories.push({
-                            id: item.id,
-                            type: item.display_text_tamil,
-                        });
-
+                        if (item.scheme_type && item.scheme_type.trim() !== '' && !seenTypes.has(item.scheme_type)) {
+                            seenTypes.add(item.scheme_type);
+                            uniqueCategories.push({
+                                id: item.id,
+                                type: item.scheme_type,
+                                category: item.scheme_category
+                            });
+                        }
                     });
 
                     // Sort by type name
@@ -1862,7 +1807,7 @@
                     // Add categories to dropdown
                     uniqueCategories.forEach(item => {
                         // Use scheme_type for both value and display text
-                        const value = item.id;
+                        const value = item.category;
                         const display = item.type;
                         categorySelect.append(`<option value="${value}">${display}</option>`);
                     });
@@ -1884,54 +1829,53 @@
             }
         }
 
+        // Populate scheme dropdown for a specific position
         function populateSchemeDropdown(position, category) {
             const schemeSelect = $(`#schemeList${position}`);
             const currentValue = schemeSelect.val();
 
             schemeSelect.empty();
-            schemeSelect.append('<option value="ALL">All Schemes</option>');
+            schemeSelect.append('<option value="ALL" selected>All Schemes</option>');
 
             let schemes = [];
 
             if (category === 'ALL') {
+                // Show all schemes
                 schemes = API_DATA.allSchemes;
             } else {
-                schemes = API_DATA.allSchemes.filter(
-                    scheme => String(scheme.dropdown_id) === String(category)
+                // Filter schemes by category - use schemetype field
+                schemes = API_DATA.allSchemes.filter(scheme =>
+                    scheme.schemetype === category
                 );
             }
 
-            if (Array.isArray(schemes) && schemes.length > 0) {
+            if (schemes && schemes.length > 0) {
+                //console.log(`Populating scheme dropdown ${position} with ${schemes.length} schemes for category ${category}`);
 
+                // Sort schemes by name
                 const sortedSchemes = [...schemes].sort((a, b) => {
-                    const nameA = a.scheme_name_tamil || a.scheme_name || '';
-                    const nameB = b.scheme_name_tamil || b.scheme_name || '';
-                    return nameA.localeCompare(nameB, 'ta');
+                    const nameA = a.scheme_name || a.name || '';
+                    const nameB = b.scheme_name || b.name || '';
+                    return nameA.localeCompare(nameB);
                 });
 
+                // Add schemes to dropdown
                 sortedSchemes.forEach(scheme => {
-                    schemeSelect.append(`
-                <option value="${scheme.scheme_id}">
-                    ${scheme.scheme_name_tamil || scheme.scheme_name}
-                </option>
-            `);
+                    const schemeId = scheme.scheme_id || scheme.id;
+                    const schemeName = scheme.scheme_name || scheme.name || 'Unknown Scheme';
+
+                    schemeSelect.append(`<option value="${schemeId}">${schemeName}</option>`);
                 });
 
-                // Restore selection
-                if (
-                    currentValue &&
-                    currentValue !== 'ALL' &&
-                    schemes.some(s => String(s.scheme_id) === String(currentValue))
-                ) {
+                // Try to restore previous selection
+                if (currentValue && currentValue !== 'ALL' && schemes.some(s => (s.scheme_id || s.id) == currentValue)) {
                     schemeSelect.val(currentValue);
-                } else {
-                    schemeSelect.val('ALL');
                 }
 
+                //console.log(`Scheme dropdown ${position} populated successfully`);
             } else {
-                schemeSelect.append(
-                    '<option value="ALL" selected>No schemes available</option>'
-                );
+                //console.log(`No schemes available for category ${category}`);
+                schemeSelect.append('<option value="ALL" selected>No schemes available</option>');
             }
         }
 
@@ -2071,10 +2015,10 @@
                     schemeSelect.html('<option value="ALL" selected>Error loading schemes</option>');
                 }
             } else {
-                // // If "ALL" is selected, populate with all schemes
-                // if (API_DATA.allSchemes.length === 0) {
-                //     await loadAllSchemes();
-                // }
+                // If "ALL" is selected, populate with all schemes
+                if (API_DATA.allSchemes.length === 0) {
+                    await loadAllSchemes();
+                }
                 populateSchemeDropdown(position, 'ALL');
             }
 
@@ -2097,7 +2041,7 @@
                 populateSchemeCategoryDropdowns();
 
                 // Load all schemes initially
-                // await loadAllSchemes();
+                await loadAllSchemes();
 
                 // Initialize scheme dropdowns with "ALL" option
                 for (let i = 1; i <= 3; i++) {
@@ -2233,13 +2177,13 @@
             }
         }
 
-        function updateSchemeDescriptionsFromData(detailedData) {
+        // Update scheme descriptions from already-fetched filtered data (no extra API call)
+        function updateSchemeDescriptionsFromData(filteredData) {
             const descriptionsContainer = $('#schemeDescriptions');
             descriptionsContainer.empty();
 
             let selectedSchemes = [];
 
-            // Collect selected schemes
             for (let i = 1; i <= 3; i++) {
                 const schemeSelect = $(`#schemeList${i}`);
                 const categorySelect = $(`#schemeCategory${i}`);
@@ -2261,30 +2205,30 @@
                 }
             }
 
-            if (selectedSchemes.length === 0 || !Array.isArray(detailedData) || detailedData.length === 0) {
+            if (selectedSchemes.length === 0 || !Array.isArray(filteredData) || filteredData.length === 0) {
                 if (selectedSchemes.length === 0) {
                     descriptionsContainer.html(`
-                <div class="text-center text-muted py-4">
-                    <i class="bi bi-stars fs-1 mb-2 d-block"></i>
-                    <p>Select dream schemes to view descriptions</p>
-                    <small class="text-muted">Select scheme categories and specific schemes to see details</small>
-                </div>
-            `);
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-stars fs-1 mb-2 d-block"></i>
+                <p>Select dream schemes to view descriptions</p>
+                <small class="text-muted">Select scheme categories and specific schemes to see details</small>
+            </div>
+        `);
                 } else {
                     descriptionsContainer.html(`
-                <div class="text-center text-muted py-4">
-                    <i class="bi bi-stars fs-1 mb-2 d-block"></i>
-                    <p>No descriptions found for selected schemes</p>
-                    <small class="text-muted">Try selecting different schemes or adjust filters</small>
-                </div>
-            `);
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-stars fs-1 mb-2 d-block"></i>
+                <p>No descriptions found for selected schemes</p>
+                <small class="text-muted">Try selecting different schemes or adjust filters</small>
+            </div>
+        `);
                 }
                 return;
             }
 
-            // Remove duplicates by ufcno for scheme descriptions
+            // Remove duplicates by ufcno for scheme descriptions only (pie chart keeps full count)
             const uniqueByUfcno = new Map();
-            detailedData.forEach((row, idx) => {
+            filteredData.forEach((row, idx) => {
                 const key = row.ufcno != null ? String(row.ufcno) : (row.id != null ? `id_${row.id}` : `idx_${idx}`);
                 if (!uniqueByUfcno.has(key)) {
                     uniqueByUfcno.set(key, row);
@@ -2307,6 +2251,7 @@
             const schemeDescriptionData = Object.values(descriptionsByScheme);
             displaySchemeDescriptions(schemeDescriptionData);
         }
+
         // Update scheme descriptions with real data (legacy - used only when explicit API fetch needed)
         async function updateSchemeDescriptions() {
             const descriptionsContainer = $('#schemeDescriptions');
@@ -2672,103 +2617,137 @@
         }
 
         // ================== CHART FUNCTIONS ==================
-        function normalizeToArray(data) {
-            if (!data) return [];
 
-            // If already an array
-            if ($.isArray(data)) {
-                return data;
-            }
-
-            // If API sends object like { success, data: [...] }
-            if (typeof data === 'object' && $.isArray(data.data)) {
-                return data.data;
-            }
-
-            // If single object, wrap it
-            if (typeof data === 'object') {
-                return [data];
-            }
-
-            return [];
-        }
-
+        // Update geographic distribution pie chart
         function updateGeographicDistributionChart(filteredData) {
-            debugger;
-
-            filteredData = normalizeToArray(filteredData);
-            if (!filteredData.length) return;
-
-            const item = filteredData[0];
-
             if (!pieChart) {
                 pieChart = echarts.init(document.getElementById("pie"));
             }
 
-            // ✅ Parse scheme-wise data (string → JSON)
-            let schemeData = [];
-            try {
-                schemeData = JSON.parse(item.scheme_wise_count || '[]');
-            } catch (e) {
-                console.error('Invalid scheme_wise_count', e);
-            }
+            // Group data by district
+            const districtCounts = {};
+            let totalCount = 0;
 
-            if (!schemeData.length) {
-                pieChart.clear();
-                return;
-            }
+            filteredData.forEach(item => {
+                const districtName = item.district_name || 'Unknown District';
+                if (!districtCounts[districtName]) {
+                    districtCounts[districtName] = 0;
+                }
+                districtCounts[districtName]++;
+                totalCount++;
+            });
 
-            const chartData = schemeData.map(s => ({
-                name: s.scheme_name,
-                value: s.count
+            // Prepare chart data
+            const chartData = Object.keys(districtCounts).map(district => ({
+                name: district,
+                value: districtCounts[district]
             }));
 
-            pieChart.setOption({
+            // Sort by count (descending)
+            chartData.sort((a, b) => b.value - a.value);
+
+            // Take top 10 districts, group the rest as "Others"
+            let displayData = [];
+            if (chartData.length > 10) {
+                const top10 = chartData.slice(0, 10);
+                const others = chartData.slice(10);
+                const othersTotal = others.reduce((sum, item) => sum + item.value, 0);
+
+                displayData = [...top10, { name: 'Other Districts', value: othersTotal }];
+            } else {
+                displayData = chartData;
+            }
+
+            // Update summary cards
+            updateSummaryCards(filteredData);
+
+            // Chart options
+            const option = {
                 title: {
-                    text: 'Scheme-wise Distribution',
-                    subtext: 'Total: ' + item.total_ufcno_count.toLocaleString(),
-                    left: 'center'
+                    text: `Geographic Distribution (Total: ${totalCount})`,
+                    left: 'center',
+                    textStyle: {
+                        fontSize: 16,
+                        fontWeight: 'bold'
+                    }
                 },
                 tooltip: {
                     trigger: 'item',
                     formatter: '{b}: {c} ({d}%)'
                 },
                 legend: {
+                    type: 'scroll',
                     orient: 'vertical',
                     right: 10,
-                    top: 'middle'
+                    top: 'middle',
+                    height: '80%',
+                    textStyle: {
+                        fontSize: 12
+                    }
                 },
-                series: [{
-                    type: 'pie',
-                    radius: ['40%', '70%'],
-                    center: ['35%', '50%'],
-                    data: chartData
-                }]
-            });
+                series: [
+                    {
+                        name: 'District Distribution',
+                        type: 'pie',
+                        radius: ['40%', '70%'],
+                        center: ['35%', '50%'],
+                        avoidLabelOverlap: false,
+                        itemStyle: {
+                            borderRadius: 10,
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        },
+                        label: {
+                            show: false,
+                            position: 'center'
+                        },
+                        emphasis: {
+                            label: {
+                                show: true,
+                                fontSize: '18',
+                                fontWeight: 'bold',
+                                formatter: '{b}\n{c} ({d}%)'
+                            }
+                        },
+                        labelLine: {
+                            show: false
+                        },
+                        data: displayData,
+                        color: [
+                            '#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de',
+                            '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc', '#60acfc',
+                            '#ff9f7f'
+                        ]
+                    }
+                ]
+            };
 
-            updateSummaryCards(filteredData);
+            pieChart.setOption(option);
 
-            $('#filterSummary').text(
-                '(' + item.total_ufcno_count.toLocaleString() +
-                ' records across ' +
-                item.total_district_count + ' districts)'
-            );
+            // Update filter summary text
+            const districtCount = Object.keys(districtCounts).length;
+            $('#filterSummary').text(`(${totalCount} records across ${districtCount} district${districtCount !== 1 ? 's' : ''})`);
         }
 
-        function updateSummaryCards(countData) {
-            debugger;
+        // Update summary cards
+        function updateSummaryCards(filteredData) {
+            console.log("filteredData for total counts:", filteredData);
+            const totalCount = filteredData.length;
 
-            countData = normalizeToArray(countData);
-            console.log("countData for summary cards:", countData);
+            // Count unique districts
+            const uniqueDistricts = new Set();
+            const uniqueVillages = new Set();
 
-            if (!countData.length) return;
+            filteredData.forEach(item => {
+                if (item.district_name) uniqueDistricts.add(item.district_name);
+                if (item.village_name) uniqueVillages.add(item.village_name);
+            });
 
-            const item = countData[0];
-
-            $('#totalFamiliesCount').text(item.total_ufcno_count.toLocaleString());
-            $('#activeFamiliesCount').text(item.total_ufcno_count.toLocaleString());
-            $('#totalDistrictsCount').text(item.total_district_count.toLocaleString());
-            $('#totalVillagesCount').text(item.total_village_count.toLocaleString());
+            // Update summary cards
+            $('#totalFamiliesCount').text(totalCount.toLocaleString());
+            $('#activeFamiliesCount').text(totalCount.toLocaleString());
+            $('#totalDistrictsCount').text(uniqueDistricts.size.toLocaleString());
+            $('#totalVillagesCount').text(uniqueVillages.size.toLocaleString());
         }
 
         // ================== FILTER FUNCTIONS ==================
@@ -2781,52 +2760,65 @@
             applyFilters();
         }
 
+        // Main filter function
         async function applyFilters() {
-            console.log("========== APPLYING FILTERS ==========");
-
+            ////console.log("========== APPLYING FILTERS ==========");
+            // Show loading state
             $('#filterSummary').text('Loading data...');
             $('#totalFamiliesCount').text('0');
             $('#activeFamiliesCount').text('0');
             $('#totalDistrictsCount').text('0');
             $('#totalVillagesCount').text('0');
 
-            var filters = {
+            // Collect all filter values
+            const filters = {
                 district: $('#district').val(),
                 taluk: $('#taluk').val(),
                 village: $('#village').val(),
                 shop: $('#shop').val(),
+                gender: $('#gender').val(),
+                ageMin: $('#ageMin').val(),
+                ageMax: $('#ageMax').val(),
+                dateFrom: $('#dateFrom').val(),
+                dateTo: $('#dateTo').val(),
+                filterLogic: filterLogic,
                 schemeLogic: schemeLogic
             };
 
-            for (var i = 1; i <= 3; i++) {
-                filters['schemeList' + i] = $('#schemeList' + i).val();
+            // Collect scheme filters
+            for (let i = 1; i <= 3; i++) {
+                filters[`schemeCategory${i}`] = $(`#schemeCategory${i}`).val();
+                filters[`schemeList${i}`] = $(`#schemeList${i}`).val();
             }
 
+            ////console.log("Active filters:", filters);
+
+            // Update filter summary
+            updateFilterSummary(filters);
+
             try {
-                var results = await $.when(
-                    loadCountDataForChart(filters),
-                    // loadDetailedDataForDescriptions(filters)
-                );
+                // Single API call for analytics_suggestionform_smple; use result for chart and descriptions
+                const filteredData = await loadFilteredData(filters);
 
-                var countData = results[0] || [];
-                var detailedData = results[1] || [];
+                // Update the chart with filtered data
+                updateGeographicDistributionChart(filteredData);
 
-                API_DATA.chartData = countData;
-                API_DATA.detailedData = detailedData;
-                API_DATA.filteredData = countData;
+                // Build scheme descriptions from same filtered data (no extra API call)
+                updateSchemeDescriptionsFromData(filteredData);
 
-                // ✅ THIS WAS THE MISSING PIECE
-                updateSummaryCards(countData);
+                ////console.log("========== FILTERS APPLIED SUCCESSFULLY ==========");
 
-                updateGeographicDistributionChart(countData);
-                updateSchemeDescriptionsFromData(detailedData);
-
-                console.log("Filters applied successfully");
-
-            } catch (err) {
-                console.error("Filter error:", err);
+            } catch (error) {
+                console.error('Error applying filters:', error);
                 $('#filterSummary').text('Error loading data');
-                alert('Error loading data');
+
+                // Clear chart
+                if (pieChart) {
+                    pieChart.clear();
+                }
+
+                // Show error message
+                alert('Error loading data. Please check your filters and try again.');
             }
         }
 
@@ -2941,12 +2933,7 @@
 
         // Export CSV
         function exportCSV() {
-            // Use detailedData if available, otherwise use chartData
-            const dataToExport = API_DATA.detailedData && API_DATA.detailedData.length > 0
-                ? API_DATA.detailedData
-                : API_DATA.chartData;
-
-            if (!dataToExport || dataToExport.length === 0) {
+            if (API_DATA.filteredData.length === 0) {
                 alert('No data to export. Please apply filters first.');
                 return;
             }
@@ -2959,7 +2946,7 @@
                 ];
 
                 // Prepare CSV rows
-                const rows = dataToExport.map(item => [
+                const rows = API_DATA.filteredData.map(item => [
                     item.district_name || '',
                     item.taluk_name || '',
                     item.village_name || '',
@@ -2990,7 +2977,7 @@
                 link.click();
                 document.body.removeChild(link);
 
-                alert(`Exported ${dataToExport.length} records to CSV`);
+                alert(`Exported ${API_DATA.filteredData.length} records to CSV`);
             } catch (error) {
                 console.error('Error exporting CSV:', error);
                 alert('Error exporting data. Please try again.');
