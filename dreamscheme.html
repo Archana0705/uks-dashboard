@@ -2725,67 +2725,103 @@
             return [];
         }
 
-        function updateGeographicDistributionChart(filteredData) {
-            debugger;
-
-            filteredData = normalizeToArray(filteredData);
-            if (!filteredData.length) return;
-
-            const item = filteredData[0];
-
-            if (!pieChart) {
-                pieChart = echarts.init(document.getElementById("pie"));
-            }
-
-            // ✅ Parse scheme-wise data (string → JSON)
-            let schemeData = [];
-            try {
-                schemeData = JSON.parse(item.scheme_wise_count || '[]');
-            } catch (e) {
-                console.error('Invalid scheme_wise_count', e);
-            }
-
-            if (!schemeData.length) {
-                pieChart.clear();
+        function updateGeographicDistributionChart(districtWiseData) {
+            if (!Array.isArray(districtWiseData) || !districtWiseData.length) {
+                showNoDataPieChart();
                 return;
             }
 
-            const chartData = schemeData.map(s => ({
-                name: s.scheme_name,
-                value: s.count
+            if (!pieChart) {
+                pieChart = echarts.init(document.getElementById('pie'));
+            }
+
+            const seriesData = districtWiseData.map(d => ({
+                name: d.district_name,
+                value: d.count
             }));
 
+            pieChart.clear();
             pieChart.setOption({
                 title: {
-                    // text: 'Scheme-wise Distribution',
-                    subtext: 'Total: ' + item.total_ufcno_count.toLocaleString(),
+                    text: 'Geographic Distribution',
+                    subtext: 'District-wise family count',
                     left: 'center'
                 },
                 tooltip: {
                     trigger: 'item',
                     formatter: '{b}: {c} ({d}%)'
                 },
-                // legend: {
-                //     orient: 'vertical',
-                //     right: 10,
-                //     top: 'middle'
-                // },
                 series: [{
                     type: 'pie',
-                    radius: ['40%', '70%'],
-                    center: ['35%', '50%'],
-                    data: chartData
+                    radius: '65%',
+                    data: seriesData
                 }]
             });
-
-            updateSummaryCards(filteredData);
-
-            $('#filterSummary').text(
-                '(' + item.total_ufcno_count.toLocaleString() +
-                ' records across ' +
-                item.total_district_count + ' districts)'
-            );
         }
+
+
+
+        // function updateGeographicDistributionChart(filteredData) {
+        //     debugger;
+
+        //     filteredData = normalizeToArray(filteredData);
+        //     if (!filteredData.length) return;
+
+        //     const item = filteredData[0];
+
+        //     if (!pieChart) {
+        //         pieChart = echarts.init(document.getElementById("pie"));
+        //     }
+
+        //     // ✅ Parse scheme-wise data (string → JSON)
+        //     let schemeData = [];
+        //     try {
+        //         schemeData = JSON.parse(item.scheme_wise_count || '[]');
+        //     } catch (e) {
+        //         console.error('Invalid scheme_wise_count', e);
+        //     }
+
+        //     if (!schemeData.length) {
+        //         pieChart.clear();
+        //         return;
+        //     }
+
+        //     const chartData = schemeData.map(s => ({
+        //         name: s.scheme_name,
+        //         value: s.count
+        //     }));
+
+        //     pieChart.setOption({
+        //         title: {
+        //             // text: 'Scheme-wise Distribution',
+        //             subtext: 'Total: ' + item.total_ufcno_count.toLocaleString(),
+        //             left: 'center'
+        //         },
+        //         tooltip: {
+        //             trigger: 'item',
+        //             formatter: '{b}: {c} ({d}%)'
+        //         },
+        //         // legend: {
+        //         //     orient: 'vertical',
+        //         //     right: 10,
+        //         //     top: 'middle'
+        //         // },
+        //         series: [{
+        //             type: 'pie',
+        //             radius: ['40%', '70%'],
+        //             center: ['35%', '50%'],
+        //             data: chartData
+        //         }]
+        //     });
+
+        //     updateSummaryCards(filteredData);
+
+        //     $('#filterSummary').text(
+        //         '(' + item.total_ufcno_count.toLocaleString() +
+        //         ' records across ' +
+        //         item.total_district_count + ' districts)'
+        //     );
+        // }
 
         function updateSummaryCards(countData) {
             debugger;
@@ -2803,13 +2839,61 @@
             $('#totalVillagesCount').text(item.total_village_count.toLocaleString());
         }
 
+
+
         // ================== FILTER FUNCTIONS ==================
+
+        function showNoDataPieChart() {
+            if (!pieChart) {
+                pieChart = echarts.init(document.getElementById('pie'));
+            }
+
+            pieChart.clear();
+            pieChart.setOption({
+                title: {
+                    text: 'Geographic Distribution',
+                    subtext: 'No data found',
+                    left: 'center'
+                },
+                series: []
+            });
+        }
 
         // Update scheme filter logic
         function updateSchemeLogic(logic) {
             schemeLogic = logic;
             document.getElementById('schemeLogicIndicator').textContent = `${logic} Logic`;;
         }
+
+        function safeJsonParse(value, fallback = []) {
+            try {
+                if (!value) return fallback;
+                if (Array.isArray(value)) return value;
+                return JSON.parse(value);
+            } catch (e) {
+                console.error("JSON parse error:", e, value);
+                return fallback;
+            }
+        }
+
+        function showNoDataState() {
+            $('#filterSummary').text('No data found');
+            $('#totalFamiliesCount').text('0');
+            $('#activeFamiliesCount').text('0');
+            $('#totalDistrictsCount').text('0');
+            $('#totalVillagesCount').text('0');
+
+            $('#schemeDescriptions').html(`
+        <div class="text-center text-muted py-4">
+            <i class="bi bi-emoji-frown fs-1 mb-2 d-block"></i>
+            <p>No data found for selected filters</p>
+        </div>
+    `);
+
+            showNoDataPieChart();
+        }
+
+
 
         async function applyFilters() {
             console.log("========== APPLYING FILTERS ==========");
@@ -2820,84 +2904,90 @@
             $('#totalDistrictsCount').text('0');
             $('#totalVillagesCount').text('0');
 
-            var filters = {
+            const filters = {
                 district: $('#district').val(),
                 taluk: $('#taluk').val(),
                 village: $('#village').val(),
-                shop: $('#shop').val(),
-                schemeLogic: schemeLogic
+                shop: $('#shop').val()
             };
 
-            for (var i = 1; i <= 3; i++) {
-                filters['schemeList' + i] = $('#schemeList' + i).val();
+            for (let i = 1; i <= 3; i++) {
+                filters[`schemeList${i}`] = $(`#schemeList${i}`).val();
             }
 
-            try {
-                // ✅ ALWAYS call count API
-                const countPromise = loadCountDataForChart(filters);
+            console.log("📤 FILTERS:", filters);
 
-                // ✅ Call detailed API ONLY if scheme selected
-                let detailedPromise = Promise.resolve([]);
+            try {
+                const countResponse = await loadCountDataForChart(filters);
+                console.log("📥 RAW COUNT RESPONSE:", countResponse);
+
+                let rawData = null;
+
+                // ✅ CASE 1: API returned full response
+                if (countResponse?.raw?.length) {
+                    rawData = countResponse.raw[0];
+                }
+
+                // ✅ CASE 2: API returned decrypted array directly
+                else if (Array.isArray(countResponse) && countResponse.length) {
+                    rawData = countResponse[0];
+                }
+
+                // ❌ NO DATA
+                if (!rawData) {
+                    console.warn("⚠️ No count data available");
+                    showNoDataState();
+                    return;
+                }
+
+                console.log("✅ NORMALIZED RAW DATA:", rawData);
+
+                // ✅ Parse district-wise data
+                const districtWiseData = safeJsonParse(
+                    rawData.district_wise_count,
+                    []
+                );
+
+                console.log("📊 DISTRICT WISE COUNT:", districtWiseData);
+
+                // ✅ Update summary cards
+                updateSummaryCards([rawData]);
+
+                // ✅ Update pie chart
+                if (districtWiseData.length) {
+                    updateGeographicDistributionChart(districtWiseData);
+                } else {
+                    showNoDataPieChart();
+                }
+
+                // ====== DETAILED DATA ======
+                let detailedData = [];
 
                 if (isAnySchemeSelected(filters)) {
-                    detailedPromise = loadDetailedDataForDescriptions(filters);
-                } else {
-                    console.log("No schemes selected → skipping detailed API");
+                    detailedData = await loadDetailedDataForDescriptions(filters);
+                    console.log("📥 DETAILED DATA:", detailedData);
                 }
 
-                const [countData, detailedData] = await Promise.all([
-                    countPromise,
-                    detailedPromise
-                ]);
-
-                if (!hasValidCountData(countData)) {
-                    console.warn("No data found for selected filters");
-
-                    // Reset summary cards
-                    $('#totalFamiliesCount').text('0');
-                    $('#activeFamiliesCount').text('0');
-                    $('#totalDistrictsCount').text('0');
-                    $('#totalVillagesCount').text('0');
-
-                    // Update filter summary
-                    $('#filterSummary').text('No data found for selected filters');
-
-                    // Clear chart with message
-                    showNoGeographicData();
-
-                    // Clear descriptions
-                    $('#schemeDescriptions').html(`
-        <div class="text-center text-muted py-4">
-            <i class="bi bi-search fs-1 mb-2 d-block"></i>
-            <p>No data found</p>
-            <small class="text-muted">
-                Try changing filters or selecting different schemes
-            </small>
-        </div>
-    `);
-
-                    return; // ⛔ STOP further processing
-                }
-                API_DATA.chartData = countData;
-                API_DATA.detailedData = detailedData;
-                API_DATA.filteredData = countData;
-
-                updateSummaryCards(countData);
-                updateGeographicDistributionChart(countData);
-
-                // ✅ Only update descriptions if data exists
-                if (detailedData.length) {
+                if (Array.isArray(detailedData) && detailedData.length) {
                     updateSchemeDescriptionsFromData(detailedData);
                 } else {
-                    $('#schemeDescriptions').empty(); // optional: clear UI
+                    $('#schemeDescriptions').html(`
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                    <p>No descriptions found</p>
+                </div>
+            `);
                 }
 
-                console.log("Filters applied successfully");
+                $('#filterSummary').text(
+                    `(${rawData.total_ufcno_count.toLocaleString()} records across ${rawData.total_district_count} districts)`
+                );
+
+                console.log("✅ APPLY FILTERS SUCCESS");
 
             } catch (err) {
-                console.error("Filter error:", err);
-                $('#filterSummary').text('Error loading data');
-                alert('Error loading data');
+                console.error("❌ APPLY FILTERS FAILED:", err);
+                showNoDataState();
             }
         }
 
