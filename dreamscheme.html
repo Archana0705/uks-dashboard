@@ -934,7 +934,9 @@
                     "_table_name": "pds_master_taluk",
                     "selected_columns": ["district_id", "taluk_id", "taluk_name"],
                     "filter_conditions": {
-                        "district_id": districtId
+                        and: {
+                            "district_id": districtId
+                        }
                     },
                     "sort_columns": {},
                     "limit_rows": 100,
@@ -988,8 +990,10 @@
                     "_table_name": "pds_village_master",
                     "selected_columns": ["district_id", "taluk_id", "village_id", "village_name"],
                     "filter_conditions": {
-                        "district_id": districtId,
-                        "taluk_id": talukId
+                        and: {
+                            "district_id": districtId,
+                            "taluk_id": talukId
+                        }
                     },
                     "sort_columns": {},
                     "limit_rows": 200,
@@ -1044,9 +1048,11 @@
                     "_table_name": "pds_master",
                     "selected_columns": ["id", "shop_code"],
                     "filter_conditions": {
-                        "district_id": districtId,
-                        "taluk_id": talukId,
-                        "village_id": villageId
+                        and: {
+                            "district_id": districtId,
+                            "taluk_id": talukId,
+                            "village_id": villageId
+                        }
                     },
                     "sort_columns": {},
                     "limit_rows": 200,
