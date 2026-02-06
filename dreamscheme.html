@@ -1695,7 +1695,7 @@
             };
 
             let drillState = {
-                level: 'district',
+                level: 'state',
                 district_id: null,
                 district_name: null,
                 taluk_id: null,
@@ -1783,98 +1783,78 @@
                 parentContainer.insertBefore(navContainer, pieContainer);
             }
 
-            // Update breadcrumb navigation
             function updateBreadcrumb() {
+                const nav = document.getElementById('pie-nav-container');
                 const breadcrumb = document.getElementById('pie-breadcrumb');
-                const navContainer = document.getElementById('pie-nav-container');
 
-                if (!breadcrumb || !navContainer) return;
-
-                if (drillState.level === 'district') {
-                    breadcrumb.innerHTML = '<strong>State Level</strong>';
-                    navContainer.style.display = 'none';
-                } else if (drillState.level === 'taluk') {
-                    // Use district_name instead of taluk_name
-                    breadcrumb.innerHTML = `<strong>State</strong> → <strong>${drillState.district_name || 'District'}</strong>`;
-                    navContainer.style.display = 'block';
-                } else if (drillState.level === 'village') {
-                    breadcrumb.innerHTML = `<strong>State</strong> → <strong>${drillState.district_name || 'District'}</strong> → <strong>${drillState.taluk_name || 'Taluk'}</strong>`;
-                    navContainer.style.display = 'block';
+                if (drillState.level === 'state') {
+                    nav.style.display = 'none';
+                    breadcrumb.innerHTML = '';
+                } else {
+                    nav.style.display = 'block';
+                    breadcrumb.innerHTML = `<strong>${drillState.district_name}</strong>`;
                 }
             }
 
-            // Navigate back in drill-down
             function navigateBack() {
-                if (drillState.level === 'taluk') {
-                    // Go back to district level
-                    drillState.level = 'district';
+                debugger;
+
+                if (drillState.level === 'district') {
+                    // DISTRICT → STATE (show all districts)
+                    drillState.level = 'state';
+
                     drillState.district_id = null;
                     drillState.district_name = null;
                     drillState.taluk_id = null;
                     drillState.taluk_name = null;
                     drillState.village_id = null;
                     drillState.village_name = null;
-                } else if (drillState.level === 'village') {
-                    // Go back to taluk level
-                    drillState.level = 'taluk';
+                }
+
+                else if (drillState.level === 'taluk') {
+                    // TALUK → DISTRICT
+                    drillState.level = 'district';
+
+                    drillState.taluk_id = null;
+                    drillState.taluk_name = null;
                     drillState.village_id = null;
                     drillState.village_name = null;
-                    // Keep district info when going from village to taluk
+                    // keep district info
+                }
+
+                else if (drillState.level === 'village') {
+                    // VILLAGE → TALUK
+                    drillState.level = 'taluk';
+
+                    drillState.village_id = null;
+                    drillState.village_name = null;
+                    // keep district + taluk info
                 }
 
                 updateBreadcrumb();
                 fetchPieData();
             }
+
             // Handle pie chart click for drill-down
 
             // Handle pie chart click for drill-down
             function handlePieChartClick(params) {
+                debugger
                 if (!params.data || !params.data.id) return;
 
-                if (drillState.level === 'district') {
-                    // Drill down to taluk
-                    drillState.level = 'taluk';
+                if (drillState.level === 'state') {
+                    drillState.level = 'district';
                     drillState.district_id = params.data.id;
-                    drillState.district_name = params.name;
-                    // Clear taluk info
-                    drillState.taluk_id = null;
-                    drillState.taluk_name = null;
+                    drillState.district_name = params.data.name;
+
+                    updateBreadcrumb();
+                    fetchPieData();
                 }
-                // No village drilldown needed
-
-                updateBreadcrumb();
-                fetchPieData();
-            }
-
-            // Fetch data for pie chart
-            function fetchPieData() {
-                let url = '/api/families/distribution/';  // Same API endpoint
-
-                // Add parameters based on drill level
-                const params = {};
-
-                if (drillState.level === 'taluk' && drillState.district_id) {
-                    // When at taluk level, add district_id parameter
-                    params.district_id = drillState.district_id;
-                    params.level = 'taluk';  // Tell backend we want taluk data
-                } else {
-                    // Default: district level
-                    params.level = 'district';
-                }
-
-                // Make API call
-                fetch(url + '?' + new URLSearchParams(params))
-                    .then(response => response.json())
-                    .then(data => {
-                        renderPieChart(data);
-                    })
-                    .catch(error => {
-                        console.error('Error fetching pie chart data:', error);
-                    });
             }
 
             // Update the renderPieChart function to handle the data properly
             function renderPieChart(data) {
+                debugger
                 const chart = initDistrictPieChart();
                 if (!chart) return;
 
@@ -1918,7 +1898,8 @@
                         left: 'center',
                         textStyle: {
                             fontSize: 14,
-                            fontWeight: 'normal'
+                            fontWeight: 'normal',
+                            marginTop: 10,
                         }
                     },
                     tooltip: {
@@ -1950,55 +1931,13 @@
                 chart.setOption(option);
             }
 
-            // Update breadcrumb navigation
-            function updateBreadcrumb() {
-                const breadcrumb = document.getElementById('pie-breadcrumb');
-                const navContainer = document.getElementById('pie-nav-container');
-
-                if (!breadcrumb || !navContainer) return;
-
-                if (drillState.level === 'district') {
-                    breadcrumb.innerHTML = '<strong>State Level</strong>';
-                    navContainer.style.display = 'none';
-                } else if (drillState.level === 'taluk') {
-                    breadcrumb.innerHTML = `<strong>State</strong> → <strong>${drillState.district_name || 'District'}</strong>`;
-                    navContainer.style.display = 'block';
-                }
-                // No village level
-            }
-
-            // Navigate back
-            function navigateBack() {
-                if (drillState.level === 'taluk') {
-                    // Go back to district level
-                    drillState.level = 'district';
-                    drillState.district_id = null;
-                    drillState.district_name = null;
-                    drillState.taluk_id = null;
-                    drillState.taluk_name = null;
-                }
-                // No village level
-
-                updateBreadcrumb();
-                fetchPieData();
-            }
-
-            // Get title for pie chart
-            function getPieTitle() {
-                if (drillState.level === 'district') {
-                    return 'Families by District (Click to drill down)';
-                } else if (drillState.level === 'taluk') {
-                    return `Families in ${drillState.district_name || 'District'} - By Taluk`;
-                }
-                return 'Family Distribution';
-            }
 
             // Get title for pie chart based on current drill level
             function getPieTitle() {
                 switch (drillState.level) {
                     case 'district': return 'Families by District (Click to drill down)';
                     case 'taluk': return `Families in ${drillState.taluk_name || 'District'} - By Taluk`;
-                    default: return 'Family Distribution';
+                    default: return '';
                 }
             }
 
@@ -2158,6 +2097,7 @@
 
             // Fetch pie chart data based on current drill state
             async function fetchPieData() {
+                debugger
                 const payload = {
                     district_id: drillState.district_id,
                     taluk_id: drillState.taluk_id,
@@ -2171,45 +2111,57 @@
                 handlePieApiResponse(response);
             }
 
-            // Handle API response for pie chart
             function handlePieApiResponse(response) {
                 if (!response || response.success !== 1) {
-                    console.warn('No data or API error:', response);
                     showEmptyPieChart();
                     return;
                 }
 
-                let decrypted;
+                let apiData;
                 try {
-                    decrypted = decryptData(response.data);
+                    const decrypted = decryptData(response.data);
+                    apiData = typeof decrypted === 'string'
+                        ? JSON.parse(decrypted)
+                        : decrypted;
                 } catch (e) {
                     console.error('Decrypt failed', e);
                     showEmptyPieChart();
                     return;
                 }
 
-                let apiData = typeof decrypted === 'string'
-                    ? JSON.parse(decrypted)
-                    : decrypted;
-
-                console.log("Pie chart API data:", apiData);
-
                 if (!Array.isArray(apiData) || apiData.length === 0) {
                     showEmptyPieChart();
                     return;
                 }
 
-                const pieData = apiData.map(item => ({
-                    name: item.district_name || item.taluk_name || item.village_name || 'Unknown',
-                    value: Number(item.total_familycount || item.total_pendingcount || 0),
-                    id: item.district_id || item.taluk_id || item.village_id
-                }));
+                let pieData = [];
 
-                const total = pieData.reduce((sum, item) => sum + item.value, 0);
+                /* ===============================
+                   DRILL STATE HANDLING
+                ================================*/
+                if (drillState.level === 'state') {
+                    // INITIAL → DISTRICT WISE
+                    pieData = apiData.map(item => ({
+                        name: item.district_name,
+                        value: Number(item.total_familycount || 0),
+                        id: item.district_id
+                    }));
+                }
+                else if (drillState.level === 'district') {
+                    // CLICKED DISTRICT → TALUK WISE
+                    pieData = apiData.map(item => ({
+                        name: item.taluk_name,
+                        value: Number(item.total_familycount || 0),
+                        id: item.taluk_id
+                    }));
+                }
+
+                const total = pieData.reduce((sum, i) => sum + i.value, 0);
 
                 const chart = initDistrictPieChart();
                 if (!chart) return;
 
+                chart.clear();
                 chart.setOption({
                     title: {
                         text: getPieTitle(),
@@ -2222,42 +2174,18 @@
                     },
                     tooltip: {
                         trigger: 'item',
-                        formatter: function (params) {
-                            const percent = total > 0 ? ((params.value / total) * 100).toFixed(1) : 0;
-                            return `${params.name}<br/>Families: ${params.value}<br/>(${percent}%)`;
+                        formatter: p => {
+                            const percent = total
+                                ? ((p.value / total) * 100).toFixed(1)
+                                : 0;
+                            return `${p.name}<br/>Families: ${p.value} (${percent}%)`;
                         }
                     },
                     series: [{
                         type: 'pie',
                         radius: '60%',
                         data: pieData,
-                        itemStyle: {
-                            color: function (params) {
-                                const colorList = [
-                                    '#4f46e5', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef',
-                                    '#ec4899', '#f43f5e', '#ef4444', '#f97316', '#f59e0b',
-                                    '#eab308', '#84cc16', '#22c55e', '#10b981', '#14b8a6',
-                                    '#06b6d4', '#0ea5e9', '#3b82f6', '#2563eb', '#1d4ed8'
-                                ];
-                                return colorList[params.dataIndex % colorList.length];
-                            }
-                        },
-                        emphasis: {
-                            itemStyle: {
-                                shadowBlur: 10,
-                                shadowOffsetX: 0,
-                                shadowColor: 'rgba(0, 0, 0, 0.3)'
-                            },
-                            label: {
-                                show: true,
-                                fontSize: '14',
-                                fontWeight: 'bold'
-                            }
-                        },
-                        label: {
-                            formatter: '{b}: {c}',
-                            fontSize: 12
-                        }
+                        label: { formatter: '{b}: {c}' }
                     }]
                 });
 
@@ -2327,7 +2255,7 @@
             // Reset drill state to district level
             function resetDrillState() {
                 drillState = {
-                    level: 'district',
+                    level: 'state',
                     district_id: null,
                     district_name: null,
                     taluk_id: null,
@@ -2354,27 +2282,19 @@
             // Apply filters button handler
             async function applyFilters() {
                 const districtId = $('#district').val();
-                const talukId = $('#taluk').val();
 
-                // Reset drill state to appropriate level
-                resetDrillState();
+                drillState = {
+                    level: 'state',
+                    district_id: null,
+                    district_name: null
+                };
 
                 if (districtId !== 'ALL') {
-                    // Find district name
                     const district = API_DATA.districts.find(d => d.district_id == districtId);
                     if (district) {
+                        drillState.level = 'district';
                         drillState.district_id = Number(districtId);
                         drillState.district_name = district.district_name;
-
-                        if (talukId !== 'ALL') {
-                            // Find taluk name
-                            const taluk = API_DATA.allTaluks.find(t => t.taluk_id == talukId);
-                            if (taluk) {
-                                drillState.level = 'taluk';
-                                drillState.taluk_id = Number(talukId);
-                                drillState.taluk_name = taluk.taluk_name;
-                            }
-                        }
                     }
                 }
 
