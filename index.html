@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>UKS Analytics</title>
+  <title>UKS Analytics - Dream Scheme</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
@@ -14,32 +14,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <style>
     body {
-      background: #f5f7fb
-    }
-
-    .card {
-      border-radius: 14px;
-      border: none
-    }
-
-    .filter-bar {
-      position: sticky;
-      top: 0;
-      background: white;
-      z-index: 1000
-    }
-
-    .chart-actions {
-      opacity: 0;
-      transition: .2s
-    }
-
-    .card:hover .chart-actions {
-      opacity: 1
-    }
-
-    body {
-      background: #f4f6fb;
+      background: #f5f7fb;
       font-family: Inter, system-ui;
     }
 
@@ -47,6 +22,11 @@
       background: linear-gradient(135deg, #ffffff, #f8f9ff);
       border-bottom: 1px solid #eee;
       height: 64px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 2000;
     }
 
     .app-title {
@@ -62,17 +42,22 @@
       z-index: 9;
       border-radius: 14px;
       margin: 5px 12px;
+      padding: 10px !important;
     }
 
     .filter-bar label {
       font-size: 13px;
       color: #666;
       font-weight: 500;
+      margin-bottom: 4px !important;
     }
 
     .form-select,
-    .form-range {
+    .form-range,
+    .form-control {
       border-radius: 10px;
+      padding: 6px 12px !important;
+      font-size: 14px !important;
     }
 
     .card {
@@ -100,37 +85,13 @@
       background: linear-gradient(135deg, #4f46e5, #6366f1);
       border: none;
       border-radius: 10px;
+      padding: 8px 16px !important;
+      font-size: 14px;
     }
 
     .btn-outline-secondary {
       border-radius: 10px;
-    }
-
-    .dropdown-menu {
-      border-radius: 12px;
-      min-width: 180px;
-    }
-
-    .dropdown-item {
-      font-size: 14px;
-      padding: 10px 14px;
-    }
-
-    ul.dropdown-menu.dropdown-menu-end.shadow.show {
-      z-index: 9999;
-    }
-
-    h5 i {
-      opacity: 0.8;
-    }
-
-    .btn-group-sm .btn {
-      border-radius: 8px;
-      padding: 4px 10px;
-    }
-
-    input[type="date"] {
-      border-radius: 8px;
+      padding: 6px 12px !important;
     }
 
     .app-wrapper {
@@ -149,34 +110,16 @@
       z-index: 2000;
     }
 
-    .sidebar-header {
-      height: 64px;
-      display: flex;
-      align-items: center;
-      padding: 0 16px;
-      border-bottom: 1px solid #eee;
+    .sidebar-menu {
+      list-style: none;
+      padding: 0;
+      margin: 0;
     }
 
     .sidebar-menu li.active {
       background: linear-gradient(135deg, #5b5df0, #7b7dff);
       color: white;
       box-shadow: 0 6px 16px rgba(91, 93, 240, .35);
-    }
-
-    .sidebar-menu i {
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
-      background: #eef0f7;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .sidebar-menu {
-      list-style: none;
-      padding: 0;
-      margin: 0;
     }
 
     .sidebar-menu li a {
@@ -194,16 +137,6 @@
       color: #4f46e5;
     }
 
-    .submenu {
-      list-style: none;
-      padding-left: 30px;
-    }
-
-    .submenu li a {
-      padding: 8px 16px;
-      font-size: 13px;
-    }
-
     .main-content {
       margin-left: 240px;
       width: 100%;
@@ -212,36 +145,7 @@
     }
 
     .main-content.collapsed {
-      margin-left: 70px;
-    }
-
-    .app-header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 64px;
-      z-index: 2000;
-    }
-
-    .main-content {
-      margin-top: 64px;
-    }
-
-    .sidebar.collapsed .sidebar-header span {
-      display: none;
-    }
-
-    .sidebar.collapsed .sidebar-menu span {
-      display: none;
-    }
-
-    .sidebar.collapsed .submenu {
-      display: none !important;
-    }
-
-    .sidebar.collapsed .sidebar-header img {
-      display: none;
+      margin-left: 0;
     }
 
     .sidebar.collapsed {
@@ -249,101 +153,11 @@
       overflow: hidden;
     }
 
-    .main-content.collapsed {
-      margin-left: 0;
-    }
-
-    @media (max-width: 768px) {
-      .sidebar {
-        transform: translateX(-100%);
-      }
-
-      .sidebar.open {
-        transform: translateX(0);
-      }
-
-      .filter-bar .col-md-2,
-      .filter-bar .col-md-3 {
-        margin-bottom: 10px;
-      }
-    }
-
-    @media (max-width: 992px) {
-      .chart-row {
-        flex-direction: column;
-      }
-    }
-
-    @media (max-width: 480px) {
-      body {
-        font-size: 14px;
-      }
-
-      h5 {
-        font-size: 16px;
-      }
-
-      .app-title {
-        font-size: 16px;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .sidebar {
-        transform: translateX(-100%);
-        width: 240px;
-      }
-
-      .sidebar.collapsed {
-        transform: translateX(-100%);
-      }
-
-      .sidebar:not(.collapsed) {
-        transform: translateX(0);
-        box-shadow: 0 0 0 9999px rgba(0, 0, 0, .25);
-      }
-
-      .main-content {
-        margin-left: 0 !important;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .filterWraps {
-        width: auto !important;
-        margin-left: 15px;
-        margin-top: 10px;
-      }
-
-      .nomob {
-        display: none !important;
-      }
-
-      .sidebar {
-        transform: translateX(-100%);
-        width: 240px;
-      }
-
-      .sidebar.open {
-        transform: translateX(0);
-        box-shadow: 0 0 0 9999px rgba(0, 0, 0, .35);
-      }
-
-      .sidebar.collapsed {
-        width: 240px;
-        overflow: visible;
-      }
-
-      .main-content {
-        margin-left: 0 !important;
-      }
-    }
-
     .filter-section {
       background: #f8f9fa;
       border-radius: 10px;
-      padding: 15px;
-      margin-bottom: 15px;
+      padding: 12px !important;
+      margin-bottom: 10px !important;
       border-left: 4px solid;
     }
 
@@ -374,33 +188,352 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 15px;
+      margin-bottom: 10px !important;
     }
 
     .logic-toggle .btn-group {
       width: 120px;
     }
 
-    .logic-toggle .form-check {
-      margin: 0;
-    }
-
     .filter-group-title {
       font-weight: 600;
       color: #333;
-      margin-bottom: 10px;
+      margin-bottom: 8px !important;
       display: flex;
       align-items: center;
       gap: 8px;
+      font-size: 15px;
     }
 
-    .count-badge {
+    .scheme-description-card {
+      background: linear-gradient(135deg, #f8f9ff, #ffffff);
+      border: 1px solid #e6e8ff;
+      transition: transform 0.2s;
+      border-radius: 10px;
+    }
+
+    .scheme-description-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .scheme-logic-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px !important;
+    }
+
+    /* Reduced spacing classes */
+    .row.g-2 {
+      --bs-gutter-x: 0.5rem;
+      --bs-gutter-y: 0.5rem;
+    }
+
+    .row.g-3 {
+      --bs-gutter-x: 1rem;
+      --bs-gutter-y: 1rem;
+    }
+
+    .mb-1 {
+      margin-bottom: 0.25rem !important;
+    }
+
+    .mb-2 {
+      margin-bottom: 0.5rem !important;
+    }
+
+    .mb-3 {
+      margin-bottom: 1rem !important;
+    }
+
+    .mt-1 {
+      margin-top: 0.25rem !important;
+    }
+
+    .mt-2 {
+      margin-top: 0.5rem !important;
+    }
+
+    .mt-3 {
+      margin-top: 1rem !important;
+    }
+
+    .py-1 {
+      padding-top: 0.25rem !important;
+      padding-bottom: 0.25rem !important;
+    }
+
+    .py-2 {
+      padding-top: 0.5rem !important;
+      padding-bottom: 0.5rem !important;
+    }
+
+    .py-3 {
+      padding-top: 1rem !important;
+      padding-bottom: 1rem !important;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+        width: 240px;
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, .25);
+      }
+
+      .main-content {
+        margin-left: 0 !important;
+      }
+
+      .filterWraps {
+        width: auto !important;
+        margin-left: 15px;
+        margin-top: 10px;
+      }
+
+      .nomob {
+        display: none !important;
+      }
+
+      .filter-bar {
+        margin: 5px 8px !important;
+        padding: 8px !important;
+      }
+
+      .filter-section {
+        padding: 10px !important;
+      }
+    }
+
+    @media (max-width: 992px) {
+      .chart-row {
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        font-size: 14px;
+      }
+
+      h5 {
+        font-size: 16px;
+      }
+
+      .app-title {
+        font-size: 16px;
+      }
+
+      .filter-bar {
+        margin: 5px 4px !important;
+        padding: 6px !important;
+      }
+    }
+
+    /* No Remarks Entry Styling */
+    .no-remarks-entry {
+      border-left: 4px solid #6c757d;
+      background: linear-gradient(135deg, #f8f9fa, #ffffff);
+      transition: all 0.3s ease;
+    }
+
+    .no-remarks-entry:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .no-remarks-entry .badge {
+      font-size: 14px;
+      padding: 6px 12px;
+      min-width: 50px;
+    }
+
+    /* Unique Remarks Styling */
+    .remark-entry {
+      border-left: 4px solid #4f46e5;
+      background: white;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .remark-entry:hover {
+      transform: translateX(4px);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+    }
+
+    .remark-entry:before {
+      content: '✓';
+      position: absolute;
+      left: -10px;
+      top: 50%;
+      transform: translateY(-50%);
       background: #4f46e5;
       color: white;
-      border-radius: 20px;
-      padding: 2px 8px;
-      font-size: 11px;
-      margin-left: 5px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .remark-entry:hover:before {
+      opacity: 1;
+    }
+
+    /* District Header */
+    .district-header {
+      background: linear-gradient(135deg, #f8f9ff, #ffffff);
+      border: 1px solid #e6e8ff;
+      transition: all 0.3s ease;
+    }
+
+    .district-header:hover {
+      border-color: #4f46e5;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+    }
+
+    /* Load More Button */
+    .btn-outline-primary {
+      border-width: 2px;
+      font-weight: 500;
+    }
+
+    .btn-outline-primary:hover {
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    /* All Entries Styling */
+    .all-entries-list .remark-entry:nth-child(even) {
+      background: #f8f9fa;
+    }
+
+    .all-entries-list .remark-entry .badge.bg-secondary {
+      background: #6c757d !important;
+    }
+
+    /* Summary Header */
+    .bg-light.rounded {
+      border: 1px solid #e9ecef;
+    }
+
+    /* Scrollbar for scheme descriptions */
+    .scheme-description-card {
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+
+    .scheme-description-card::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .scheme-description-card::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 3px;
+    }
+
+    .scheme-description-card::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px;
+    }
+
+    .scheme-description-card::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+      .no-remarks-entry {
+        flex-direction: column !important;
+        text-align: center;
+      }
+
+      .no-remarks-entry .d-flex.align-items-center {
+        justify-content: center;
+        margin-bottom: 10px;
+      }
+
+      .no-remarks-entry .text-end {
+        text-align: center !important;
+      }
+
+      .remark-content .bg-light {
+        font-size: 13px;
+      }
+    }
+
+    /* Add to your existing CSS */
+    #geoLevelSelector .btn.active {
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      color: white;
+      border-color: #4f46e5;
+    }
+
+    .drill-breadcrumb {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 8px 12px;
+      margin-bottom: 10px;
+      border-left: 4px solid #4f46e5;
+    }
+
+    .breadcrumb-item {
+      cursor: pointer;
+      color: #4f46e5;
+    }
+
+    .breadcrumb-item:hover {
+      text-decoration: underline;
+    }
+
+    .breadcrumb-item.active {
+      color: #6c757d;
+      cursor: default;
+    }
+
+    .breadcrumb-item.active:hover {
+      text-decoration: none;
+    }
+
+    .tab-pane {
+      display: none;
+    }
+
+    .tab-pane.active,
+    .tab-pane.show {
+      display: block;
+    }
+
+    /* Add to your existing CSS */
+    .scheme-legend {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-bottom: 10px;
+      border-left: 4px solid #4f46e5;
+    }
+
+    .scheme-legend-item {
+      display: inline-block;
+      margin-right: 15px;
+      font-size: 12px;
+    }
+
+    .scheme-legend-color {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      margin-right: 5px;
     }
   </style>
 </head>
@@ -425,7 +558,8 @@
           <li>
             <hr class="dropdown-divider">
           </li>
-          <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-box-arrow-right me-2"></i> Logout</a></li>
+          <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-box-arrow-right me-2"></i>
+              Logout</a></li>
         </ul>
       </div>
     </div>
@@ -434,10 +568,14 @@
   <div class="app-wrapper">
     <div id="sidebar" class="sidebar">
       <ul class="sidebar-menu">
-        <li class="active"><a href="#"><i class="bi bi-speedometer2"></i> <span>Dashboard</span></a></li>
-        <li><a href="#"><i class="bi bi-people"></i> <span>Beneficiary</span></a></li>
-        <li><a href="#"><i class="bi bi-card-checklist"></i> <span>Beneficial Scheme</span></a></li>
-        <li><a href="dreamscheme.html"><i class="bi bi-stars"></i> <span>Dream Scheme</span></a></li>
+        <!-- <li><a href="index.html"><i class="bi bi-speedometer2"></i> <span>Dashboard</span></a></li>
+                <li><a href="#"><i class="bi bi-people"></i> <span>Beneficiary</span></a></li>
+                <li><a href="#"><i class="bi bi-card-checklist"></i> <span>Beneficial Scheme</span></a></li> -->
+        <li class="active"><a href="dreamscheme.html"><i class="bi bi-stars"></i> <span>Dashboard</span></a>
+          <!-- <li><a href="dreamscheme-district-wise-distribution.html"><i class="bi bi-stars"></i> <span>Dream
+                            Scheme</span></a>
+
+                </li> -->
       </ul>
     </div>
 
@@ -448,20 +586,10 @@
       </button>
 
       <div id="mobileFilters" class="collapse d-md-block">
-        <div class="filter-bar p-3 shadow-sm">
+        <div class="filter-bar shadow-sm">
           <!-- Logic Toggle -->
           <div class="logic-toggle">
-            <span class="filter-group-title">Filter Logic:</span>
-            <div class="btn-group" role="group">
-              <input type="radio" class="btn-check" name="filterLogic" id="logicAND" autocomplete="off" checked
-                onclick="updateFilterLogic('AND')">
-              <label class="btn btn-outline-primary" for="logicAND">AND</label>
-
-              <input type="radio" class="btn-check" name="filterLogic" id="logicOR" autocomplete="off"
-                onclick="updateFilterLogic('OR')">
-              <label class="btn btn-outline-primary" for="logicOR">OR</label>
-            </div>
-            <span id="logicIndicator" class="badge bg-primary">AND Logic</span>
+            <!-- <span class="filter-group-title">Overall Filter Logic:</span> -->
           </div>
 
           <!-- Geographic Filters -->
@@ -470,1218 +598,2901 @@
               <i class="bi bi-geo-alt"></i>
               Geographic Filters
             </div>
-            <div class="row g-3 align-items-end">
-              <div class="col-md-3">
+            <div class="row g-2 align-items-end">
+              <div class="col-md-3 mb-2">
                 <label>District</label>
                 <select id="district" class="form-select">
-                  <option value="ALL" selected>All Districts</option>
-                  <option value="Chennai">Chennai</option>
-                  <option value="Madurai">Madurai</option>
-                  <option value="Coimbatore">Coimbatore</option>
-                  <option value="Tiruchirappalli">Tiruchirappalli</option>
-                  <option value="Salem">Salem</option>
+                  <option value="ALL" selected>Loading districts...</option>
                 </select>
               </div>
 
-              <div class="col-md-3">
-                <label>Taluk</label>
-                <select id="taluk" class="form-select">
-                  <option value="ALL" selected>All Taluks</option>
-                </select>
-              </div>
+              <!-- <div class="col-md-3 mb-2">
+                                <label>Taluk</label>
+                                <select id="taluk" class="form-select">
+                                    <option value="ALL" selected>Select Taluk</option>
+                                </select>
+                            </div> -->
 
-              <div class="col-md-3">
-                <label>Village</label>
-                <select id="village" class="form-select">
-                  <option value="ALL" selected>All Villages</option>
-                </select>
-              </div>
-
-              <div class="col-md-3">
-                <label>Shop/Outlet</label>
-                <select id="shop" class="form-select">
-                  <option value="ALL" selected>All Shops</option>
-                </select>
+              <div class="col-md-3 mb-2  gap-2 justify-content-end">
+                <button class="btn btn-primary" onclick="applyFilters()">
+                  <i class="bi bi-funnel me-2"></i> Apply Filters
+                </button>
+                <button class="btn btn-outline-danger" onclick="resetAll()">
+                  <i class="bi bi-arrow-counterclockwise"></i>
+                </button>
               </div>
             </div>
           </div>
-
-          <!-- Demographic Filters -->
-          <div class="filter-section demographic-filter">
-            <div class="filter-group-title">
-              <i class="bi bi-people"></i>
-              Demographic Filters
-            </div>
-            <div class="row g-3 align-items-end">
-              <div class="col-md-3">
-                <label>Gender</label>
-                <select id="gender" class="form-select">
-                  <option value="ALL" selected>All Genders</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-
-              <div class="col-md-3">
-                <label>Age Range</label>
-                <div class="d-flex gap-2">
-                  <input type="number" id="ageMin" class="form-control" placeholder="Min" min="18" max="100" value="18">
-                  <input type="number" id="ageMax" class="form-control" placeholder="Max" min="18" max="100" value="80">
-                </div>
-              </div>
-
-              <div class="col-md-3">
-                <label>Date Range</label>
-                <div class="d-flex align-items-center gap-2">
-                  <input type="date" id="dateFrom" class="form-control form-control-sm" value="2024-01-01">
-                  <span class="text-muted">to</span>
-                  <input type="date" id="dateTo" class="form-control form-control-sm" value="2024-03-31">
-                </div>
-              </div>
-
-              <div class="col-md-3">
-                <label>Status</label>
-                <select id="status" class="form-select">
-                  <option value="ALL" selected>All Status</option>
-                  <option value="Active">Active</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Inactive">Inactive</option>
-                  <option value="Suspended">Suspended</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <!-- Scheme Filters -->
-          <div class="filter-section scheme-filter">
-            <div class="filter-group-title">
-              <i class="bi bi-card-checklist"></i>
-              Scheme Filters
-            </div>
-            <div class="row g-3 align-items-end">
-              <div class="col-md-6">
-                <label>Scheme Category</label>
-                <select id="schemeCategory" class="form-select">
-                  <option value="ALL" selected>All Categories</option>
-                  <option value="Food Security">Food Security</option>
-                  <option value="Cash Transfer">Cash Transfer</option>
-                  <option value="Agriculture">Agriculture</option>
-                  <option value="Employment">Employment</option>
-                </select>
-              </div>
-
-              <div class="col-md-6">
-                <label>Scheme</label>
-                <select id="scheme" class="form-select">
-                  <option value="ALL" selected>All Schemes</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <!-- Action Buttons -->
-          <div class="row mt-3">
+          <div class="row mt-2">
             <div class="col-md-8">
               <div id="activeFiltersDisplay" class="d-flex flex-wrap gap-2"></div>
             </div>
-            <div class="col-md-4 d-flex gap-2 justify-content-end">
-              <button class="btn btn-primary" onclick="applyFilters()">
-                <i class="bi bi-funnel me-2"></i> Apply Filters
-              </button>
-              <button class="btn btn-outline-danger" onclick="resetAll()">
-                <i class="bi bi-arrow-counterclockwise"></i>
-              </button>
-            </div>
+
           </div>
         </div>
       </div>
 
-      <div class="container-fluid mt-4">
-        <!-- Summary Cards -->
-        <div class="row g-3 mb-4">
-          <div class="col-md-3">
-            <div class="card p-3 shadow">
-              <div class="d-flex align-items-center">
-                <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
-                  <i class="bi bi-people text-primary fs-4"></i>
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-lg-12">
+            <!-- <ul class="nav nav-tabs" id="myTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="basic-details-tab" data-bs-toggle="tab"
+                                    data-bs-target="#basic-details-pane" type="button" role="tab"
+                                    aria-controls="basic-details-pane" aria-selected="true">Basic Details</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="beneficiary-tab" data-bs-toggle="tab"
+                                    data-bs-target="#beneficiary-tab-pane" type="button" role="tab"
+                                    aria-controls="beneficiary-tab-pane" aria-selected="false">Beneficiary</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="beneficial-scheme-tab" data-bs-toggle="tab"
+                                    data-bs-target="#beneficial-scheme-pane" type="button" role="tab"
+                                    aria-controls="beneficial-scheme-pane" aria-selected="false">Beneficial
+                                    Scheme</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="dream-scheme-tab" data-bs-toggle="tab"
+                                    data-bs-target="#dream-scheme-tab-pane" type="button" role="tab"
+                                    aria-controls="dream-scheme-tab-pane" aria-selected="false">Dream
+                                    Scheme</button>
+                            </li>
+                        </ul> -->
+            <ul class="nav nav-tabs" id="uksDashboardTabs" role="tablist">
+              <li class="nav-item">
+                <button class="nav-link active" id="family-profile-tab" data-bs-toggle="tab"
+                  data-bs-target="#family-profile-pane" type="button">
+                  Family Profile
+                </button>
+              </li>
+
+              <li class="nav-item">
+                <button class="nav-link" id="beneficiary-details-tab" data-bs-toggle="tab"
+                  data-bs-target="#beneficiary-details-pane" type="button">
+                  Beneficiary & Schemes
+                </button>
+              </li>
+
+              <li class="nav-item">
+                <button class="nav-link" id="dream-scheme-tab" data-bs-toggle="tab" data-bs-target="#dream-scheme-pane"
+                  type="button">
+                  Dream Scheme
+                </button>
+              </li>
+            </ul>
+
+
+
+            <div class="tab-content mt-3">
+
+              <!-- ================= FAMILY PROFILE ================= -->
+              <div class="tab-pane fade show active" id="family-profile-pane">
+
+                <div class="row g-3">
+                  <div class="col-lg-6">
+                    <div class="card p-3 shadow">
+                      <h5>Families by District</h5>
+                      <div id="district_distribution_pie" style="height:350px;"></div>
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+                    <div class="card p-3 shadow">
+                      <h5>Age-wise Family Distribution</h5>
+                      <div id="age_distribution_bar" style="height:350px;"></div>
+                    </div>
+                  </div>
+
                 </div>
-                <div>
-                  <h6 class="text-muted mb-1">Total Beneficiaries</h6>
-                  <h4 id="totalBeneficiariesCount" class="mb-0">0</h4>
+
+                <div class="row g-3 mt-3">
+
+                  <div class="col-lg-12">
+                    <div class="card p-3 shadow">
+                      <h5>Family Status Count</h5>
+                      <div id="family_status_bar" style="height:350px;"></div>
+                    </div>
+                  </div>
+
                 </div>
+
               </div>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="card p-3 shadow">
-              <div class="d-flex align-items-center">
-                <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
-                  <i class="bi bi-check-circle text-success fs-4"></i>
+
+              <!-- ================= BENEFICIARY ================= -->
+              <div class="tab-pane fade" id="beneficiary-details-pane">
+
+                <div class="row g-3">
+                  <div class="col-lg-6">
+                    <div class="card p-3 shadow">
+                      <h5>Age vs Gender (Count)</h5>
+                      <div id="age_gender_grouped_bar" style="height:350px;"></div>
+                    </div>
+                  </div>
+
+                  <div class="col-lg-6">
+                    <div class="card p-3 shadow">
+                      <h5>Scheme Count per Beneficiary</h5>
+                      <div id="scheme_count_bar" style="height:350px;"></div>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <h6 class="text-muted mb-1">Active Beneficiaries</h6>
-                  <h4 id="activeBeneficiariesCount" class="mb-0">0</h4>
+
+                <div class="row g-3 mt-3">
+                  <div class="col-lg-12">
+                    <div class="card p-3 shadow">
+                      <h5>Top 5 Benefitted Scheme</h5>
+                      <div id="beneficiary_scheme_pie" style="height:350px;"></div>
+                    </div>
+                  </div>
                 </div>
+
               </div>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="card p-3 shadow">
-              <div class="d-flex align-items-center">
-                <div class="rounded-circle bg-warning bg-opacity-10 p-3 me-3">
-                  <i class="bi bi-clock text-warning fs-4"></i>
-                </div>
-                <div>
-                  <h6 class="text-muted mb-1">Pending Beneficiaries</h6>
-                  <h4 id="pendingBeneficiariesCount" class="mb-0">0</h4>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="card p-3 shadow">
-              <div class="d-flex align-items-center">
-                <div class="rounded-circle bg-info bg-opacity-10 p-3 me-3">
-                  <i class="bi bi-shop text-info fs-4"></i>
-                </div>
-                <div>
-                  <h6 class="text-muted mb-1">Active Shops</h6>
-                  <h4 id="activeShopsCount" class="mb-0">0</h4>
+
+              <!-- ================= DREAM SCHEME ================= -->
+              <div class="tab-pane fade" id="dream-scheme-pane">
+
+                <div class="row g-3">
+                  <div class="col-lg-6">
+                    <div class="card p-3 shadow">
+                      <h5>Top Dream Schemes (Count)</h5>
+                      <div id="dream_scheme_bar" style="height:350px;"></div>
+                    </div>
+                  </div>
+
+                  <div class="col-lg-6">
+                    <div class="card p-3 shadow">
+                      <h5>District-wise Dream Scheme</h5>
+                      <div id="dream_scheme_district_pie" style="height:350px;"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="row g-3">
-          <!-- Pie Chart - Smaller size -->
-          <div class="col-lg-5">
-            <div class="card p-3 shadow">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="d-flex align-items-center gap-2 mb-0">
-                  <i class="bi bi-pie-chart-fill text-primary"></i>
-                  Geographic Distribution
-                  <span id="filterSummary" class="text-muted fs-6 ms-2"></span>
-                </h5>
-                <div class="chart-actions">
-                  <button class="btn btn-sm btn-outline-secondary" onclick="exportCSV('pie')">
-                    <i class="bi bi-file-earmark-excel"></i> CSV
-                  </button>
-                  <button class="btn btn-sm btn-outline-secondary" onclick="exportPDF('pie')">
-                    <i class="bi bi-file-earmark-pdf"></i> PDF
-                  </button>
-                </div>
-              </div>
-              <div id="pie" style="height:350px"></div>
-            </div>
-          </div>
 
-          <div class="col-lg-7">
-            <div class="card p-3 shadow h-100">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="d-flex align-items-center gap-2 mb-0">
-                  <i class="bi bi-bar-chart-fill text-success"></i>
-                  District-wise Status Breakdown
-                </h5>
-                <div class="chart-actions">
-                  <button class="btn btn-sm btn-outline-secondary" onclick="exportCSV('status')">
-                    <i class="bi bi-file-earmark-excel"></i> CSV
-                  </button>
-                  <button class="btn btn-sm btn-outline-secondary" onclick="exportPDF('status')">
-                    <i class="bi bi-file-earmark-pdf"></i> PDF
-                  </button>
-                </div>
-              </div>
-              <div id="statusChart" style="height:350px"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="row g-3 mt-3">
-          <div class="col-lg-6">
-            <div class="card p-3 shadow">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="d-flex align-items-center gap-2 mb-0">
-                  <i class="bi bi-shop text-warning"></i>
-                  Shop Performance
-                </h5>
-                <div class="chart-actions">
-                  <button class="btn btn-sm btn-outline-secondary" onclick="exportCSV('shop')">
-                    <i class="bi bi-file-earmark-excel"></i> CSV
-                  </button>
-                </div>
-              </div>
-              <div id="shopChart" style="height:350px"></div>
-            </div>
-          </div>
-
-          <div class="col-lg-6">
-            <div class="card p-3 shadow">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="d-flex align-items-center gap-2 mb-0">
-                  <i class="bi bi-calendar-week text-info"></i>
-                  Monthly Enrollment
-                </h5>
-                <div class="chart-actions">
-                  <button class="btn btn-sm btn-outline-secondary" onclick="exportCSV('trend')">
-                    <i class="bi bi-file-earmark-excel"></i> CSV
-                  </button>
-                </div>
-              </div>
-              <div id="trendChart" style="height:350px"></div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
-  </div>
+    <script src="assets/js/global.js"></script>
+    <script src="assets/js/crypto-js.min.js"></script>
+    <script src="assets/js/encrypt_decrypt.js"></script>
+    <!-- 
+        <script>
+            $(document).ready(function () {
+                // Initialize all data from APIs
+                initializeAllData();
 
-  <script>
-    $(document).ready(function () {
-      // Initialize data and charts
-      initializeData();
-
-      // Trigger district change to populate other dropdowns
-      $('#district').trigger('change');
-
-      // Apply filters on load
-      setTimeout(() => {
-        applyFilters();
-      }, 100);
-    });
-
-    // Global variable for filter logic
-    let filterLogic = 'AND';
-
-    // Update filter logic
-    function updateFilterLogic(logic) {
-      filterLogic = logic;
-      document.getElementById('logicIndicator').textContent = `${logic} Logic`;
-      applyFilters();
-    }
-
-    // Enhanced Sample Data Structure with Status
-    const SAMPLE_DATA = {
-      beneficiaries: [
-        {
-          id: 1,
-          district: "Chennai",
-          taluk: "Ambattur",
-          village: "Ambattur Village",
-          shop: "Shop A1",
-          scheme: "KMUT",
-          schemeCategory: "Food Security",
-          status: "Active",
-          gender: "Male",
-          age: 25,
-          enrollmentDate: "2024-01-15",
-          amount: 1500
-        },
-        {
-          id: 2,
-          district: "Chennai",
-          taluk: "Ambattur",
-          village: "Ambattur Village",
-          shop: "Shop A1",
-          scheme: "DBT",
-          schemeCategory: "Cash Transfer",
-          status: "Active",
-          gender: "Female",
-          age: 32,
-          enrollmentDate: "2024-01-20",
-          amount: 2000
-        },
-        {
-          id: 3,
-          district: "Chennai",
-          taluk: "Ambattur",
-          village: "Ambattur Village",
-          shop: "Shop A2",
-          scheme: "PDS",
-          schemeCategory: "Food Security",
-          status: "Pending",
-          gender: "Male",
-          age: 45,
-          enrollmentDate: "2024-02-10",
-          amount: 1000
-        },
-        {
-          id: 4,
-          district: "Chennai",
-          taluk: "Ambattur",
-          village: "Korattur",
-          shop: "Shop K1",
-          scheme: "KMUT",
-          schemeCategory: "Food Security",
-          status: "Active",
-          gender: "Female",
-          age: 28,
-          enrollmentDate: "2024-01-05",
-          amount: 1500
-        },
-        {
-          id: 5,
-          district: "Chennai",
-          taluk: "T. Nagar",
-          village: "T. Nagar Main",
-          shop: "Shop T1",
-          scheme: "PMKSY",
-          schemeCategory: "Agriculture",
-          status: "Inactive",
-          gender: "Male",
-          age: 50,
-          enrollmentDate: "2023-12-15",
-          amount: 3000
-        },
-        {
-          id: 6,
-          district: "Madurai",
-          taluk: "Thirumangalam",
-          village: "Thirumangalam Town",
-          shop: "Shop TM1",
-          scheme: "MGNREGA",
-          schemeCategory: "Employment",
-          status: "Active",
-          gender: "Female",
-          age: 35,
-          enrollmentDate: "2024-02-01",
-          amount: 1800
-        },
-        {
-          id: 7,
-          district: "Madurai",
-          taluk: "Thirumangalam",
-          village: "Thirumangalam Town",
-          shop: "Shop TM2",
-          scheme: "DBT",
-          schemeCategory: "Cash Transfer",
-          status: "Pending",
-          gender: "Male",
-          age: 40,
-          enrollmentDate: "2024-02-15",
-          amount: 2000
-        },
-        {
-          id: 8,
-          district: "Coimbatore",
-          taluk: "Coimbatore North",
-          village: "Gandhipuram",
-          shop: "Shop G1",
-          scheme: "PDS",
-          schemeCategory: "Food Security",
-          status: "Suspended",
-          gender: "Female",
-          age: 30,
-          enrollmentDate: "2023-11-20",
-          amount: 1000
-        },
-        {
-          id: 9,
-          district: "Coimbatore",
-          taluk: "Coimbatore North",
-          village: "R.S. Puram",
-          shop: "Shop RS1",
-          scheme: "KMUT",
-          schemeCategory: "Food Security",
-          status: "Active",
-          gender: "Male",
-          age: 55,
-          enrollmentDate: "2024-01-30",
-          amount: 1500
-        },
-        {
-          id: 10,
-          district: "Tiruchirappalli",
-          taluk: "Srirangam",
-          village: "Srirangam Town",
-          shop: "Shop SR1",
-          scheme: "DBT",
-          schemeCategory: "Cash Transfer",
-          status: "Active",
-          gender: "Female",
-          age: 38,
-          enrollmentDate: "2024-02-05",
-          amount: 2000
-        },
-        {
-          id: 11,
-          district: "Salem",
-          taluk: "Salem City",
-          village: "Salem Main",
-          shop: "Shop SL1",
-          scheme: "PMKSY",
-          schemeCategory: "Agriculture",
-          status: "Inactive",
-          gender: "Male",
-          age: 60,
-          enrollmentDate: "2023-10-10",
-          amount: 3000
-        },
-        {
-          id: 12,
-          district: "Chennai",
-          taluk: "T. Nagar",
-          village: "T. Nagar Main",
-          shop: "Shop T2",
-          scheme: "MGNREGA",
-          schemeCategory: "Employment",
-          status: "Active",
-          gender: "Other",
-          age: 42,
-          enrollmentDate: "2024-02-20",
-          amount: 1800
-        },
-        {
-          id: 13,
-          district: "Madurai",
-          taluk: "Melur",
-          village: "Melur Town",
-          shop: "Shop M1",
-          scheme: "PDS",
-          schemeCategory: "Food Security",
-          status: "Pending",
-          gender: "Female",
-          age: 29,
-          enrollmentDate: "2024-02-25",
-          amount: 1000
-        },
-        {
-          id: 14,
-          district: "Coimbatore",
-          taluk: "Sulur",
-          village: "Sulur Town",
-          shop: "Shop S1",
-          scheme: "KMUT",
-          schemeCategory: "Food Security",
-          status: "Active",
-          gender: "Male",
-          age: 33,
-          enrollmentDate: "2024-01-25",
-          amount: 1500
-        },
-        {
-          id: 15,
-          district: "Salem",
-          taluk: "Salem City",
-          village: "Salem Main",
-          shop: "Shop SL2",
-          scheme: "DBT",
-          schemeCategory: "Cash Transfer",
-          status: "Active",
-          gender: "Female",
-          age: 27,
-          enrollmentDate: "2024-02-28",
-          amount: 2000
-        },
-        {
-          id: 16,
-          district: "Chennai",
-          taluk: "Ambattur",
-          village: "Ambattur Village",
-          shop: "Shop A3",
-          scheme: "KMUT",
-          schemeCategory: "Food Security",
-          status: "Active",
-          gender: "Male",
-          age: 35,
-          enrollmentDate: "2024-01-10",
-          amount: 1500
-        },
-        {
-          id: 17,
-          district: "Madurai",
-          taluk: "Thirumangalam",
-          village: "Kalligudi",
-          shop: "Shop KAL1",
-          scheme: "PDS",
-          schemeCategory: "Food Security",
-          status: "Active",
-          gender: "Female",
-          age: 45,
-          enrollmentDate: "2024-02-12",
-          amount: 1000
-        },
-        {
-          id: 18,
-          district: "Coimbatore",
-          taluk: "Coimbatore North",
-          village: "R.S. Puram",
-          shop: "Shop RS2",
-          scheme: "DBT",
-          schemeCategory: "Cash Transfer",
-          status: "Suspended",
-          gender: "Male",
-          age: 38,
-          enrollmentDate: "2023-12-05",
-          amount: 2000
-        },
-        {
-          id: 19,
-          district: "Tiruchirappalli",
-          taluk: "Srirangam",
-          village: "Srirangam Town",
-          shop: "Shop SR2",
-          scheme: "MGNREGA",
-          schemeCategory: "Employment",
-          status: "Active",
-          gender: "Male",
-          age: 48,
-          enrollmentDate: "2024-02-18",
-          amount: 1800
-        },
-        {
-          id: 20,
-          district: "Salem",
-          taluk: "Salem City",
-          village: "Salem Main",
-          shop: "Shop SL3",
-          scheme: "PMKSY",
-          schemeCategory: "Agriculture",
-          status: "Inactive",
-          gender: "Female",
-          age: 55,
-          enrollmentDate: "2023-11-30",
-          amount: 3000
-        }
-      ],
-      months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-    };
-
-    // Initialize charts
-    let pieChart = echarts.init(document.getElementById("pie"));
-    let statusChart = echarts.init(document.getElementById("statusChart"));
-    let shopChart = echarts.init(document.getElementById("shopChart"));
-    let trendChart = echarts.init(document.getElementById("trendChart"));
-
-    function initializeData() {
-      // Collect unique values for dropdowns
-      const districts = [...new Set(SAMPLE_DATA.beneficiaries.map(b => b.district))];
-      const taluks = [...new Set(SAMPLE_DATA.beneficiaries.map(b => b.taluk))];
-      const villages = [...new Set(SAMPLE_DATA.beneficiaries.map(b => b.village))];
-      const shops = [...new Set(SAMPLE_DATA.beneficiaries.map(b => b.shop))];
-      const schemes = [...new Set(SAMPLE_DATA.beneficiaries.map(b => b.scheme))];
-      const schemeCategories = [...new Set(SAMPLE_DATA.beneficiaries.map(b => b.schemeCategory))];
-
-      // Populate shops dropdown
-      $('#shop').empty();
-      $('#shop').append('<option value="ALL" selected>All Shops</option>');
-      shops.sort().forEach(shop => {
-        $('#shop').append(`<option value="${shop}">${shop}</option>`);
-      });
-
-      // Populate scheme dropdown
-      $('#scheme').empty();
-      $('#scheme').append('<option value="ALL" selected>All Schemes</option>');
-      schemes.sort().forEach(scheme => {
-        $('#scheme').append(`<option value="${scheme}">${scheme}</option>`);
-      });
-
-      // Populate scheme category dropdown
-      $('#schemeCategory').empty();
-      $('#schemeCategory').append('<option value="ALL" selected>All Categories</option>');
-      schemeCategories.sort().forEach(category => {
-        $('#schemeCategory').append(`<option value="${category}">${category}</option>`);
-      });
-    }
-
-    // Cascading dropdowns for geographic filters
-    $('#district').on('change', function () {
-      const selectedDistrict = $(this).val();
-
-      // Filter taluks based on selected district
-      let filteredTaluks = [];
-      if (selectedDistrict === 'ALL') {
-        filteredTaluks = [...new Set(SAMPLE_DATA.beneficiaries.map(b => b.taluk))];
-      } else {
-        filteredTaluks = [...new Set(SAMPLE_DATA.beneficiaries
-          .filter(b => b.district === selectedDistrict)
-          .map(b => b.taluk))];
-      }
-
-      // Update taluk dropdown
-      $('#taluk').empty();
-      $('#taluk').append('<option value="ALL" selected>All Taluks</option>');
-      filteredTaluks.sort().forEach(taluk => {
-        $('#taluk').append(`<option value="${taluk}">${taluk}</option>`);
-      });
-
-      // Trigger village update
-      $('#taluk').trigger('change');
-    });
-
-    $('#taluk').on('change', function () {
-      const selectedDistrict = $('#district').val();
-      const selectedTaluk = $(this).val();
-
-      // Filter villages based on selected district and taluk
-      let filteredVillages = [];
-      if (selectedDistrict === 'ALL' && selectedTaluk === 'ALL') {
-        filteredVillages = [...new Set(SAMPLE_DATA.beneficiaries.map(b => b.village))];
-      } else if (selectedDistrict === 'ALL') {
-        filteredVillages = [...new Set(SAMPLE_DATA.beneficiaries
-          .filter(b => b.taluk === selectedTaluk)
-          .map(b => b.village))];
-      } else if (selectedTaluk === 'ALL') {
-        filteredVillages = [...new Set(SAMPLE_DATA.beneficiaries
-          .filter(b => b.district === selectedDistrict)
-          .map(b => b.village))];
-      } else {
-        filteredVillages = [...new Set(SAMPLE_DATA.beneficiaries
-          .filter(b => b.district === selectedDistrict && b.taluk === selectedTaluk)
-          .map(b => b.village))];
-      }
-
-      // Update village dropdown
-      $('#village').empty();
-      $('#village').append('<option value="ALL" selected>All Villages</option>');
-      filteredVillages.sort().forEach(village => {
-        $('#village').append(`<option value="${village}">${village}</option>`);
-      });
-    });
-
-    // Update active filters display
-    function updateActiveFiltersDisplay() {
-      const activeFilters = [];
-
-      // Geographic filters
-      const district = $('#district').val();
-      if (district !== 'ALL') activeFilters.push(`District: ${district}`);
-
-      const taluk = $('#taluk').val();
-      if (taluk !== 'ALL') activeFilters.push(`Taluk: ${taluk}`);
-
-      const village = $('#village').val();
-      if (village !== 'ALL') activeFilters.push(`Village: ${village}`);
-
-      const shop = $('#shop').val();
-      if (shop !== 'ALL') activeFilters.push(`Shop: ${shop}`);
-
-      // Demographic filters
-      const gender = $('#gender').val();
-      if (gender !== 'ALL') activeFilters.push(`Gender: ${gender}`);
-
-      const ageMin = $('#ageMin').val();
-      const ageMax = $('#ageMax').val();
-      if (ageMin != 18 || ageMax != 80) {
-        activeFilters.push(`Age: ${ageMin}-${ageMax}`);
-      }
-
-      const dateFrom = $('#dateFrom').val();
-      const dateTo = $('#dateTo').val();
-      if (dateFrom && dateTo) {
-        activeFilters.push(`Date: ${new Date(dateFrom).toLocaleDateString()} to ${new Date(dateTo).toLocaleDateString()}`);
-      }
-
-      const status = $('#status').val();
-      if (status !== 'ALL') activeFilters.push(`Status: ${status}`);
-
-      // Scheme filters
-      const schemeCategory = $('#schemeCategory').val();
-      if (schemeCategory !== 'ALL') activeFilters.push(`Category: ${schemeCategory}`);
-
-      const scheme = $('#scheme').val();
-      if (scheme !== 'ALL') activeFilters.push(`Scheme: ${scheme}`);
-
-      // Display active filters
-      const display = $('#activeFiltersDisplay');
-      if (activeFilters.length > 0) {
-        let html = `<strong>Active Filters (${filterLogic} Logic):</strong> `;
-        html += activeFilters.map(filter =>
-          `<span class="active-filter-badge">${filter}</span>`
-        ).join(' ');
-        display.html(html);
-      } else {
-        display.html('<span class="text-muted">No filters applied</span>');
-      }
-    }
-
-    // Helper function to check if beneficiary matches filter
-    function beneficiaryMatchesFilter(beneficiary) {
-      const filters = {
-        geographic: {
-          district: $('#district').val(),
-          taluk: $('#taluk').val(),
-          village: $('#village').val(),
-          shop: $('#shop').val()
-        },
-        demographic: {
-          gender: $('#gender').val(),
-          ageMin: parseInt($('#ageMin').val()),
-          ageMax: parseInt($('#ageMax').val()),
-          dateFrom: $('#dateFrom').val(),
-          dateTo: $('#dateTo').val(),
-          status: $('#status').val()
-        },
-        scheme: {
-          category: $('#schemeCategory').val(),
-          scheme: $('#scheme').val()
-        }
-      };
-
-      // Check geographic filters
-      const geoConditions = [
-        filters.geographic.district === 'ALL' || beneficiary.district === filters.geographic.district,
-        filters.geographic.taluk === 'ALL' || beneficiary.taluk === filters.geographic.taluk,
-        filters.geographic.village === 'ALL' || beneficiary.village === filters.geographic.village,
-        filters.geographic.shop === 'ALL' || beneficiary.shop === filters.geographic.shop
-      ];
-
-      // Check demographic filters
-      const demoConditions = [
-        filters.demographic.gender === 'ALL' || beneficiary.gender === filters.demographic.gender,
-        beneficiary.age >= filters.demographic.ageMin && beneficiary.age <= filters.demographic.ageMax,
-        filters.demographic.status === 'ALL' || beneficiary.status === filters.demographic.status
-      ];
-
-      // Check date filter - only if date range is selected
-      let dateCondition = true;
-      if (filters.demographic.dateFrom && filters.demographic.dateTo) {
-        const enrollmentDate = new Date(beneficiary.enrollmentDate);
-        const fromDate = new Date(filters.demographic.dateFrom);
-        const toDate = new Date(filters.demographic.dateTo);
-        dateCondition = enrollmentDate >= fromDate && enrollmentDate <= toDate;
-        demoConditions.push(dateCondition);
-      }
-
-      // Check scheme filters
-      const schemeConditions = [
-        filters.scheme.category === 'ALL' || beneficiary.schemeCategory === filters.scheme.category,
-        filters.scheme.scheme === 'ALL' || beneficiary.scheme === filters.scheme.scheme
-      ];
-
-      // Apply logic based on filterLogic
-      if (filterLogic === 'AND') {
-        // All conditions must be true
-        const geoMatch = geoConditions.every(c => c);
-        const demoMatch = demoConditions.every(c => c);
-        const schemeMatch = schemeConditions.every(c => c);
-        return geoMatch && demoMatch && schemeMatch;
-      } else {
-        // OR logic: At least one group must match completely
-        const geoMatch = geoConditions.every(c => c);
-        const demoMatch = demoConditions.every(c => c);
-        const schemeMatch = schemeConditions.every(c => c);
-
-        // Check if we have any non-ALL filters in each group
-        const hasGeoFilters = Object.values(filters.geographic).some(v => v !== 'ALL');
-        const hasDemoFilters = Object.values(filters.demographic).some(v => v !== 'ALL' && v !== 18 && v !== 80); // exclude default age
-        const hasSchemeFilters = Object.values(filters.scheme).some(v => v !== 'ALL');
-
-        // If no filters are set, show all
-        if (!hasGeoFilters && !hasDemoFilters && !hasSchemeFilters) return true;
-
-        // For OR logic, check if at least one group with active filters matches
-        let matches = 0;
-        if (hasGeoFilters && geoMatch) matches++;
-        if (hasDemoFilters && demoMatch) matches++;
-        if (hasSchemeFilters && schemeMatch) matches++;
-
-        return matches > 0;
-      }
-    }
-
-    // Main filter function
-    function filterData() {
-      const filteredBeneficiaries = SAMPLE_DATA.beneficiaries.filter(beneficiaryMatchesFilter);
-
-      // Calculate district totals for pie chart
-      const districtTotals = {};
-
-      // Calculate district-wise status breakdown for bar chart
-      const districtStatusTotals = {};
-      const allStatuses = ['Active', 'Pending', 'Inactive', 'Suspended'];
-
-      filteredBeneficiaries.forEach(b => {
-        // District totals for pie chart
-        districtTotals[b.district] = (districtTotals[b.district] || 0) + 1;
-
-        // District-wise status totals for stacked bar chart
-        if (!districtStatusTotals[b.district]) {
-          districtStatusTotals[b.district] = {
-            Active: 0,
-            Pending: 0,
-            Inactive: 0,
-            Suspended: 0,
-            total: 0
-          };
-        }
-        districtStatusTotals[b.district][b.status] = (districtStatusTotals[b.district][b.status] || 0) + 1;
-        districtStatusTotals[b.district].total += 1;
-      });
-
-      // Calculate shop totals
-      const shopTotals = {};
-
-      // Calculate monthly trend
-      const monthlyTrend = Array(12).fill(0);
-
-      filteredBeneficiaries.forEach(b => {
-        // Shop totals
-        shopTotals[b.shop] = (shopTotals[b.shop] || 0) + 1;
-
-        // Monthly trend (by enrollment month)
-        const enrollmentDate = new Date(b.enrollmentDate);
-        const monthIndex = enrollmentDate.getMonth(); // 0-11
-        monthlyTrend[monthIndex] = (monthlyTrend[monthIndex] || 0) + 1;
-      });
-
-      // Calculate summary counts
-      const activeCount = filteredBeneficiaries.filter(b => b.status === 'Active').length;
-      const pendingCount = filteredBeneficiaries.filter(b => b.status === 'Pending').length;
-      const uniqueShops = new Set(filteredBeneficiaries.filter(b => b.status === 'Active').map(b => b.shop)).size;
-
-      // Prepare data for stacked bar chart
-      const districts = Object.keys(districtStatusTotals).sort();
-      const statusSeriesData = allStatuses.map(status => {
-        return {
-          name: status,
-          type: 'bar',
-          stack: 'total',
-          emphasis: { focus: 'series' },
-          data: districts.map(district => districtStatusTotals[district][status] || 0)
-        };
-      });
-
-      return {
-        filteredBeneficiaries,
-        districtTotals,
-        districtStatusTotals,
-        districts,
-        statusSeriesData,
-        shopTotals,
-        monthlyTrend,
-        totalBeneficiaries: filteredBeneficiaries.length,
-        activeCount,
-        pendingCount,
-        uniqueShops
-      };
-    }
-
-    function applyFilters() {
-      updateActiveFiltersDisplay();
-
-      const {
-        districtTotals,
-        districts,
-        statusSeriesData,
-        shopTotals,
-        monthlyTrend,
-        totalBeneficiaries,
-        activeCount,
-        pendingCount,
-        uniqueShops
-      } = filterData();
-
-      // Update summary cards
-      $('#totalBeneficiariesCount').text(totalBeneficiaries.toLocaleString());
-      $('#activeBeneficiariesCount').text(activeCount.toLocaleString());
-      $('#pendingBeneficiariesCount').text(pendingCount.toLocaleString());
-      $('#activeShopsCount').text(uniqueShops.toLocaleString());
-
-      // Update Pie Chart - District Distribution (Reduced size)
-      const pieData = Object.entries(districtTotals).map(([district, count]) => ({
-        name: district,
-        value: count
-      })).sort((a, b) => b.value - a.value);
-
-      pieChart.setOption({
-        tooltip: {
-          trigger: 'item',
-          formatter: function (params) {
-            const percentage = totalBeneficiaries > 0 ? ((params.value / totalBeneficiaries) * 100).toFixed(1) : '0.0';
-            return `<b>${params.name}</b><br/>Beneficiaries: ${params.value.toLocaleString()}<br/>Percentage: ${percentage}%`;
-          }
-        },
-        legend: {
-          orient: 'vertical',
-          left: 'left',
-          top: 'center',
-          textStyle: { fontSize: 11 }
-        },
-        series: [{
-          name: 'Beneficiary Distribution',
-          type: 'pie',
-          radius: ['35%', '65%'],
-          avoidLabelOverlap: false,
-          itemStyle: {
-            borderRadius: 8,
-            borderColor: '#fff',
-            borderWidth: 1.5
-          },
-          label: {
-            show: true,
-            formatter: function (params) {
-              const count = params.value.toLocaleString();
-              const percentage = totalBeneficiaries > 0 ? ((params.value / totalBeneficiaries) * 100).toFixed(1) : '0.0';
-              return `${params.name}\n${count}`;
-            },
-            fontSize: 10,
-            fontWeight: 'normal',
-            color: '#333',
-            lineHeight: 14
-          },
-          labelLine: { length: 8, length2: 15, smooth: true },
-          emphasis: { label: { show: true, fontSize: 12, fontWeight: 'bold' } },
-          data: pieData.length > 0 ? pieData : [{ name: 'No Data', value: 1, itemStyle: { color: '#f0f0f0' } }]
-        }],
-        color: ['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', '#3ba272', '#fc8452', '#9a60b4']
-      });
-
-      // Update Status Chart - District-wise Status Breakdown (Stacked Bar Chart)
-      statusChart.setOption({
-        tooltip: {
-          trigger: 'axis',
-          axisPointer: { type: 'shadow' },
-          formatter: function (params) {
-            let tooltip = `<b>${params[0].name}</b><br/>`;
-            let total = 0;
-
-            params.forEach(param => {
-              if (param.value > 0) {
-                tooltip += `${param.seriesName}: ${param.value.toLocaleString()}<br/>`;
-                total += param.value;
-              }
+                // Set up event listeners
+                setupEventListeners();
             });
 
-            tooltip += `<hr style="margin: 5px 0"/>`;
-            tooltip += `<b>Total: ${total.toLocaleString()}</b>`;
+            // ================== GLOBAL VARIABLES ==================
+            let charts = {
+                districtPie: null,
+                familyStatus: null,
+                familyAgeGender: null,
+                ageGender: null,
+                schemeCount: null,
+                schemeCoverage: null,
+                dreamBar: null,
+                dreamPie: null
+            };
 
-            return tooltip;
-          }
-        },
-        legend: {
-          data: ['Active', 'Pending', 'Inactive', 'Suspended'],
-          top: 'top',
-          textStyle: { fontSize: 11 }
-        },
-        grid: { left: '3%', right: '4%', top: '15%', bottom: '10%', containLabel: true },
-        xAxis: {
-          type: 'category',
-          data: districts,
-          axisLabel: {
-            interval: 0,
-            rotate: districts.length > 4 ? 45 : 0,
-            fontSize: 10,
-            margin: districts.length > 4 ? 15 : 0
-          }
-        },
-        yAxis: {
-          type: 'value',
-          name: 'Count',
-          nameTextStyle: { fontSize: 11 }
-        },
-        series: statusSeriesData,
-        color: ['#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+            let drillState = {
+                level: 'state',
+                district_id: null,
+                district_name: null,
+                taluk_id: null,
+                taluk_name: null,
+                village_id: null,
+                village_name: null
+            };
+
+            // Store data from APIs
+            let API_DATA = {
+                districts: [],
+                allTaluks: [],
+                filteredTaluks: [],
+                chartData: [],
+                detailedData: []
+            };
+
+            const API_CONFIG = {
+                baseUrl: 'https://tngis.tnega.org/state_scholarship_portal_api/sfdb_survey/api/v1/dashboard2/',
+                endpoints: {
+                    dynamic_input: 'dynamic_input',
+                    get_districts: 'get_districts',
+                    dashboard_count_form1: 'dashboard_count_form1',
+                    description_details: 'description_details',
+                    get_district_taluk_counts: 'get_district_taluk_counts',
+                }
+            };
+
+            // ================== PIE CHART FUNCTIONS ==================
+
+            function initDistrictPieChart() {
+                if (!charts.districtPie) {
+                    const pieElement = document.getElementById('district_distribution_pie');
+                    if (!pieElement) {
+                        console.error('Pie chart element not found');
+                        return null;
+                    }
+
+                    charts.districtPie = echarts.init(pieElement);
+
+                    // Add click event for drill-down
+                    charts.districtPie.on('click', function (params) {
+                        handlePieChartClick(params);
+                    });
+
+                    // Initialize breadcrumb navigation
+                    setupDrillDownNavigation();
+                }
+                return charts.districtPie;
+            }
+
+            // Setup drill-down navigation
+            function setupDrillDownNavigation() {
+                const pieContainer = document.getElementById('district_distribution_pie');
+                if (!pieContainer) return;
+
+                const parentContainer = pieContainer.parentNode;
+
+                // Check if navigation already exists
+                if (document.getElementById('pie-nav-container')) {
+                    return;
+                }
+
+                // Create navigation container
+                let navContainer = document.createElement('div');
+                navContainer.id = 'pie-nav-container';
+                navContainer.style.cssText = 'margin-bottom: 10px; padding: 8px; background: #f8f9fa; border-radius: 6px; display: none;';
+
+                // Create breadcrumb
+                let breadcrumb = document.createElement('div');
+                breadcrumb.id = 'pie-breadcrumb';
+                breadcrumb.style.cssText = 'font-size: 14px; color: #495057; margin-bottom: 5px;';
+
+                // Create back button
+                let backButton = document.createElement('button');
+                backButton.id = 'pie-back-button';
+                backButton.innerHTML = '← Back';
+                backButton.style.cssText = 'padding: 4px 12px; background: #4f46e5; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 5px;';
+                backButton.onclick = function () {
+                    navigateBack();
+                };
+
+                navContainer.appendChild(breadcrumb);
+                navContainer.appendChild(backButton);
+                parentContainer.insertBefore(navContainer, pieContainer);
+            }
+
+            function updateBreadcrumb() {
+                const nav = document.getElementById('pie-nav-container');
+                const breadcrumb = document.getElementById('pie-breadcrumb');
+
+                if (drillState.level === 'state') {
+                    nav.style.display = 'none';
+                    breadcrumb.innerHTML = '';
+                } else {
+                    nav.style.display = 'block';
+                    breadcrumb.innerHTML = `<strong>${drillState.district_name}</strong>`;
+                }
+            }
+
+            function navigateBack() {
+                debugger;
+
+                if (drillState.level === 'district') {
+                    // DISTRICT → STATE (show all districts)
+                    drillState.level = 'state';
+
+                    drillState.district_id = null;
+                    drillState.district_name = null;
+                    drillState.taluk_id = null;
+                    drillState.taluk_name = null;
+                    drillState.village_id = null;
+                    drillState.village_name = null;
+                }
+
+                else if (drillState.level === 'taluk') {
+                    // TALUK → DISTRICT
+                    drillState.level = 'district';
+
+                    drillState.taluk_id = null;
+                    drillState.taluk_name = null;
+                    drillState.village_id = null;
+                    drillState.village_name = null;
+                    // keep district info
+                }
+
+                else if (drillState.level === 'village') {
+                    // VILLAGE → TALUK
+                    drillState.level = 'taluk';
+
+                    drillState.village_id = null;
+                    drillState.village_name = null;
+                    // keep district + taluk info
+                }
+
+                updateBreadcrumb();
+                fetchPieData();
+            }
+
+            // Handle pie chart click for drill-down
+
+            // Handle pie chart click for drill-down
+            function handlePieChartClick(params) {
+                debugger
+                if (!params.data || !params.data.id) return;
+
+                if (drillState.level === 'state') {
+                    drillState.level = 'district';
+                    drillState.district_id = params.data.id;
+                    drillState.district_name = params.data.name;
+
+                    updateBreadcrumb();
+                    fetchPieData();
+                }
+            }
+
+            // Update the renderPieChart function to handle the data properly
+            function renderPieChart(data) {
+                debugger
+                const chart = initDistrictPieChart();
+                if (!chart) return;
+
+                let chartData = [];
+                let totalFamilies = 0;
+
+                // Process data based on drill level
+                if (drillState.level === 'district') {
+                    // At district level: data should be districts array
+                    chartData = Array.isArray(data) ? data : data.districts || [];
+                    // Find the data for each district
+                    chartData = chartData.map(item => {
+                        // Ensure we have the right structure
+                        return {
+                            name: item.district_name || item.name || 'Unknown District',
+                            value: item.count || item.value || 0,
+                            id: item.district_id || item.id
+                        };
+                    });
+                } else if (drillState.level === 'taluk') {
+                    // At taluk level: data should be taluks array
+                    chartData = Array.isArray(data) ? data : data.taluks || [];
+                    // Find the data for each taluk
+                    chartData = chartData.map(item => {
+                        // Make sure we're getting TALUK names, not district names
+                        // If item.name contains district name, we need to fix the backend
+                        // For now, assuming backend returns correct taluk names
+                        return {
+                            name: item.taluk_name || item.name || 'Unknown Taluk',
+                            value: item.count || item.value || 0,
+                            id: item.taluk_id || item.id
+                        };
+                    });
+                }
+
+                totalFamilies = chartData.reduce((sum, item) => sum + item.value, 0);
+
+                const option = {
+                    title: {
+                        text: getPieTitle(),
+                        left: 'center',
+                        textStyle: {
+                            fontSize: 14,
+                            fontWeight: 'normal',
+                            marginTop: 10,
+                        }
+                    },
+                    tooltip: {
+                        trigger: 'item',
+                        formatter: function (params) {
+                            const percent = totalFamilies > 0 ? (params.value / totalFamilies * 100).toFixed(1) : 0;
+                            return `${params.name}<br/>Families: ${params.value} (${percent}%)`;
+                        }
+                    },
+                    series: [
+                        {
+                            type: 'pie',
+                            radius: ['40%', '70%'],
+                            data: chartData,
+                            emphasis: {
+                                itemStyle: {
+                                    shadowBlur: 10,
+                                    shadowOffsetX: 0,
+                                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                }
+                            },
+                            label: {
+                                formatter: '{b}: {c} ({d}%)'
+                            }
+                        }
+                    ]
+                };
+
+                chart.setOption(option);
+            }
+
+
+            // Get title for pie chart based on current drill level
+            function getPieTitle() {
+                switch (drillState.level) {
+                    case 'district': return 'Families by District (Click to drill down)';
+                    case 'taluk': return `Families in ${drillState.taluk_name || 'District'} - By Taluk`;
+                    default: return '';
+                }
+            }
+
+            // ================== GEOGRAPHIC API FUNCTIONS ==================
+
+            // Load districts
+            async function loadDistricts() {
+                try {
+                    const payload = {
+                        action: "select",
+                        _table_name: "pds_master_district",
+                        selected_columns: ["district_id", "district_name"],
+                        filter_conditions: {},
+                        sort_columns: {},
+                        limit_rows: 50,
+                        offset_rows: 0
+                    };
+
+                    const response = await makeApiRequest(payload);
+
+                    if (response && response.success === 1) {
+                        const decryptedData = decryptData(response.data);
+                        let districtList = typeof decryptedData === 'string' ? JSON.parse(decryptedData) : decryptedData;
+
+                        API_DATA.districts = Array.isArray(districtList) ? districtList : [];
+                        return API_DATA.districts;
+                    } else {
+                        API_DATA.districts = [];
+                        return [];
+                    }
+                } catch (error) {
+                    console.error('Error loading districts:', error);
+                    API_DATA.districts = [];
+                    return [];
+                }
+            }
+
+            // Load taluks for a specific district (district → taluk only)
+            async function loadTaluks(districtId) {
+                try {
+                    if (!districtId || districtId === 'ALL') {
+                        // If "All Districts" is selected, clear taluk data
+                        API_DATA.allTaluks = [];
+                        API_DATA.filteredTaluks = [];
+                        populateTalukDropdown([]);
+                        return [];
+                    }
+
+                    const payload = {
+                        action: "select",
+                        _table_name: "pds_master_taluk",
+                        selected_columns: ["district_id", "taluk_id", "taluk_name"],
+                        filter_conditions: {
+                            and: {
+                                district_id: districtId
+                            }
+                        },
+                        sort_columns: {},
+                        limit_rows: 100,
+                        offset_rows: 0
+                    };
+
+                    const response = await makeApiRequest(payload);
+
+                    if (response && response.success === 1) {
+                        const decryptedData = decryptData(response.data);
+
+                        // ✅ Ensure talukList is always an array
+                        let talukList = Array.isArray(decryptedData)
+                            ? decryptedData
+                            : [];
+
+                        // Store in allTaluks for caching
+                        API_DATA.allTaluks = talukList;
+
+                        // FilteredTaluks is same as talukList (no scheme/village/shop filter)
+                        API_DATA.filteredTaluks = talukList;
+
+                        // Populate dropdown
+                        populateTalukDropdown(talukList);
+
+                        return talukList;
+                    } else {
+                        console.error("API did not return success: 1 for taluks");
+                        API_DATA.allTaluks = [];
+                        API_DATA.filteredTaluks = [];
+                        populateTalukDropdown([]);
+                        return [];
+                    }
+                } catch (error) {
+                    console.error('Error loading taluks:', error);
+                    API_DATA.allTaluks = [];
+                    API_DATA.filteredTaluks = [];
+                    populateTalukDropdown([]);
+                    return [];
+                }
+            }
+
+            // ================== GENERIC API FUNCTIONS ==================
+            async function makeApiRequest(payload) {
+                try {
+                    const encryptedPayload = encryptData(payload);
+                    const url = API_CONFIG.baseUrl + API_CONFIG.endpoints.dynamic_input;
+
+                    return await $.ajax({
+                        url: url,
+                        type: "POST",
+                        dataType: "json",
+                        data: { data: encryptedPayload }
+                    });
+                } catch (error) {
+                    console.error('API Request Error:', error);
+                    return null;
+                }
+            }
+
+            async function makeApiCountRequest(payload) {
+                try {
+                    var encryptedPayload = encryptData(payload);
+                    var url = API_CONFIG.baseUrl + API_CONFIG.endpoints.get_district_taluk_counts;
+
+                    return await $.ajax({
+                        url: url,
+                        type: "POST",
+                        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                        dataType: "json",
+                        data: { data: encryptedPayload }
+                    });
+
+                } catch (err) {
+                    console.error("Count API error:", err);
+                    return null;
+                }
+            }
+
+            // ================== DROPDOWN POPULATION ==================
+
+            function populateDistrictDropdown() {
+                const districtSelect = $('#district');
+                districtSelect.empty();
+                districtSelect.append('<option value="ALL" selected>All Districts</option>');
+
+                API_DATA.districts.sort((a, b) => a.district_name.localeCompare(b.district_name))
+                    .forEach(d => districtSelect.append(`<option value="${d.district_id}">${d.district_name}</option>`));
+            }
+
+            function populateTalukDropdown(taluks) {
+                const talukSelect = $('#taluk');
+                talukSelect.empty();
+                talukSelect.append('<option value="ALL" selected>All Taluks</option>');
+
+                taluks.sort((a, b) => a.taluk_name.localeCompare(b.taluk_name))
+                    .forEach(t => talukSelect.append(`<option value="${t.taluk_id}">${t.taluk_name}</option>`));
+
+                talukSelect.prop('disabled', false);
+            }
+
+            // Fetch pie chart data based on current drill state
+            async function fetchPieData() {
+                debugger
+                const payload = {
+                    district_id: drillState.district_id,
+                    taluk_id: drillState.taluk_id,
+                    village_id: drillState.village_id,
+                    shopcode: null
+                };
+
+                console.log("Fetching pie data with payload:", payload);
+
+                const response = await makeApiCountRequest(payload);
+                handlePieApiResponse(response);
+            }
+
+            function handlePieApiResponse(response) {
+                if (!response || response.success !== 1) {
+                    showEmptyPieChart();
+                    return;
+                }
+
+                let apiData;
+                try {
+                    const decrypted = decryptData(response.data);
+                    apiData = typeof decrypted === 'string'
+                        ? JSON.parse(decrypted)
+                        : decrypted;
+                } catch (e) {
+                    console.error('Decrypt failed', e);
+                    showEmptyPieChart();
+                    return;
+                }
+
+                if (!Array.isArray(apiData) || apiData.length === 0) {
+                    showEmptyPieChart();
+                    return;
+                }
+
+                let pieData = [];
+
+                /* ===============================
+                   DRILL STATE HANDLING
+                ================================*/
+                if (drillState.level === 'state') {
+                    // INITIAL → DISTRICT WISE
+                    pieData = apiData.map(item => ({
+                        name: item.district_name,
+                        value: Number(item.total_familycount || 0),
+                        id: item.district_id
+                    }));
+                }
+                else if (drillState.level === 'district') {
+                    // CLICKED DISTRICT → TALUK WISE
+                    pieData = apiData.map(item => ({
+                        name: item.taluk_name,
+                        value: Number(item.total_familycount || 0),
+                        id: item.taluk_id
+                    }));
+                }
+
+                const total = pieData.reduce((sum, i) => sum + i.value, 0);
+
+                const chart = initDistrictPieChart();
+                if (!chart) return;
+
+                chart.clear();
+                chart.setOption({
+                    title: {
+                        text: getPieTitle(),
+                        left: 'center',
+                        subtext: `Total Families: ${total}`,
+                        subtextStyle: {
+                            fontSize: 12,
+                            color: '#6b7280'
+                        }
+                    },
+                    tooltip: {
+                        trigger: 'item',
+                        formatter: p => {
+                            const percent = total
+                                ? ((p.value / total) * 100).toFixed(1)
+                                : 0;
+                            return `${p.name}<br/>Families: ${p.value} (${percent}%)`;
+                        }
+                    },
+                    series: [{
+                        type: 'pie',
+                        radius: '60%',
+                        data: pieData,
+                        label: { formatter: '{b}: {c}' }
+                    }]
+                });
+
+                chart.resize();
+            }
+
+            // Show empty pie chart
+            function showEmptyPieChart() {
+                const chart = initDistrictPieChart();
+                if (!chart) return;
+
+                chart.setOption({
+                    title: {
+                        text: getPieTitle(),
+                        left: 'center',
+                        subtext: 'No data available',
+                        subtextStyle: {
+                            fontSize: 12,
+                            color: '#6b7280'
+                        }
+                    },
+                    tooltip: {
+                        trigger: 'item'
+                    },
+                    series: [{
+                        type: 'pie',
+                        radius: '60%',
+                        data: [],
+                        itemStyle: {
+                            color: '#e5e7eb'
+                        },
+                        label: {
+                            show: false
+                        }
+                    }]
+                });
+            }
+
+            function renderFamilyStatusDistrictStackedBar(data) {
+                if (!charts.familyStatus) {
+                    charts.familyStatus = echarts.init(
+                        document.getElementById('family_status_bar')
+                    );
+                }
+
+                charts.familyStatus.setOption({
+                    title: {
+                        text: 'Family Status Count by District',
+                        left: 'center'
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: { type: 'shadow' }
+                    },
+                    legend: {
+                        top: 30,
+                        data: ['Completed', 'Pending', 'Rejected', 'Closed']
+                    },
+                    grid: {
+                        top: 80,
+                        bottom: 120,
+                        left: '3%',
+                        right: '4%',
+                        containLabel: true
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: data.labels,
+                        axisLabel: {
+                            rotate: 45,
+                            interval: 0,
+                            fontSize: 10
+                        }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        name: 'Family Count'
+                    },
+                    dataZoom: [
+                        { type: 'slider', bottom: 30, start: 0, end: 20 },
+                        { type: 'inside' }
+                    ],
+                    series: [
+                        {
+                            name: 'Completed',
+                            type: 'bar',
+                            stack: 'total',
+                            data: data.completed,
+                            itemStyle: { color: '#22c55e' }
+                        },
+                        {
+                            name: 'Pending',
+                            type: 'bar',
+                            stack: 'total',
+                            data: data.pending,
+                            itemStyle: { color: '#f59e0b' }
+                        },
+                        {
+                            name: 'Rejected',
+                            type: 'bar',
+                            stack: 'total',
+                            data: data.rejected,
+                            itemStyle: { color: '#ef4444' }
+                        },
+                        {
+                            name: 'Closed',
+                            type: 'bar',
+                            stack: 'total',
+                            data: data.closed,
+                            itemStyle: { color: '#6b7280' }
+                        }
+                    ]
+                });
+            }
+
+            //handleFamilyStatusResponse
+            function handleFamilyStatusResponse(apiData) {
+                if (!Array.isArray(apiData) || apiData.length === 0) return;
+
+                // District-wise only (state level)
+                const labels = [];
+                const completed = [];
+                const pending = [];
+                const rejected = [];
+                const closed = [];
+
+                apiData.forEach(item => {
+                    labels.push(item.district_name);
+
+                    completed.push(Number(item.total_completedcount || 0));
+                    pending.push(Number(item.total_pendingcount || 0));
+                    rejected.push(Number(item.total_rejectedcount || 0));
+                    closed.push(Number(item.total_closedcount || 0));
+                });
+
+                renderFamilyStatusDistrictStackedBar({
+                    labels,
+                    completed,
+                    pending,
+                    rejected,
+                    closed
+                });
+            }
+
+            // ================== FILTER FUNCTIONS ==================
+
+            async function handleDistrictChange() {
+                const districtId = $('#district').val();
+                $('#taluk').html('<option value="ALL" selected>Loading taluks...</option>').prop('disabled', true);
+
+                if (districtId !== 'ALL') {
+                    const taluks = await loadTaluks(districtId);
+                    populateTalukDropdown(taluks);
+                } else {
+                    $('#taluk').html('<option value="ALL" selected>All Taluks</option>').prop('disabled', false);
+                    API_DATA.filteredTaluks = [];
+                }
+            }
+
+            // Initialize all data
+            async function initializeAllData() {
+                await loadDistricts();
+                populateDistrictDropdown();
+
+                // Initialize pie chart
+                initDistrictPieChart();
+
+                // Load initial pie chart data with null filters (state level)
+                resetDrillState();
+                fetchPieData();
+                handleFamilyStatusResponse(apiData);
+            }
+
+            // Reset drill state to district level
+            function resetDrillState() {
+                drillState = {
+                    level: 'state',
+                    district_id: null,
+                    district_name: null,
+                    taluk_id: null,
+                    taluk_name: null,
+                    village_id: null,
+                    village_name: null
+                };
+                updateBreadcrumb();
+            }
+
+            // Setup event listeners
+            function setupEventListeners() {
+                $('#district').on('change', handleDistrictChange);
+                $('#applyFiltersBtn').on('click', applyFilters);
+
+                // Add resize event for pie chart
+                window.addEventListener('resize', function () {
+                    if (charts.districtPie) {
+                        charts.districtPie.resize();
+                    }
+                });
+            }
+
+            // Apply filters button handler
+            async function applyFilters() {
+                const districtId = $('#district').val();
+
+                drillState = {
+                    level: 'state',
+                    district_id: null,
+                    district_name: null
+                };
+
+                if (districtId !== 'ALL') {
+                    const district = API_DATA.districts.find(d => d.district_id == districtId);
+                    if (district) {
+                        drillState.level = 'district';
+                        drillState.district_id = Number(districtId);
+                        drillState.district_name = district.district_name;
+                    }
+                }
+
+                updateBreadcrumb();
+                fetchPieData();
+            }
+
+            // ================== OTHER CHART FUNCTIONS ==================
+
+            // Sample data for other charts
+            let topSchemes = ['கலைஞரின் கனவு இல்லம்', 'முதலமைச்சரின் விரிவான மருத்துவ காப்பீட்டு திட்டம்', 'வீட்டுமனைப் பட்டா', 'கூட்டுறவுச் சங்கம்/வங்கி கடன் (சுய வேலைவாய்ப்புக் கடன், கால்நடை கடன்)', 'இதர'];
+
+            const districts = [
+                'Ariyalur', 'Chengalpattu', 'Chennai', 'Coimbatore', 'Cuddalore', 'Dharmapuri',
+                'Dindigul', 'Erode', 'Kallakurichi', 'Kancheepuram', 'Kanniyakumari', 'Karur',
+                'Krishnagiri', 'Madurai', 'Mayiladuthurai', 'Nagapattinam', 'Namakkal', 'Nilgiris',
+                'Perambalur', 'Pudukkottai', 'Ramanathapuram', 'Ranipet', 'Salem', 'Sivaganga',
+                'Tenkasi', 'Thanjavur', 'Theni', 'Thoothukudi', 'Tiruchirappalli', 'Tirunelveli',
+                'Tirupathur', 'Tiruppur', 'Tiruvallur', 'Tiruvannamalai', 'Tiruvarur',
+                'Vellore', 'Viluppuram', 'Virudhunagar'
+            ];
+
+            const statusColors = {
+                active: '#91cc75',
+                inactive: '#f59e0b',
+                migrated: '#ef4444'
+            };
+
+            const genderColors = {
+                male: '#3b82f6',
+                female: '#ec4899'
+            };
+
+            const schemeColors = [
+                '#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'
+            ];
+
+            const dreamColors = [
+                '#4f46e5', '#10b981', '#f59e0b', '#ef4444'
+            ];
+
+            const familyStatusDistrictData = {
+                districts,
+                completed: districts.map(() => Math.floor(Math.random() * 80) + 40),
+                pending: districts.map(() => Math.floor(Math.random() * 40) + 20),
+                rejected: districts.map(() => Math.floor(Math.random() * 25) + 10)
+            };
+
+            const familyAgeGroups = ['19–30', '31–45', '46–60', '60+'];
+            const familyGenderCounts = {
+                male: [45, 75, 65, 40, 30],
+                female: [50, 65, 55, 35, 25]
+            };
+
+            const ageGroups = ['19–30', '31–45', '46–60', '60+'];
+            const genderCounts = {
+                male: [40, 80, 60, 35, 20],
+                female: [45, 70, 55, 30, 25]
+            };
+
+            const schemeCountBar = [90, 70, 40];
+
+            const dreamSchemes = ['Housing', 'Education', 'Employment', 'Health'];
+            const dreamCounts = [95, 120, 70, 50];
+
+            const dreamDistrictData = districts.map(d => ({
+                name: d,
+                value: Math.floor(Math.random() * 80) + 20
+            }));
+
+            /* =====================================================
+               FAMILY PROFILE
+            ===================================================== */
+            function initFamilyProfileCharts() {
+                renderFamilyStatusDistrictStackedBar();
+                initFamilyAgeGenderGroupedBar();
+            }
+
+
+            function initFamilyAgeGenderGroupedBar() {
+                if (charts.familyAgeGender) return;
+
+                const chart = echarts.init(document.getElementById('age_distribution_bar'));
+                charts.familyAgeGender = chart;
+
+                chart.setOption({
+                    title: {
+                        text: 'Age-wise Family Distribution',
+                        left: 'center',
+                        textStyle: { fontSize: 16 }
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: { type: 'shadow' }
+                    },
+                    legend: {
+                        top: 30,
+                        data: ['Male', 'Female']
+                    },
+                    grid: {
+                        top: 70,
+                        bottom: 30,
+                        left: '10%',
+                        right: '5%'
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: familyAgeGroups,
+                        name: 'Age Groups',
+                        nameTextStyle: { color: '#374151' },
+                        axisLine: {
+                            lineStyle: { color: '#d1d5db' }
+                        },
+                        axisTick: {
+                            lineStyle: { color: '#d1d5db' }
+                        }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        name: 'Family Count',
+                        nameTextStyle: { color: '#374151' },
+                        axisLine: {
+                            lineStyle: { color: '#d1d5db' }
+                        },
+                        splitLine: {
+                            lineStyle: {
+                                color: '#e5e7eb'
+                            }
+                        }
+                    },
+                    series: [
+                        {
+                            name: 'Male',
+                            type: 'bar',
+                            data: familyGenderCounts.male,
+                            itemStyle: {
+                                color: genderColors.male,
+                                borderColor: '#2563eb',
+                                borderWidth: 1
+                            }
+                        },
+                        {
+                            name: 'Female',
+                            type: 'bar',
+                            data: familyGenderCounts.female,
+                            itemStyle: {
+                                color: genderColors.female,
+                                borderColor: '#db2777',
+                                borderWidth: 1
+                            }
+                        }
+                    ]
+                });
+            }
+
+            /* =====================================================
+               BENEFICIARY
+            ===================================================== */
+            function initBeneficiaryCharts() {
+                if (!charts.ageGender) {
+                    charts.ageGender = echarts.init(document.getElementById('age_gender_grouped_bar'));
+                    charts.ageGender.setOption({
+                        title: {
+                            text: 'Age vs Gender (Beneficiary Count)',
+                            left: 'center',
+                            textStyle: { fontSize: 16 }
+                        },
+                        tooltip: { trigger: 'axis' },
+                        legend: {
+                            top: 30
+                        },
+                        grid: {
+                            top: 70,
+                            bottom: 30,
+                            left: '10%',
+                            right: '5%'
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: ageGroups,
+                            name: 'Age Groups',
+                            nameTextStyle: { color: '#374151' },
+                            axisLine: {
+                                lineStyle: { color: '#d1d5db' }
+                            }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            name: 'Beneficiary Count',
+                            nameTextStyle: { color: '#374151' },
+                            axisLine: {
+                                lineStyle: { color: '#d1d5db' }
+                            },
+                            splitLine: {
+                                lineStyle: {
+                                    color: '#e5e7eb'
+                                }
+                            }
+                        },
+                        series: [
+                            {
+                                name: 'Male',
+                                type: 'bar',
+                                data: genderCounts.male,
+                                itemStyle: {
+                                    color: genderColors.male,
+                                    borderColor: '#2563eb',
+                                    borderWidth: 1
+                                }
+                            },
+                            {
+                                name: 'Female',
+                                type: 'bar',
+                                data: genderCounts.female,
+                                itemStyle: {
+                                    color: genderColors.female,
+                                    borderColor: '#db2777',
+                                    borderWidth: 1
+                                }
+                            }
+                        ]
+                    });
+                }
+
+                if (!charts.schemeCount) {
+                    charts.schemeCount = echarts.init(document.getElementById('scheme_count_bar'));
+                    charts.schemeCount.setOption({
+                        title: {
+                            text: 'Scheme Count per Beneficiary',
+                            left: 'center',
+                            textStyle: { fontSize: 16 }
+                        },
+                        tooltip: { trigger: 'axis' },
+                        grid: {
+                            top: 70,
+                            bottom: 30,
+                            left: '10%',
+                            right: '5%'
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: ['1 Scheme', '2 Schemes', '3+ Schemes'],
+                            name: 'Number of Schemes',
+                            nameTextStyle: { color: '#374151' },
+                            axisLine: {
+                                lineStyle: { color: '#d1d5db' }
+                            }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            name: 'Beneficiary Count',
+                            nameTextStyle: { color: '#374151' },
+                            axisLine: {
+                                lineStyle: { color: '#d1d5db' }
+                            },
+                            splitLine: {
+                                lineStyle: {
+                                    color: '#e5e7eb'
+                                }
+                            }
+                        },
+                        series: [{
+                            type: 'bar',
+                            data: schemeCountBar,
+                            itemStyle: {
+                                color: '#8b5cf6',
+                                borderColor: '#7c3aed',
+                                borderWidth: 1
+                            }
+                        }]
+                    });
+                }
+
+                /* 🔥 Beneficiary Coverage by Top 5 Schemes (District-wise) */
+                if (!charts.schemeCoverage) {
+                    charts.schemeCoverage = echarts.init(document.getElementById('beneficiary_scheme_pie'));
+
+                    // Prepare data for the chart
+                    const seriesData = topSchemes.map((scheme, index) => ({
+                        name: scheme,
+                        type: 'bar',
+                        stack: 'scheme',
+                        itemStyle: {
+                            color: schemeColors[index],
+                            borderColor: schemeColors[index].replace(/[a-f0-9]{2}$/, '80'), // Add 50% opacity
+                            borderWidth: 1
+                        },
+                        emphasis: {
+                            focus: 'series'
+                        },
+                        data: districts.map(district => Math.floor(Math.random() * 50) + 10)
+                    }));
+
+                    charts.schemeCoverage.setOption({
+                        title: {
+                            text: 'Top 5 Schemes',
+                            left: 'center',
+                            top: 10,
+                            textStyle: {
+                                fontSize: 16,
+                                color: '#1f2937'
+                            }
+                        },
+                        tooltip: {
+                            trigger: 'axis',
+                            axisPointer: { type: 'shadow' },
+                            formatter: function (params) {
+                                let result = `<div style="padding: 10px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                        <strong style="color: #1f2937; font-size: 14px; margin-bottom: 8px; display: block;">${params[0].name}</strong>
+                        <div style="margin: 8px 0;">`;
+                                let total = 0;
+                                params.forEach(item => {
+                                    result += `<div style="display: flex; align-items: center; justify-content: space-between; margin: 6px 0;">
+                            <div style="display: flex; align-items: center;">
+                                <span style="display:inline-block;margin-right:8px;border-radius:3px;width:12px;height:12px;background-color:${item.color}"></span>
+                                <span style="font-size:13px; color: #6b7280;">${item.seriesName}</span>
+                            </div>
+                                <strong style="color: #1f2937;">${item.value}</strong>
+                            </div>`;
+                                    total += item.value;
+                                });
+                                result += `</div>
+                        <hr style="border:none;border-top:2px solid #e5e7eb;margin:10px 0;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="font-size:14px;color:#1f2937;font-weight:600;">Total:</span>
+                            <strong style="color: #1f2937; font-size: 16px;">${total}</strong>
+                        </div>
+                    </div>`;
+                                return result;
+                            }
+                        },
+                        legend: {
+                            show: false
+                        },
+                        grid: {
+                            top: 50,
+                            bottom: 100,
+                            left: '3%',
+                            right: '4%',
+                            containLabel: true
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: districts,
+                            axisLabel: {
+                                rotate: 45,
+                                interval: 0,
+                                fontSize: 10,
+                                color: '#374151',
+                                formatter: function (value) {
+                                    return value.length > 10 ? value.substring(0, 10) + '...' : value;
+                                }
+                            },
+                            axisLine: {
+                                lineStyle: { color: '#d1d5db' }
+                            },
+                            axisTick: {
+                                alignWithLabel: true,
+                                lineStyle: { color: '#d1d5db' }
+                            },
+                            name: 'Districts',
+                            nameLocation: 'middle',
+                            nameGap: 35,
+                            nameTextStyle: {
+                                color: '#374151',
+                                fontWeight: 'bold'
+                            }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            name: 'Beneficiary Count',
+                            nameTextStyle: {
+                                padding: [0, 0, 0, 10],
+                                color: '#374151',
+                                fontWeight: 'bold'
+                            },
+                            axisLine: {
+                                lineStyle: { color: '#d1d5db' }
+                            },
+                            splitLine: {
+                                lineStyle: {
+                                    color: '#e5e7eb'
+                                }
+                            }
+                        },
+                        dataZoom: [
+                            {
+                                type: 'slider',
+                                bottom: 30,
+                                start: 0,
+                                end: 20,
+                                height: 20,
+                                backgroundColor: '#f9fafb',
+                                borderColor: '#d1d5db'
+                            },
+                            { type: 'inside' }
+                        ],
+                        series: seriesData
+                    });
+                }
+            }
+
+            /* =====================================================
+               DREAM SCHEME
+            ===================================================== */
+            function initDreamSchemeCharts() {
+                if (!charts.dreamBar) {
+                    charts.dreamBar = echarts.init(document.getElementById('dream_scheme_bar'));
+                    charts.dreamBar.setOption({
+                        title: {
+                            text: 'Top Dream Schemes (Count)',
+                            left: 'center',
+                            textStyle: { fontSize: 16 }
+                        },
+                        tooltip: { trigger: 'axis' },
+                        grid: {
+                            top: 70,
+                            bottom: 30,
+                            left: '10%',
+                            right: '5%'
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: dreamSchemes,
+                            name: 'Dream Schemes',
+                            nameTextStyle: { color: '#374151' },
+                            axisLine: {
+                                lineStyle: { color: '#d1d5db' }
+                            }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            name: 'Count',
+                            nameTextStyle: { color: '#374151' },
+                            axisLine: {
+                                lineStyle: { color: '#d1d5db' }
+                            },
+                            splitLine: {
+                                lineStyle: {
+                                    color: '#e5e7eb'
+                                }
+                            }
+                        },
+                        series: dreamSchemes.map((scheme, index) => ({
+                            name: scheme,
+                            type: 'bar',
+                            data: [dreamCounts[index]],
+                            itemStyle: {
+                                color: dreamColors[index],
+                                borderColor: dreamColors[index].replace(/[a-f0-9]{2}$/, '80'),
+                                borderWidth: 1
+                            }
+                        }))
+                    });
+                }
+
+                if (!charts.dreamPie) {
+                    charts.dreamPie = echarts.init(document.getElementById('dream_scheme_district_pie'));
+                    charts.dreamPie.setOption({
+                        title: {
+                            text: 'District-wise Dream Demand',
+                            left: 'center',
+                            textStyle: { fontSize: 16 }
+                        },
+                        tooltip: { trigger: 'item' },
+                        series: [{
+                            type: 'pie',
+                            radius: ['40%', '70%'],
+                            data: dreamDistrictData,
+                            itemStyle: {
+                                color: function (params) {
+                                    const colorList = [
+                                        '#4f46e5', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef',
+                                        '#ec4899', '#f43f5e', '#ef4444', '#f97316', '#f59e0b',
+                                        '#eab308', '#84cc16', '#22c55e', '#10b981', '#14b8a6',
+                                        '#06b6d4', '#0ea5e9', '#3b82f6', '#2563eb', '#1d4ed8'
+                                    ];
+                                    return colorList[params.dataIndex % colorList.length];
+                                },
+                                borderColor: '#ffffff',
+                                borderWidth: 2
+                            },
+                            emphasis: {
+                                itemStyle: {
+                                    shadowBlur: 10,
+                                    shadowOffsetX: 0,
+                                    shadowColor: 'rgba(0, 0, 0, 0.3)'
+                                }
+                            }
+                        }]
+                    });
+                }
+            }
+
+            // ================== TAB HANDLING ==================
+            document.addEventListener('DOMContentLoaded', function () {
+                // Initialize pie chart on load
+                initializeAllData();
+
+                // Handle tab switching
+                document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
+                    tab.addEventListener('shown.bs.tab', e => {
+                        const target = e.target.dataset.bsTarget;
+
+                        if (target === '#family-profile-pane') initFamilyProfileCharts();
+                        if (target === '#beneficiary-details-pane') initBeneficiaryCharts();
+                        if (target === '#dream-scheme-pane') initDreamSchemeCharts();
+
+                        setTimeout(() => {
+                            // Resize all charts
+                            Object.values(charts).forEach(chart => {
+                                if (chart && chart.resize) chart.resize();
+                            });
+                        }, 100);
+                    });
+                });
+            });
+
+            // ================== WINDOW RESIZE ==================
+            window.addEventListener('resize', () => {
+                Object.values(charts).forEach(chart => {
+                    if (chart && chart.resize) chart.resize();
+                });
+            });
+        </script> -->
+    <script>
+      $(document).ready(function () {
+        // Initialize all data from APIs
+        initializeAllData();
+
+        // Set up event listeners
+        setupEventListeners();
       });
 
-      // Update Shop Performance Chart
-      const shopData = Object.entries(shopTotals)
-        .map(([shop, total]) => ({ name: shop, value: total }))
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 10);
+      // ================== GLOBAL VARIABLES ==================
+      let charts = {
+        districtPie: null,
+        familyStatus: null,
+        familyAgeGender: null,
+        ageGender: null,
+        schemeCount: null,
+        schemeCoverage: null,
+        dreamBar: null,
+        dreamPie: null
+      };
 
-      shopChart.setOption({
-        tooltip: {
-          trigger: 'axis',
-          axisPointer: { type: 'shadow' },
-          formatter: function (params) {
-            return `<b>${params[0].name}</b><br/>Beneficiaries: ${params[0].value.toLocaleString()}`;
+      let drillState = {
+        level: 'state',
+        district_id: null,
+        district_name: null,
+        taluk_id: null,
+        taluk_name: null,
+        village_id: null,
+        village_name: null
+      };
+
+      // Store data from APIs
+      let API_DATA = {
+        districts: [],
+        allTaluks: [],
+        filteredTaluks: [],
+        chartData: [],
+        detailedData: []
+      };
+
+      const API_CONFIG = {
+        baseUrl: 'https://tngis.tnega.org/state_scholarship_portal_api/sfdb_survey/api/v1/dashboard2/',
+        endpoints: {
+          dynamic_input: 'dynamic_input',
+          get_districts: 'get_districts',
+          dashboard_count_form1: 'dashboard_count_form1',
+          description_details: 'description_details',
+          get_district_taluk_counts: 'get_district_taluk_counts',
+        }
+      };
+
+      // ================== PIE CHART FUNCTIONS ==================
+
+      function initDistrictPieChart() {
+        if (!charts.districtPie) {
+          const pieElement = document.getElementById('district_distribution_pie');
+          if (!pieElement) {
+            console.error('Pie chart element not found');
+            return null;
           }
-        },
-        grid: { left: '3%', right: '4%', bottom: '15%', containLabel: true },
-        xAxis: {
-          type: 'category',
-          data: shopData.map(item => item.name),
-          axisLabel: {
-            interval: 0,
-            rotate: 45,
-            fontSize: 9,
-            margin: 12
-          }
-        },
-        yAxis: { type: 'value', name: 'Beneficiaries' },
-        series: [{
-          type: 'bar',
-          data: shopData.map(item => item.value),
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#83bff6' },
-              { offset: 0.5, color: '#188df0' },
-              { offset: 1, color: '#188df0' }
-            ])
-          },
-          label: {
-            show: shopData.length > 0,
-            position: 'top',
-            formatter: '{c}',
-            fontSize: 9
-          }
-        }]
-      });
 
-      // Update Monthly Trend Chart
-      trendChart.setOption({
-        tooltip: {
-          trigger: 'axis',
-          formatter: function (params) {
-            return `<b>${params[0].name}</b><br/>New Beneficiaries: ${params[0].value.toLocaleString()}`;
-          }
-        },
-        grid: { left: '3%', right: '4%', bottom: '10%', containLabel: true },
-        xAxis: { type: 'category', data: SAMPLE_DATA.months },
-        yAxis: { type: 'value', name: 'Beneficiaries' },
-        series: [{
-          name: 'Monthly Enrollment',
-          type: 'line',
-          data: monthlyTrend,
-          smooth: true,
-          lineStyle: { width: 3, color: '#ff6b6b' },
-          itemStyle: { color: '#ff6b6b' },
-          areaStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: 'rgba(255, 107, 107, 0.5)' },
-              { offset: 1, color: 'rgba(255, 107, 107, 0.1)' }
-            ])
-          },
-          markPoint: {
-            data: [
-              { type: 'max', name: 'Max' },
-              { type: 'min', name: 'Min' }
-            ]
-          },
-          markLine: {
-            data: [{ type: 'average', name: 'Average' }]
-          }
-        }]
-      });
+          charts.districtPie = echarts.init(pieElement);
 
-      // Update filter summary
-      $('#filterSummary').text(`(${totalBeneficiaries.toLocaleString()} beneficiaries)`);
-    }
-
-    function resetAll() {
-      // Reset all dropdowns to "ALL" option
-      $('#district').val('ALL').trigger('change');
-      $('#taluk').val('ALL');
-      $('#village').val('ALL');
-      $('#shop').val('ALL');
-      $('#gender').val('ALL');
-      $('#status').val('ALL');
-      $('#schemeCategory').val('ALL');
-      $('#scheme').val('ALL');
-      $('#ageMin').val(18);
-      $('#ageMax').val(80);
-
-      // Reset dates
-      $('#dateFrom').val('2024-01-01');
-      $('#dateTo').val('2024-03-31');
-
-      // Reset logic to AND
-      $('#logicAND').prop('checked', true);
-      filterLogic = 'AND';
-      document.getElementById('logicIndicator').textContent = 'AND Logic';
-
-      // Apply filters after reset
-      setTimeout(() => {
-        applyFilters();
-      }, 100);
-    }
-
-    // Export Functions
-    function exportCSV(type) {
-      let rows = "";
-      const data = filterData();
-
-      if (type === 'pie') {
-        rows = "District,Beneficiaries,Percentage\n";
-        const pieData = Object.entries(data.districtTotals).map(([district, count]) => ({
-          name: district,
-          value: count
-        })).sort((a, b) => b.value - a.value);
-
-        pieData.forEach(item => {
-          const percentage = data.totalBeneficiaries > 0 ? ((item.value / data.totalBeneficiaries) * 100).toFixed(2) : '0.00';
-          rows += `${item.name},${item.value},${percentage}%\n`;
-        });
-      } else if (type === 'status') {
-        rows = "District,Active,Pending,Inactive,Suspended,Total\n";
-        Object.entries(data.districtStatusTotals).forEach(([district, statusData]) => {
-          rows += `${district},${statusData.Active},${statusData.Pending},${statusData.Inactive},${statusData.Suspended},${statusData.total}\n`;
-        });
-      } else if (type === 'shop') {
-        rows = "Shop,Beneficiaries\n";
-        Object.entries(data.shopTotals)
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 10)
-          .forEach(([shop, count]) => {
-            rows += `${shop},${count}\n`;
+          // Add click event for drill-down
+          charts.districtPie.on('click', function (params) {
+            handlePieChartClick(params);
           });
-      } else if (type === 'trend') {
-        rows = "Month,New Beneficiaries\n";
-        data.monthlyTrend.forEach((count, index) => {
-          rows += `${SAMPLE_DATA.months[index]},${count}\n`;
-        });
+
+          // Initialize breadcrumb navigation
+          setupDrillDownNavigation();
+        }
+        return charts.districtPie;
       }
 
-      let blob = new Blob([rows]);
-      let a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `${type}_export.csv`;
-      a.click();
-    }
+      // Setup drill-down navigation
+      function setupDrillDownNavigation() {
+        const pieContainer = document.getElementById('district_distribution_pie');
+        if (!pieContainer) return;
 
-    function exportPDF(type) {
-      let el;
-      switch (type) {
-        case 'pie': el = document.getElementById('pie'); break;
-        case 'status': el = document.getElementById('statusChart'); break;
-        default: el = document.getElementById('pie');
+        const parentContainer = pieContainer.parentNode;
+
+        // Check if navigation already exists
+        if (document.getElementById('pie-nav-container')) {
+          return;
+        }
+
+        // Create navigation container
+        let navContainer = document.createElement('div');
+        navContainer.id = 'pie-nav-container';
+        navContainer.style.cssText = 'margin-bottom: 10px; padding: 8px; background: #f8f9fa; border-radius: 6px; display: none;';
+
+        // Create breadcrumb
+        let breadcrumb = document.createElement('div');
+        breadcrumb.id = 'pie-breadcrumb';
+        breadcrumb.style.cssText = 'font-size: 14px; color: #495057; margin-bottom: 5px;';
+
+        // Create back button
+        let backButton = document.createElement('button');
+        backButton.id = 'pie-back-button';
+        backButton.innerHTML = '← Back';
+        backButton.style.cssText = 'padding: 4px 12px; background: #4f46e5; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 5px;';
+        backButton.onclick = function () {
+          navigateBack();
+        };
+
+        navContainer.appendChild(breadcrumb);
+        navContainer.appendChild(backButton);
+        parentContainer.insertBefore(navContainer, pieContainer);
       }
 
-      html2canvas(el).then(c => {
-        let pdf = new jspdf.jsPDF();
-        pdf.addImage(c.toDataURL(), "PNG", 10, 10, 180, 120);
-        pdf.save(`${type}_chart.pdf`);
-      });
-    }
+      function updateBreadcrumb() {
+        const nav = document.getElementById('pie-nav-container');
+        const breadcrumb = document.getElementById('pie-breadcrumb');
 
-    // Initialize charts on window resize
-    window.addEventListener('resize', function () {
-      pieChart.resize();
-      statusChart.resize();
-      shopChart.resize();
-      trendChart.resize();
-    });
-
-    // Sidebar functions
-    function toggleSidebar() {
-      $("#sidebar").toggleClass("collapsed");
-      $("#main").toggleClass("collapsed");
-      setTimeout(() => {
-        pieChart.resize();
-        statusChart.resize();
-        shopChart.resize();
-        trendChart.resize();
-      }, 300);
-    }
-
-    if (window.innerWidth <= 768) {
-      document.getElementById("sidebar").classList.add("collapsed");
-      document.getElementById("main").classList.add("collapsed");
-    }
-
-    document.addEventListener("click", function (e) {
-      if (window.innerWidth <= 768) {
-        let sidebar = document.getElementById("sidebar");
-        let btn = document.querySelector(".bi-list");
-
-        if (!sidebar.contains(e.target) && !btn.contains(e.target)) {
-          sidebar.classList.add("collapsed");
+        if (drillState.level === 'state') {
+          nav.style.display = 'none';
+          breadcrumb.innerHTML = '';
+        } else {
+          nav.style.display = 'block';
+          breadcrumb.innerHTML = `<strong>${drillState.district_name}</strong>`;
         }
       }
-    });
-  </script>
+
+      function navigateBack() {
+        if (drillState.level === 'district') {
+          // DISTRICT → STATE (show all districts)
+          drillState.level = 'state';
+
+          drillState.district_id = null;
+          drillState.district_name = null;
+          drillState.taluk_id = null;
+          drillState.taluk_name = null;
+          drillState.village_id = null;
+          drillState.village_name = null;
+        }
+
+        else if (drillState.level === 'taluk') {
+          // TALUK → DISTRICT
+          drillState.level = 'district';
+
+          drillState.taluk_id = null;
+          drillState.taluk_name = null;
+          drillState.village_id = null;
+          drillState.village_name = null;
+          // keep district info
+        }
+
+        else if (drillState.level === 'village') {
+          // VILLAGE → TALUK
+          drillState.level = 'taluk';
+
+          drillState.village_id = null;
+          drillState.village_name = null;
+          // keep district + taluk info
+        }
+
+        updateBreadcrumb();
+        fetchPieData();
+      }
+
+      // Handle pie chart click for drill-down
+      function handlePieChartClick(params) {
+        if (!params.data || !params.data.id) return;
+
+        if (drillState.level === 'state') {
+          drillState.level = 'district';
+          drillState.district_id = params.data.id;
+          drillState.district_name = params.data.name;
+
+          updateBreadcrumb();
+          fetchPieData();
+        }
+      }
+
+      // Get title for pie chart based on current drill level
+      function getPieTitle() {
+        switch (drillState.level) {
+          case 'district': return 'Families by District';
+          case 'taluk': return `Families in ${drillState.taluk_name || 'District'} - By Taluk`;
+          default: return '';
+        }
+      }
+
+      // ================== STACKED BAR CHART FUNCTIONS ==================
+
+      async function fetchStackedBarData() {
+        try {
+          // If we have a district filter applied, get data for that specific district
+          // Otherwise get data for all districts
+          const districtId = $('#district').val();
+          const talukId = $('#taluk').val();
+
+          // Get district filter from UI or use current drill state
+          const filterDistrictId = districtId !== 'ALL' ? Number(districtId) : null;
+
+          // Prepare payload based on current level
+          const payload = {
+            district_id: filterDistrictId,
+            taluk_id: talukId !== 'ALL' ? Number(talukId) : null,
+            village_id: null,
+            shopcode: null
+          };
+
+          console.log("Fetching stacked bar data with payload:", payload);
+
+          const response = await makeApiCountRequest(payload);
+          handleStackedBarApiResponse(response, filterDistrictId);
+        } catch (error) {
+          console.error('Error fetching stacked bar data:', error);
+          showEmptyStackedBarChart();
+        }
+      }
+
+      function handleStackedBarApiResponse(response, filterDistrictId) {
+        if (!response || response.success !== 1) {
+          console.warn('No data or API error for stacked bar:', response);
+          showEmptyStackedBarChart();
+          return;
+        }
+
+        let apiData;
+        try {
+          const decrypted = decryptData(response.data);
+          apiData = typeof decrypted === 'string'
+            ? JSON.parse(decrypted)
+            : decrypted;
+        } catch (e) {
+          console.error('Decrypt failed for stacked bar data', e);
+          showEmptyStackedBarChart();
+          return;
+        }
+
+        if (!Array.isArray(apiData) || apiData.length === 0) {
+          showEmptyStackedBarChart();
+          return;
+        }
+
+        // Process data based on whether we're showing all districts or filtered
+        let chartData;
+        if (filterDistrictId) {
+          // If district filter is applied, we need to get status counts for that district
+          chartData = processFilteredDistrictData(apiData);
+        } else {
+          // Show data for all districts
+          chartData = processAllDistrictsData(apiData);
+        }
+
+        renderStackedBarChart(chartData);
+      }
+
+      function processAllDistrictsData(apiData) {
+        // For showing all districts - we need status counts for each district
+        const districts = [];
+        const completedData = [];
+        const pendingData = [];
+        const rejectedData = [];
+        const closedData = [];
+
+        apiData.forEach(item => {
+          if (item.district_name) {
+            districts.push(item.district_name);
+            completedData.push(Number(item.total_completedcount || 0));
+            pendingData.push(Number(item.total_pendingcount || 0));
+            rejectedData.push(Number(item.total_rejectedcount || 0));
+            closedData.push(Number(item.total_closedcount || 0));
+          }
+        });
+
+        return {
+          districts,
+          series: [
+            {
+              name: 'Completed',
+              data: completedData,
+              color: '#10b981' // Green
+            },
+            {
+              name: 'Pending',
+              data: pendingData,
+              color: '#f59e0b' // Orange
+            },
+            {
+              name: 'Rejected',
+              data: rejectedData,
+              color: '#ef4444' // Red
+            },
+            {
+              name: 'Closed',
+              data: closedData,
+              color: '#6b7280' // Gray
+            }
+          ]
+        };
+      }
+
+      function processFilteredDistrictData(apiData) {
+        // When a specific district is filtered
+        const districts = [];
+        const completedData = [];
+        const pendingData = [];
+        const rejectedData = [];
+        const closedData = [];
+
+        // If we have taluk-level data within the district
+        apiData.forEach(item => {
+          if (item.taluk_name) {
+            districts.push(item.taluk_name);
+            completedData.push(Number(item.total_completedcount || 0));
+            pendingData.push(Number(item.total_pendingcount || 0));
+            rejectedData.push(Number(item.total_rejectedcount || 0));
+            closedData.push(Number(item.total_closedcount || 0));
+          } else {
+            // Single district data
+            districts.push(item.district_name || 'Selected District');
+            completedData.push(Number(item.total_completedcount || 0));
+            pendingData.push(Number(item.total_pendingcount || 0));
+            rejectedData.push(Number(item.total_rejectedcount || 0));
+            closedData.push(Number(item.total_closedcount || 0));
+          }
+        });
+
+        return {
+          districts,
+          series: [
+            {
+              name: 'Completed',
+              data: completedData,
+              color: '#10b981'
+            },
+            {
+              name: 'Pending',
+              data: pendingData,
+              color: '#f59e0b'
+            },
+            {
+              name: 'Rejected',
+              data: rejectedData,
+              color: '#ef4444'
+            },
+            {
+              name: 'Closed',
+              data: closedData,
+              color: '#6b7280'
+            }
+          ]
+        };
+      }
+
+      function renderStackedBarChart(chartData) {
+        const chartElement = document.getElementById('family_status_bar');
+        if (!chartElement) {
+          console.error('Stacked bar chart element not found');
+          return;
+        }
+
+        let chart = charts.familyStatus;
+        if (!chart) {
+          chart = echarts.init(chartElement);
+          charts.familyStatus = chart;
+        }
+
+        const isFiltered = $('#district').val() !== 'ALL';
+        const chartTitle = isFiltered
+          ? `Family Status Distribution in ${drillState.district_name || 'Selected District'}`
+          : 'Family Status Distribution by District';
+
+        // Calculate totals for tooltip
+        const districtTotals = [];
+        for (let i = 0; i < chartData.districts.length; i++) {
+          let total = 0;
+          chartData.series.forEach(series => {
+            total += series.data[i] || 0;
+          });
+          districtTotals.push(total);
+        }
+
+        const option = {
+          title: {
+            text: chartTitle,
+            left: 'center',
+            textStyle: {
+              fontSize: 14,
+              fontWeight: 'normal'
+            }
+          },
+          tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+              type: 'shadow'
+            },
+            formatter: function (params) {
+              let result = `<div style="padding: 10px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <strong style="color: #1f2937; font-size: 14px; margin-bottom: 8px; display: block;">${params[0].name}</strong>
+                    <div style="margin: 8px 0;">`;
+
+              let total = 0;
+              params.forEach(item => {
+                const value = item.value || 0;
+                total += value;
+                const percentage = districtTotals[params[0].dataIndex] > 0
+                  ? ((value / districtTotals[params[0].dataIndex]) * 100).toFixed(1)
+                  : 0;
+
+                result += `<div style="display: flex; align-items: center; justify-content: space-between; margin: 6px 0;">
+                        <div style="display: flex; align-items: center;">
+                            <span style="display:inline-block;margin-right:8px;border-radius:3px;width:12px;height:12px;background-color:${item.color}"></span>
+                            <span style="font-size:13px; color: #6b7280;">${item.seriesName}</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <strong style="color: #1f2937;">${value.toLocaleString()}</strong>
+                            <span style="font-size:11px; color: #9ca3af; margin-left: 5px;">(${percentage}%)</span>
+                        </div>
+                    </div>`;
+              });
+
+              result += `</div>
+                    <hr style="border:none;border-top:2px solid #e5e7eb;margin:10px 0;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-size:14px;color:#1f2937;font-weight:600;">Total:</span>
+                        <strong style="color: #1f2937; font-size: 16px;">${total.toLocaleString()}</strong>
+                    </div>
+                </div>`;
+              return result;
+            }
+          },
+          legend: {
+            top: 30,
+            data: chartData.series.map(series => series.name),
+            type: 'scroll'
+          },
+          grid: {
+            top: 80,
+            bottom: chartData.districts.length > 10 ? 120 : 60,
+            left: '3%',
+            right: '4%',
+            containLabel: true
+          },
+          xAxis: {
+            type: 'category',
+            data: chartData.districts,
+            axisLabel: {
+              rotate: chartData.districts.length > 10 ? 45 : 0,
+              interval: 0,
+              fontSize: chartData.districts.length > 15 ? 10 : 12,
+              color: '#374151',
+              formatter: function (value) {
+                return value.length > 15 ? value.substring(0, 15) + '...' : value;
+              }
+            },
+            axisLine: {
+              lineStyle: { color: '#d1d5db' }
+            },
+            axisTick: {
+              alignWithLabel: true,
+              lineStyle: { color: '#d1d5db' }
+            }
+          },
+          yAxis: {
+            type: 'value',
+            name: 'Family Count',
+            nameTextStyle: {
+              padding: [0, 0, 0, 10],
+              color: '#374151'
+            },
+            axisLine: {
+              lineStyle: { color: '#d1d5db' }
+            },
+            splitLine: {
+              lineStyle: {
+                color: '#e5e7eb'
+              }
+            }
+          },
+          dataZoom: chartData.districts.length > 10 ? [
+            {
+              type: 'slider',
+              bottom: 30,
+              start: 0,
+              end: 100,
+              height: 20,
+              backgroundColor: '#f9fafb',
+              borderColor: '#d1d5db',
+              fillerColor: 'rgba(79, 70, 229, 0.1)',
+              borderWidth: 1
+            },
+            { type: 'inside' }
+          ] : [],
+          series: chartData.series.map(series => ({
+            name: series.name,
+            type: 'bar',
+            stack: 'status',
+            data: series.data,
+            itemStyle: {
+              color: series.color,
+              borderColor: '#ffffff',
+              borderWidth: 1
+            },
+            emphasis: {
+              focus: 'series'
+            }
+          }))
+        };
+
+        chart.setOption(option);
+        chart.resize();
+      }
+
+      function showEmptyStackedBarChart() {
+        const chartElement = document.getElementById('family_status_bar');
+        if (!chartElement) return;
+
+        let chart = charts.familyStatus;
+        if (!chart) {
+          chart = echarts.init(chartElement);
+          charts.familyStatus = chart;
+        }
+
+        chart.setOption({
+          title: {
+            text: 'Family Status Distribution',
+            left: 'center',
+            subtext: 'No data available',
+            subtextStyle: {
+              fontSize: 12,
+              color: '#6b7280'
+            }
+          },
+          tooltip: {
+            trigger: 'item'
+          },
+          xAxis: {
+            type: 'category',
+            data: [],
+            axisLine: {
+              lineStyle: { color: '#d1d5db' }
+            }
+          },
+          yAxis: {
+            type: 'value',
+            name: 'Family Count',
+            nameTextStyle: {
+              padding: [0, 0, 0, 10],
+              color: '#374151'
+            },
+            axisLine: {
+              lineStyle: { color: '#d1d5db' }
+            }
+          },
+          series: []
+        });
+      }
+
+      // ================== GEOGRAPHIC API FUNCTIONS ==================
+
+      // Load districts
+      async function loadDistricts() {
+        try {
+          const payload = {
+            action: "select",
+            _table_name: "pds_master_district",
+            selected_columns: ["district_id", "district_name"],
+            filter_conditions: {},
+            sort_columns: {},
+            limit_rows: 50,
+            offset_rows: 0
+          };
+
+          const response = await makeApiRequest(payload);
+
+          if (response && response.success === 1) {
+            const decryptedData = decryptData(response.data);
+            let districtList = typeof decryptedData === 'string' ? JSON.parse(decryptedData) : decryptedData;
+
+            API_DATA.districts = Array.isArray(districtList) ? districtList : [];
+            return API_DATA.districts;
+          } else {
+            API_DATA.districts = [];
+            return [];
+          }
+        } catch (error) {
+          console.error('Error loading districts:', error);
+          API_DATA.districts = [];
+          return [];
+        }
+      }
+
+      // Load taluks for a specific district (district → taluk only)
+      async function loadTaluks(districtId) {
+        try {
+          if (!districtId || districtId === 'ALL') {
+            // If "All Districts" is selected, clear taluk data
+            API_DATA.allTaluks = [];
+            API_DATA.filteredTaluks = [];
+            populateTalukDropdown([]);
+            return [];
+          }
+
+          const payload = {
+            action: "select",
+            _table_name: "pds_master_taluk",
+            selected_columns: ["district_id", "taluk_id", "taluk_name"],
+            filter_conditions: {
+              and: {
+                district_id: districtId
+              }
+            },
+            sort_columns: {},
+            limit_rows: 100,
+            offset_rows: 0
+          };
+
+          const response = await makeApiRequest(payload);
+
+          if (response && response.success === 1) {
+            const decryptedData = decryptData(response.data);
+
+            // ✅ Ensure talukList is always an array
+            let talukList = Array.isArray(decryptedData)
+              ? decryptedData
+              : [];
+
+            // Store in allTaluks for caching
+            API_DATA.allTaluks = talukList;
+
+            // FilteredTaluks is same as talukList (no scheme/village/shop filter)
+            API_DATA.filteredTaluks = talukList;
+
+            // Populate dropdown
+            populateTalukDropdown(talukList);
+
+            return talukList;
+          } else {
+            console.error("API did not return success: 1 for taluks");
+            API_DATA.allTaluks = [];
+            API_DATA.filteredTaluks = [];
+            populateTalukDropdown([]);
+            return [];
+          }
+        } catch (error) {
+          console.error('Error loading taluks:', error);
+          API_DATA.allTaluks = [];
+          API_DATA.filteredTaluks = [];
+          populateTalukDropdown([]);
+          return [];
+        }
+      }
+
+      // ================== GENERIC API FUNCTIONS ==================
+      async function makeApiRequest(payload) {
+        try {
+          const encryptedPayload = encryptData(payload);
+          const url = API_CONFIG.baseUrl + API_CONFIG.endpoints.dynamic_input;
+
+          return await $.ajax({
+            url: url,
+            type: "POST",
+            dataType: "json",
+            data: { data: encryptedPayload }
+          });
+        } catch (error) {
+          console.error('API Request Error:', error);
+          return null;
+        }
+      }
+
+      async function makeApiCountRequest(payload) {
+        try {
+          var encryptedPayload = encryptData(payload);
+          var url = API_CONFIG.baseUrl + API_CONFIG.endpoints.get_district_taluk_counts;
+
+          return await $.ajax({
+            url: url,
+            type: "POST",
+            contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+            dataType: "json",
+            data: { data: encryptedPayload }
+          });
+
+        } catch (err) {
+          console.error("Count API error:", err);
+          return null;
+        }
+      }
+
+      // ================== DROPDOWN POPULATION ==================
+
+      function populateDistrictDropdown() {
+        const districtSelect = $('#district');
+        districtSelect.empty();
+        districtSelect.append('<option value="ALL" selected>All Districts</option>');
+
+        API_DATA.districts.sort((a, b) => a.district_name.localeCompare(b.district_name))
+          .forEach(d => districtSelect.append(`<option value="${d.district_id}">${d.district_name}</option>`));
+      }
+
+      function populateTalukDropdown(taluks) {
+        const talukSelect = $('#taluk');
+        talukSelect.empty();
+        talukSelect.append('<option value="ALL" selected>All Taluks</option>');
+
+        taluks.sort((a, b) => a.taluk_name.localeCompare(b.taluk_name))
+          .forEach(t => talukSelect.append(`<option value="${t.taluk_id}">${t.taluk_name}</option>`));
+
+        talukSelect.prop('disabled', false);
+      }
+
+      // Fetch pie chart data based on current drill state
+      async function fetchPieData() {
+        const payload = {
+          district_id: drillState.district_id,
+          taluk_id: drillState.taluk_id,
+          village_id: drillState.village_id,
+          shopcode: null
+        };
+
+        console.log("Fetching pie data with payload:", payload);
+
+        const response = await makeApiCountRequest(payload);
+        handlePieApiResponse(response);
+      }
+
+      function handlePieApiResponse(response) {
+        if (!response || response.success !== 1) {
+          showEmptyPieChart();
+          return;
+        }
+
+        let apiData;
+        try {
+          const decrypted = decryptData(response.data);
+          apiData = typeof decrypted === 'string'
+            ? JSON.parse(decrypted)
+            : decrypted;
+        } catch (e) {
+          console.error('Decrypt failed', e);
+          showEmptyPieChart();
+          return;
+        }
+
+        if (!Array.isArray(apiData) || apiData.length === 0) {
+          showEmptyPieChart();
+          return;
+        }
+
+        let pieData = [];
+
+        /* ===============================
+           DRILL STATE HANDLING
+        ================================*/
+        if (drillState.level === 'state') {
+          // INITIAL → DISTRICT WISE
+          pieData = apiData.map(item => ({
+            name: item.district_name,
+            value: Number(item.total_familycount || 0),
+            id: item.district_id
+          }));
+        }
+        else if (drillState.level === 'district') {
+          // CLICKED DISTRICT → TALUK WISE
+          pieData = apiData.map(item => ({
+            name: item.taluk_name,
+            value: Number(item.total_familycount || 0),
+            id: item.taluk_id
+          }));
+        }
+
+        const total = pieData.reduce((sum, i) => sum + i.value, 0);
+
+        const chart = initDistrictPieChart();
+        if (!chart) return;
+
+        chart.clear();
+        chart.setOption({
+          title: {
+            text: getPieTitle(),
+            left: 'center',
+            subtext: `Total Families: ${total}`,
+            subtextStyle: {
+              fontSize: 12,
+              color: '#6b7280'
+            }
+          },
+          tooltip: {
+            trigger: 'item',
+            formatter: p => {
+              const percent = total
+                ? ((p.value / total) * 100).toFixed(1)
+                : 0;
+              return `${p.name}<br/>Families: ${p.value} (${percent}%)`;
+            }
+          },
+          series: [{
+            type: 'pie',
+            radius: '60%',
+            data: pieData,
+            label: { formatter: '{b}: {c}' }
+          }]
+        });
+
+        chart.resize();
+      }
+
+      // Show empty pie chart
+      function showEmptyPieChart() {
+        const chart = initDistrictPieChart();
+        if (!chart) return;
+
+        chart.setOption({
+          title: {
+            text: getPieTitle(),
+            left: 'center',
+            subtext: 'No data available',
+            subtextStyle: {
+              fontSize: 12,
+              color: '#6b7280'
+            }
+          },
+          tooltip: {
+            trigger: 'item'
+          },
+          series: [{
+            type: 'pie',
+            radius: '60%',
+            data: [],
+            itemStyle: {
+              color: '#e5e7eb'
+            },
+            label: {
+              show: false
+            }
+          }]
+        });
+      }
+
+      // ================== FILTER FUNCTIONS ==================
+
+      async function handleDistrictChange() {
+        const districtId = $('#district').val();
+        $('#taluk').html('<option value="ALL" selected>Loading taluks...</option>').prop('disabled', true);
+
+        if (districtId !== 'ALL') {
+          const taluks = await loadTaluks(districtId);
+          populateTalukDropdown(taluks);
+        } else {
+          $('#taluk').html('<option value="ALL" selected>All Taluks</option>').prop('disabled', false);
+          API_DATA.filteredTaluks = [];
+        }
+      }
+
+      // Apply filters button handler
+      async function applyFilters() {
+        const districtId = $('#district').val();
+
+        drillState = {
+          level: 'state',
+          district_id: null,
+          district_name: null
+        };
+
+        if (districtId !== 'ALL') {
+          const district = API_DATA.districts.find(d => d.district_id == districtId);
+          if (district) {
+            drillState.level = 'district';
+            drillState.district_id = Number(districtId);
+            drillState.district_name = district.district_name;
+          }
+        }
+
+        updateBreadcrumb();
+        fetchPieData();
+        fetchStackedBarData(); // Also refresh stacked bar chart
+      }
+
+      // Reset all filters
+      function resetAll() {
+        $('#district').val('ALL');
+        $('#taluk').html('<option value="ALL" selected>All Taluks</option>').prop('disabled', false);
+
+        drillState = {
+          level: 'state',
+          district_id: null,
+          district_name: null,
+          taluk_id: null,
+          taluk_name: null,
+          village_id: null,
+          village_name: null
+        };
+
+        updateBreadcrumb();
+        fetchPieData();
+        fetchStackedBarData();
+      }
+
+      // Initialize all data
+      async function initializeAllData() {
+        await loadDistricts();
+        populateDistrictDropdown();
+
+        // Initialize pie chart
+        initDistrictPieChart();
+
+        // Load initial pie chart data with null filters (state level)
+        resetDrillState();
+        fetchPieData();
+      }
+
+      // Reset drill state to district level
+      function resetDrillState() {
+        drillState = {
+          level: 'state',
+          district_id: null,
+          district_name: null,
+          taluk_id: null,
+          taluk_name: null,
+          village_id: null,
+          village_name: null
+        };
+        updateBreadcrumb();
+      }
+
+      // ================== OTHER CHART FUNCTIONS ==================
+
+      // Sample data for other charts
+      let topSchemes = ['கலைஞரின் கனவு இல்லம்', 'முதலமைச்சரின் விரிவான மருத்துவ காப்பீட்டு திட்டம்', 'வீட்டுமனைப் பட்டா', 'கூட்டுறவுச் சங்கம்/வங்கி கடன் (சுய வேலைவாய்ப்புக் கடன், கால்நடை கடன்)', 'இதர'];
+
+      const districts = [
+        'Ariyalur', 'Chengalpattu', 'Chennai', 'Coimbatore', 'Cuddalore', 'Dharmapuri',
+        'Dindigul', 'Erode', 'Kallakurichi', 'Kancheepuram', 'Kanniyakumari', 'Karur',
+        'Krishnagiri', 'Madurai', 'Mayiladuthurai', 'Nagapattinam', 'Namakkal', 'Nilgiris',
+        'Perambalur', 'Pudukkottai', 'Ramanathapuram', 'Ranipet', 'Salem', 'Sivaganga',
+        'Tenkasi', 'Thanjavur', 'Theni', 'Thoothukudi', 'Tiruchirappalli', 'Tirunelveli',
+        'Tirupathur', 'Tiruppur', 'Tiruvallur', 'Tiruvannamalai', 'Tiruvarur',
+        'Vellore', 'Viluppuram', 'Virudhunagar'
+      ];
+
+      const statusColors = {
+        active: '#91cc75',
+        inactive: '#f59e0b',
+        migrated: '#ef4444'
+      };
+
+      const genderColors = {
+        male: '#3b82f6',
+        female: '#ec4899'
+      };
+
+      const schemeColors = [
+        '#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'
+      ];
+
+      const dreamColors = [
+        '#4f46e5', '#10b981', '#f59e0b', '#ef4444'
+      ];
+
+      const familyAgeGroups = ['0-18', '19–30', '31–45', '46–60', '60+'];
+      const familyGenderCounts = {
+        male: [41852, 41732, 50874, 42057, 27438],
+        female: [39719, 37215, 53553, 48360, 29616]
+      };
+      const ageGroups = ['0-18', '19–30', '31–45', '46–60', '60+'];
+      const genderCounts = {
+        male: [40, 80, 60, 35, 20],
+        female: [45, 70, 55, 30, 25]
+      };
+
+      const schemeCountBar = [90, 70, 40];
+
+      const dreamSchemes = ['Housing', 'Education', 'Employment', 'Health'];
+      const dreamCounts = [95, 120, 70, 50];
+
+      const dreamDistrictData = districts.map(d => ({
+        name: d,
+        value: Math.floor(Math.random() * 80) + 20
+      }));
+
+      /* =====================================================
+         FAMILY PROFILE
+      ===================================================== */
+      function initFamilyProfileCharts() {
+        initFamilyAgeGenderGroupedBar();
+        fetchStackedBarData(); // Load stacked bar data on initialization
+      }
+
+      function initFamilyAgeGenderGroupedBar() {
+        if (charts.familyAgeGender) return;
+
+        const chart = echarts.init(document.getElementById('age_distribution_bar'));
+        charts.familyAgeGender = chart;
+
+        chart.setOption({
+          title: {
+            text: 'Age-wise Family Distribution',
+            left: 'center',
+            textStyle: { fontSize: 16 }
+          },
+          tooltip: {
+            trigger: 'axis',
+            axisPointer: { type: 'shadow' }
+          },
+          legend: {
+            top: 30,
+            data: ['Male', 'Female']
+          },
+          grid: {
+            top: 70,
+            bottom: 30,
+            left: '10%',
+            right: '5%'
+          },
+          xAxis: {
+            type: 'category',
+            data: familyAgeGroups,
+            name: 'Age Groups',
+            nameTextStyle: { color: '#374151' },
+            axisLine: {
+              lineStyle: { color: '#d1d5db' }
+            },
+            axisTick: {
+              lineStyle: { color: '#d1d5db' }
+            }
+          },
+          yAxis: {
+            type: 'value',
+            name: 'Family Count',
+            nameTextStyle: { color: '#374151' },
+            axisLine: {
+              lineStyle: { color: '#d1d5db' }
+            },
+            splitLine: {
+              lineStyle: {
+                color: '#e5e7eb'
+              }
+            }
+          },
+          series: [
+            {
+              name: 'Male',
+              type: 'bar',
+              data: familyGenderCounts.male,
+              itemStyle: {
+                color: genderColors.male,
+                borderColor: '#2563eb',
+                borderWidth: 1
+              }
+            },
+            {
+              name: 'Female',
+              type: 'bar',
+              data: familyGenderCounts.female,
+              itemStyle: {
+                color: genderColors.female,
+                borderColor: '#db2777',
+                borderWidth: 1
+              }
+            }
+          ]
+        });
+      }
+
+      /* =====================================================
+         BENEFICIARY
+      ===================================================== */
+      function initBeneficiaryCharts() {
+        if (!charts.ageGender) {
+          charts.ageGender = echarts.init(document.getElementById('age_gender_grouped_bar'));
+          charts.ageGender.setOption({
+            title: {
+              text: 'Age vs Gender (Beneficiary Count)',
+              left: 'center',
+              textStyle: { fontSize: 16 }
+            },
+            tooltip: { trigger: 'axis' },
+            legend: {
+              top: 30
+            },
+            grid: {
+              top: 70,
+              bottom: 30,
+              left: '10%',
+              right: '5%'
+            },
+            xAxis: {
+              type: 'category',
+              data: ageGroups,
+              name: 'Age Groups',
+              nameTextStyle: { color: '#374151' },
+              axisLine: {
+                lineStyle: { color: '#d1d5db' }
+              }
+            },
+            yAxis: {
+              type: 'value',
+              name: 'Beneficiary Count',
+              nameTextStyle: { color: '#374151' },
+              axisLine: {
+                lineStyle: { color: '#d1d5db' }
+              },
+              splitLine: {
+                lineStyle: {
+                  color: '#e5e7eb'
+                }
+              }
+            },
+            series: [
+              {
+                name: 'Male',
+                type: 'bar',
+                data: genderCounts.male,
+                itemStyle: {
+                  color: genderColors.male,
+                  borderColor: '#2563eb',
+                  borderWidth: 1
+                }
+              },
+              {
+                name: 'Female',
+                type: 'bar',
+                data: genderCounts.female,
+                itemStyle: {
+                  color: genderColors.female,
+                  borderColor: '#db2777',
+                  borderWidth: 1
+                }
+              }
+            ]
+          });
+        }
+
+        if (!charts.schemeCount) {
+          charts.schemeCount = echarts.init(document.getElementById('scheme_count_bar'));
+          charts.schemeCount.setOption({
+            title: {
+              text: 'Scheme Count per Beneficiary',
+              left: 'center',
+              textStyle: { fontSize: 16 }
+            },
+            tooltip: { trigger: 'axis' },
+            grid: {
+              top: 70,
+              bottom: 30,
+              left: '10%',
+              right: '5%'
+            },
+            xAxis: {
+              type: 'category',
+              data: ['1 Scheme', '2 Schemes', '3+ Schemes'],
+              name: 'Number of Schemes',
+              nameTextStyle: { color: '#374151' },
+              axisLine: {
+                lineStyle: { color: '#d1d5db' }
+              }
+            },
+            yAxis: {
+              type: 'value',
+              name: 'Beneficiary Count',
+              nameTextStyle: { color: '#374151' },
+              axisLine: {
+                lineStyle: { color: '#d1d5db' }
+              },
+              splitLine: {
+                lineStyle: {
+                  color: '#e5e7eb'
+                }
+              }
+            },
+            series: [{
+              type: 'bar',
+              data: schemeCountBar,
+              itemStyle: {
+                color: '#8b5cf6',
+                borderColor: '#7c3aed',
+                borderWidth: 1
+              }
+            }]
+          });
+        }
+
+        /* 🔥 Beneficiary Coverage by Top 5 Schemes (District-wise) */
+        if (!charts.schemeCoverage) {
+          charts.schemeCoverage = echarts.init(document.getElementById('beneficiary_scheme_pie'));
+
+          // Prepare data for the chart
+          const seriesData = topSchemes.map((scheme, index) => ({
+            name: scheme,
+            type: 'bar',
+            stack: 'scheme',
+            itemStyle: {
+              color: schemeColors[index],
+              borderColor: schemeColors[index].replace(/[a-f0-9]{2}$/, '80'), // Add 50% opacity
+              borderWidth: 1
+            },
+            emphasis: {
+              focus: 'series'
+            },
+            data: districts.map(district => Math.floor(Math.random() * 50) + 10)
+          }));
+
+          charts.schemeCoverage.setOption({
+            title: {
+              text: 'Top 5 Schemes',
+              left: 'center',
+              top: 10,
+              textStyle: {
+                fontSize: 16,
+                color: '#1f2937'
+              }
+            },
+            tooltip: {
+              trigger: 'axis',
+              axisPointer: { type: 'shadow' },
+              formatter: function (params) {
+                let result = `<div style="padding: 10px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                        <strong style="color: #1f2937; font-size: 14px; margin-bottom: 8px; display: block;">${params[0].name}</strong>
+                        <div style="margin: 8px 0;">`;
+                let total = 0;
+                params.forEach(item => {
+                  result += `<div style="display: flex; align-items: center; justify-content: space-between; margin: 6px 0;">
+                            <div style="display: flex; align-items: center;">
+                                <span style="display:inline-block;margin-right:8px;border-radius:3px;width:12px;height:12px;background-color:${item.color}"></span>
+                                <span style="font-size:13px; color: #6b7280;">${item.seriesName}</span>
+                            </div>
+                                <strong style="color: #1f2937;">${item.value}</strong>
+                            </div>`;
+                  total += item.value;
+                });
+                result += `</div>
+                        <hr style="border:none;border-top:2px solid #e5e7eb;margin:10px 0;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="font-size:14px;color:#1f2937;font-weight:600;">Total:</span>
+                            <strong style="color: #1f2937; font-size: 16px;">${total}</strong>
+                        </div>
+                    </div>`;
+                return result;
+              }
+            },
+            legend: {
+              show: false
+            },
+            grid: {
+              top: 50,
+              bottom: 100,
+              left: '3%',
+              right: '4%',
+              containLabel: true
+            },
+            xAxis: {
+              type: 'category',
+              data: districts,
+              axisLabel: {
+                rotate: 45,
+                interval: 0,
+                fontSize: 10,
+                color: '#374151',
+                formatter: function (value) {
+                  return value.length > 10 ? value.substring(0, 10) + '...' : value;
+                }
+              },
+              axisLine: {
+                lineStyle: { color: '#d1d5db' }
+              },
+              axisTick: {
+                alignWithLabel: true,
+                lineStyle: { color: '#d1d5db' }
+              },
+              name: 'Districts',
+              nameLocation: 'middle',
+              nameGap: 35,
+              nameTextStyle: {
+                color: '#374151',
+                fontWeight: 'bold'
+              }
+            },
+            yAxis: {
+              type: 'value',
+              name: 'Beneficiary Count',
+              nameTextStyle: {
+                padding: [0, 0, 0, 10],
+                color: '#374151',
+                fontWeight: 'bold'
+              },
+              axisLine: {
+                lineStyle: { color: '#d1d5db' }
+              },
+              splitLine: {
+                lineStyle: {
+                  color: '#e5e7eb'
+                }
+              }
+            },
+            dataZoom: [
+              {
+                type: 'slider',
+                bottom: 30,
+                start: 0,
+                end: 20,
+                height: 20,
+                backgroundColor: '#f9fafb',
+                borderColor: '#d1d5db'
+              },
+              { type: 'inside' }
+            ],
+            series: seriesData
+          });
+        }
+      }
+
+      /* =====================================================
+         DREAM SCHEME
+      ===================================================== */
+      function initDreamSchemeCharts() {
+        if (!charts.dreamBar) {
+          charts.dreamBar = echarts.init(document.getElementById('dream_scheme_bar'));
+          charts.dreamBar.setOption({
+            title: {
+              text: 'Top Dream Schemes (Count)',
+              left: 'center',
+              textStyle: { fontSize: 16 }
+            },
+            tooltip: { trigger: 'axis' },
+            grid: {
+              top: 70,
+              bottom: 30,
+              left: '10%',
+              right: '5%'
+            },
+            xAxis: {
+              type: 'category',
+              data: dreamSchemes,
+              name: 'Dream Schemes',
+              nameTextStyle: { color: '#374151' },
+              axisLine: {
+                lineStyle: { color: '#d1d5db' }
+              }
+            },
+            yAxis: {
+              type: 'value',
+              name: 'Count',
+              nameTextStyle: { color: '#374151' },
+              axisLine: {
+                lineStyle: { color: '#d1d5db' }
+              },
+              splitLine: {
+                lineStyle: {
+                  color: '#e5e7eb'
+                }
+              }
+            },
+            series: dreamSchemes.map((scheme, index) => ({
+              name: scheme,
+              type: 'bar',
+              data: [dreamCounts[index]],
+              itemStyle: {
+                color: dreamColors[index],
+                borderColor: dreamColors[index].replace(/[a-f0-9]{2}$/, '80'),
+                borderWidth: 1
+              }
+            }))
+          });
+        }
+
+        if (!charts.dreamPie) {
+          charts.dreamPie = echarts.init(document.getElementById('dream_scheme_district_pie'));
+          charts.dreamPie.setOption({
+            title: {
+              text: 'District-wise Dream Demand',
+              left: 'center',
+              textStyle: { fontSize: 16 }
+            },
+            tooltip: { trigger: 'item' },
+            series: [{
+              type: 'pie',
+              radius: ['40%', '70%'],
+              data: dreamDistrictData,
+              itemStyle: {
+                color: function (params) {
+                  const colorList = [
+                    '#4f46e5', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef',
+                    '#ec4899', '#f43f5e', '#ef4444', '#f97316', '#f59e0b',
+                    '#eab308', '#84cc16', '#22c55e', '#10b981', '#14b8a6',
+                    '#06b6d4', '#0ea5e9', '#3b82f6', '#2563eb', '#1d4ed8'
+                  ];
+                  return colorList[params.dataIndex % colorList.length];
+                },
+                borderColor: '#ffffff',
+                borderWidth: 2
+              },
+              emphasis: {
+                itemStyle: {
+                  shadowBlur: 10,
+                  shadowOffsetX: 0,
+                  shadowColor: 'rgba(0, 0, 0, 0.3)'
+                }
+              }
+            }]
+          });
+        }
+      }
+
+      // ================== EVENT LISTENERS AND INITIALIZATION ==================
+
+      // Setup tab listeners
+      function setupTabListeners() {
+        document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
+          tab.addEventListener('shown.bs.tab', e => {
+            const target = e.target.dataset.bsTarget;
+
+            if (target === '#family-profile-pane') {
+              initFamilyProfileCharts();
+            }
+            if (target === '#beneficiary-details-pane') {
+              initBeneficiaryCharts();
+            }
+            if (target === '#dream-scheme-pane') {
+              initDreamSchemeCharts();
+            }
+
+            setTimeout(() => {
+              Object.values(charts).forEach(chart => {
+                if (chart && chart.resize) chart.resize();
+              });
+            }, 100);
+          });
+        });
+      }
+
+      // Setup event listeners
+      function setupEventListeners() {
+        $('#district').on('change', handleDistrictChange);
+
+        // Add tab listeners
+        setupTabListeners();
+
+        // Add resize event for charts
+        window.addEventListener('resize', function () {
+          Object.values(charts).forEach(chart => {
+            if (chart && chart.resize) chart.resize();
+          });
+        });
+      }
+
+      // Initialize everything on page load
+      document.addEventListener('DOMContentLoaded', function () {
+        initializeAllData();
+        setupEventListeners();
+
+        // Initialize Family Profile charts immediately since it's the default active tab
+        setTimeout(() => {
+          if (document.querySelector('#family-profile-pane.active')) {
+            initFamilyProfileCharts();
+          }
+        }, 500);
+      });
+
+      // Sidebar toggle function (if needed)
+      function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const main = document.getElementById('main');
+        sidebar.classList.toggle('collapsed');
+        main.classList.toggle('collapsed');
+      }
+    </script>
 </body>
 
 </html>
