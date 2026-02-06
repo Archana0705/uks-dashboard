@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>UKS Analytics - Dream Scheme</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body {
+            background: #f5f7fb;
+            font-family: Inter, system-ui;
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, #ffffff, #f8f9ff);
+            border-bottom: 1px solid #eee;
+            height: 64px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 2000;
+        }
+
+        .app-title {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: .3px;
+        }
+
+        .filter-bar {
+            position: sticky;
+            top: 64px;
+            background: white;
+            z-index: 9;
+            border-radius: 14px;
+            margin: 5px 12px;
+            padding: 10px !important;
+        }
+
+        .filter-bar label {
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
+            margin-bottom: 4px !important;
+        }
+
+        .form-select,
+        .form-range,
+        .form-control {
+            border-radius: 10px;
+            padding: 6px 12px !important;
+            font-size: 14px !important;
+        }
+
+        .card {
+            border-radius: 18px;
+            border: none;
+            background: white;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, .06);
+            transition: .25s;
+        }
+
+        .card:hover {
+            box-shadow: 0 12px 35px rgba(0, 0, 0, .1);
+        }
+
+        .chart-actions {
+            opacity: 0;
+            transition: .2s;
+        }
+
+        .card:hover .chart-actions {
+            opacity: 1;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            border: none;
+            border-radius: 10px;
+            padding: 8px 16px !important;
+            font-size: 14px;
+        }
+
+        .btn-outline-secondary {
+            border-radius: 10px;
+            padding: 6px 12px !important;
+        }
+
+        .app-wrapper {
+            display: flex;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 64px;
+            left: 0;
+            width: 240px;
+            height: calc(100vh - 64px);
+            background: linear-gradient(180deg, #f9fafc, #f2f4f9);
+            border-right: 1px solid #eee;
+            transition: transform .3s ease;
+            z-index: 2000;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-menu li.active {
+            background: linear-gradient(135deg, #5b5df0, #7b7dff);
+            color: white;
+            box-shadow: 0 6px 16px rgba(91, 93, 240, .35);
+        }
+
+        .sidebar-menu li a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            text-decoration: none;
+            color: #444;
+            font-size: 14px;
+        }
+
+        .sidebar-menu li a:hover {
+            background: #f3f5ff;
+            color: #4f46e5;
+        }
+
+        .main-content {
+            margin-left: 240px;
+            width: 100%;
+            transition: .3s;
+            margin-top: 64px;
+        }
+
+        .main-content.collapsed {
+            margin-left: 0;
+        }
+
+        .sidebar.collapsed {
+            width: 0;
+            overflow: hidden;
+        }
+
+        .filter-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 12px !important;
+            margin-bottom: 10px !important;
+            border-left: 4px solid;
+        }
+
+        .geographic-filter {
+            border-left-color: #4f46e5;
+        }
+
+        .demographic-filter {
+            border-left-color: #10b981;
+        }
+
+        .scheme-filter {
+            border-left-color: #f59e0b;
+        }
+
+        .active-filter-badge {
+            background: #4f46e5;
+            color: white;
+            border-radius: 12px;
+            padding: 3px 10px;
+            font-size: 12px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            display: inline-block;
+        }
+
+        .logic-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px !important;
+        }
+
+        .logic-toggle .btn-group {
+            width: 120px;
+        }
+
+        .filter-group-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px !important;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+        }
+
+        .scheme-description-card {
+            background: linear-gradient(135deg, #f8f9ff, #ffffff);
+            border: 1px solid #e6e8ff;
+            transition: transform 0.2s;
+            border-radius: 10px;
+        }
+
+        .scheme-description-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .scheme-logic-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px !important;
+        }
+
+        /* Reduced spacing classes */
+        .row.g-2 {
+            --bs-gutter-x: 0.5rem;
+            --bs-gutter-y: 0.5rem;
+        }
+
+        .row.g-3 {
+            --bs-gutter-x: 1rem;
+            --bs-gutter-y: 1rem;
+        }
+
+        .mb-1 {
+            margin-bottom: 0.25rem !important;
+        }
+
+        .mb-2 {
+            margin-bottom: 0.5rem !important;
+        }
+
+        .mb-3 {
+            margin-bottom: 1rem !important;
+        }
+
+        .mt-1 {
+            margin-top: 0.25rem !important;
+        }
+
+        .mt-2 {
+            margin-top: 0.5rem !important;
+        }
+
+        .mt-3 {
+            margin-top: 1rem !important;
+        }
+
+        .py-1 {
+            padding-top: 0.25rem !important;
+            padding-bottom: 0.25rem !important;
+        }
+
+        .py-2 {
+            padding-top: 0.5rem !important;
+            padding-bottom: 0.5rem !important;
+        }
+
+        .py-3 {
+            padding-top: 1rem !important;
+            padding-bottom: 1rem !important;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 240px;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+                box-shadow: 0 0 0 9999px rgba(0, 0, 0, .25);
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+            }
+
+            .filterWraps {
+                width: auto !important;
+                margin-left: 15px;
+                margin-top: 10px;
+            }
+
+            .nomob {
+                display: none !important;
+            }
+
+            .filter-bar {
+                margin: 5px 8px !important;
+                padding: 8px !important;
+            }
+
+            .filter-section {
+                padding: 10px !important;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .chart-row {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                font-size: 14px;
+            }
+
+            h5 {
+                font-size: 16px;
+            }
+
+            .app-title {
+                font-size: 16px;
+            }
+
+            .filter-bar {
+                margin: 5px 4px !important;
+                padding: 6px !important;
+            }
+        }
+
+        /* No Remarks Entry Styling */
+        .no-remarks-entry {
+            border-left: 4px solid #6c757d;
+            background: linear-gradient(135deg, #f8f9fa, #ffffff);
+            transition: all 0.3s ease;
+        }
+
+        .no-remarks-entry:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .no-remarks-entry .badge {
+            font-size: 14px;
+            padding: 6px 12px;
+            min-width: 50px;
+        }
+
+        /* Unique Remarks Styling */
+        .remark-entry {
+            border-left: 4px solid #4f46e5;
+            background: white;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .remark-entry:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+        }
+
+        .remark-entry:before {
+            content: '✓';
+            position: absolute;
+            left: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #4f46e5;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .remark-entry:hover:before {
+            opacity: 1;
+        }
+
+        /* District Header */
+        .district-header {
+            background: linear-gradient(135deg, #f8f9ff, #ffffff);
+            border: 1px solid #e6e8ff;
+            transition: all 0.3s ease;
+        }
+
+        .district-header:hover {
+            border-color: #4f46e5;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+        }
+
+        /* Load More Button */
+        .btn-outline-primary {
+            border-width: 2px;
+            font-weight: 500;
+        }
+
+        .btn-outline-primary:hover {
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* All Entries Styling */
+        .all-entries-list .remark-entry:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .all-entries-list .remark-entry .badge.bg-secondary {
+            background: #6c757d !important;
+        }
+
+        /* Summary Header */
+        .bg-light.rounded {
+            border: 1px solid #e9ecef;
+        }
+
+        /* Scrollbar for scheme descriptions */
+        .scheme-description-card {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .scheme-description-card::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scheme-description-card::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .scheme-description-card::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .scheme-description-card::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .no-remarks-entry {
+                flex-direction: column !important;
+                text-align: center;
+            }
+
+            .no-remarks-entry .d-flex.align-items-center {
+                justify-content: center;
+                margin-bottom: 10px;
+            }
+
+            .no-remarks-entry .text-end {
+                text-align: center !important;
+            }
+
+            .remark-content .bg-light {
+                font-size: 13px;
+            }
+        }
+
+        /* Add to your existing CSS */
+        #geoLevelSelector .btn.active {
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: white;
+            border-color: #4f46e5;
+        }
+
+        .drill-breadcrumb {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            border-left: 4px solid #4f46e5;
+        }
+
+        .breadcrumb-item {
+            cursor: pointer;
+            color: #4f46e5;
+        }
+
+        .breadcrumb-item:hover {
+            text-decoration: underline;
+        }
+
+        .breadcrumb-item.active {
+            color: #6c757d;
+            cursor: default;
+        }
+
+        .breadcrumb-item.active:hover {
+            text-decoration: none;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active,
+        .tab-pane.show {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg app-header px-4">
+        <div class="d-flex align-items-center">
+            <button class="btn btn-sm btn-light" onclick="toggleSidebar()">
+                <i class="bi bi-list"></i>
+            </button>
+            <img src="assets/img/tn_logo.png" height="36" class="me-2">
+            <span class="ms-2 fw-bold">UKS Analytics</span>
+        </div>
+        <div class="ms-auto d-flex align-items-center gap-3 nomob">
+            <div class="dropdown">
+                <button class="btn btn-link text-decoration-none d-flex align-items-center gap-2"
+                    data-bs-toggle="dropdown">
+                    <span class="text-muted">Welcome, <b>User Name</b></span>
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow">
+                    <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i> Profile</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-box-arrow-right me-2"></i>
+                            Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="app-wrapper">
+        <div id="sidebar" class="sidebar">
+            <ul class="sidebar-menu">
+                <li><a href="index.html"><i class="bi bi-speedometer2"></i> <span>Dashboard</span></a></li>
+                <li><a href="#"><i class="bi bi-people"></i> <span>Beneficiary</span></a></li>
+                <li><a href="#"><i class="bi bi-card-checklist"></i> <span>Beneficial Scheme</span></a></li>
+                <li class="active"><a href="dreamscheme.html"><i class="bi bi-stars"></i> <span>Dream Scheme</span></a>
+                <li><a href="dreamscheme-district-wise-distribution.html"><i class="bi bi-stars"></i> <span>Dream
+                            Scheme</span></a>
+
+                </li>
+            </ul>
+        </div>
+
+        <div id="main" class="main-content">
+            <button class="btn btn-outline-primary w-100 d-md-none filterWraps" data-bs-toggle="collapse"
+                data-bs-target="#mobileFilters">
+                <i class="bi bi-funnel"></i> Filters
+            </button>
+
+            <div id="mobileFilters" class="collapse d-md-block">
+                <div class="filter-bar shadow-sm">
+                    <!-- Logic Toggle -->
+                    <div class="logic-toggle">
+                        <!-- <span class="filter-group-title">Overall Filter Logic:</span> -->
+                    </div>
+
+                    <!-- Geographic Filters -->
+                    <div class="filter-section geographic-filter">
+                        <div class="filter-group-title">
+                            <i class="bi bi-geo-alt"></i>
+                            Geographic Filters
+                        </div>
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-3 mb-2">
+                                <label>District</label>
+                                <select id="district" class="form-select">
+                                    <option value="ALL" selected>Loading districts...</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3 mb-2">
+                                <label>Taluk</label>
+                                <select id="taluk" class="form-select">
+                                    <option value="ALL" selected>Select Taluk</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3 mb-2  gap-2 justify-content-end">
+                                <button class="btn btn-primary" onclick="applyFilters()">
+                                    <i class="bi bi-funnel me-2"></i> Apply Filters
+                                </button>
+                                <button class="btn btn-outline-danger" onclick="resetAll()">
+                                    <i class="bi bi-arrow-counterclockwise"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-8">
+                            <div id="activeFiltersDisplay" class="d-flex flex-wrap gap-2"></div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <!-- <ul class="nav nav-tabs" id="myTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="basic-details-tab" data-bs-toggle="tab"
+                                    data-bs-target="#basic-details-pane" type="button" role="tab"
+                                    aria-controls="basic-details-pane" aria-selected="true">Basic Details</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="beneficiary-tab" data-bs-toggle="tab"
+                                    data-bs-target="#beneficiary-tab-pane" type="button" role="tab"
+                                    aria-controls="beneficiary-tab-pane" aria-selected="false">Beneficiary</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="beneficial-scheme-tab" data-bs-toggle="tab"
+                                    data-bs-target="#beneficial-scheme-pane" type="button" role="tab"
+                                    aria-controls="beneficial-scheme-pane" aria-selected="false">Beneficial
+                                    Scheme</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="dream-scheme-tab" data-bs-toggle="tab"
+                                    data-bs-target="#dream-scheme-tab-pane" type="button" role="tab"
+                                    aria-controls="dream-scheme-tab-pane" aria-selected="false">Dream
+                                    Scheme</button>
+                            </li>
+                        </ul> -->
+                        <ul class="nav nav-tabs" id="uksDashboardTabs" role="tablist">
+                            <li class="nav-item">
+                                <button class="nav-link active" id="family-profile-tab" data-bs-toggle="tab"
+                                    data-bs-target="#family-profile-pane" type="button">
+                                    Family Profile
+                                </button>
+                            </li>
+
+                            <li class="nav-item">
+                                <button class="nav-link" id="beneficiary-details-tab" data-bs-toggle="tab"
+                                    data-bs-target="#beneficiary-details-pane" type="button">
+                                    Beneficiary & Schemes
+                                </button>
+                            </li>
+
+                            <li class="nav-item">
+                                <button class="nav-link" id="dream-scheme-tab" data-bs-toggle="tab"
+                                    data-bs-target="#dream-scheme-pane" type="button">
+                                    Dream Scheme
+                                </button>
+                            </li>
+                        </ul>
+
+
+
+                        <div class="tab-pane fade show active" id="family-profile-pane">
+
+                            <!-- KPI CARDS -->
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-4">
+                                    <div class="card p-3 shadow">
+                                        <h6>Total Families</h6>
+                                        <h3 id="kpi_total_families">0</h3>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="card p-3 shadow">
+                                        <h6>Average Age</h6>
+                                        <h3 id="kpi_avg_family_age">0</h3>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="card p-3 shadow">
+                                        <h6>Top Occupation</h6>
+                                        <h3 id="kpi_top_occupation">-</h3>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- CHARTS -->
+                            <div class="row g-3">
+                                <div class="col-lg-5">
+                                    <div class="card p-3 shadow">
+                                        <h5>Families by District</h5>
+                                        <div id="district_distribution_pie" style="height:350px;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-7">
+                                    <div class="card p-3 shadow">
+                                        <h5>Age-wise Distribution</h5>
+                                        <div id="age_distribution_bar" style="height:350px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                        <div class="tab-pane fade" id="beneficiary-details-pane">
+
+                            <!-- KPI CARDS -->
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-3">
+                                    <div class="card p-3 shadow">
+                                        <h6>Total Beneficiaries</h6>
+                                        <h3 id="kpi_total_beneficiaries">0</h3>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div class="card p-3 shadow">
+                                        <h6>Male / Female Ratio</h6>
+                                        <h3 id="kpi_gender_ratio">0 : 0</h3>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div class="card p-3 shadow">
+                                        <h6>Avg Beneficiary Age</h6>
+                                        <h3 id="kpi_avg_beneficiary_age">0</h3>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div class="card p-3 shadow">
+                                        <h6>With Schemes</h6>
+                                        <h3 id="kpi_beneficiaries_with_scheme">0</h3>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- CHARTS -->
+                            <div class="row g-3">
+                                <div class="col-lg-6">
+                                    <div class="card p-3 shadow">
+                                        <h5>Age vs Gender Distribution</h5>
+                                        <div id="scheme_distribution_pie" style="height:350px;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-6">
+                                    <div class="card p-3 shadow">
+                                        <h5>Scheme Count per Beneficiary</h5>
+                                        <div id="scheme_distribution_pie" style="height:350px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mt-3">
+                                <div class="col-lg-12">
+                                    <div class="card p-3 shadow">
+                                        <h5>Scheme-wise Beneficiary Coverage</h5>
+                                        <div id="beneficiary_scheme_coverage_pie" style="height:350px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="tab-pane fade" id="dream-scheme-pane">
+
+                            <!-- KPI CARDS -->
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-4">
+                                    <div class="card p-3 shadow">
+                                        <h6>Dream Scheme Entries</h6>
+                                        <h3 id="kpi_dream_entries">0</h3>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="card p-3 shadow">
+                                        <h6>Unique Dream Schemes</h6>
+                                        <h3 id="kpi_unique_dream_schemes">0</h3>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="card p-3 shadow">
+                                        <h6>District Coverage</h6>
+                                        <h3 id="kpi_dream_districts">0</h3>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- CHARTS -->
+                            <div class="row g-3">
+                                <div class="col-lg-6">
+                                    <div class="card p-3 shadow">
+                                        <h5>Top Requested Dream Schemes</h5>
+                                        <div id="dream_scheme_top_bar" style="height:350px;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-6">
+                                    <div class="card p-3 shadow">
+                                        <h5>District-wise Dream Demand</h5>
+                                        <div id="dream_scheme_district_pie" style="height:350px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+        <script src="assets/js/global.js"></script>
+        <script src="assets/js/crypto-js.min.js"></script>
+        <script src="assets/js/encrypt_decrypt.js"></script>
+
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+
+                const tabButtons = document.querySelectorAll('button[data-bs-toggle="tab"]');
+
+                tabButtons.forEach(tab => {
+                    tab.addEventListener('shown.bs.tab', function (event) {
+                        const targetPane = document.querySelector(
+                            event.target.getAttribute('data-bs-target')
+                        );
+
+                        // Resize only visible charts inside active tab
+                        if (targetPane) {
+                            const charts = targetPane.querySelectorAll('[id$="_pie"], [id$="_bar"], [id$="_line"]');
+                            charts.forEach(chartDiv => {
+                                if (chartDiv && chartDiv.__echarts__) {
+                                    chartDiv.__echarts__.resize();
+                                }
+                            });
+                        }
+                    });
+                });
+
+            });
+        </script>
+
+        <script>
+            /* ===============================
+               GLOBAL CHART REFERENCES
+            ================================ */
+            let charts = {};
+
+            /* ===============================
+               SAMPLE DATA
+            ================================ */
+            const sampleData = {
+                districtWise: [
+                    { name: 'Chengalpattu', value: 120 },
+                    { name: 'Kancheepuram', value: 90 },
+                    { name: 'Thiruvallur', value: 70 },
+                    { name: 'Vellore', value: 60 }
+                ],
+
+                ageWise: [
+                    { range: '0–18', count: 80 },
+                    { range: '19–30', count: 140 },
+                    { range: '31–45', count: 110 },
+                    { range: '46–60', count: 65 },
+                    { range: '60+', count: 45 }
+                ],
+
+                schemeWise: [
+                    { scheme: 'PDS', count: 160 },
+                    { scheme: 'NFSA', count: 120 },
+                    { scheme: 'SFSS', count: 80 }
+                ]
+            };
+
+            /* ===============================
+               DISTRICT TAB CHART
+            ================================ */
+            function initDistrictChart() {
+                const el = document.getElementById('district_distribution_pie');
+                charts.districtPie = echarts.init(el);
+
+                charts.districtPie.setOption({
+                    title: {
+                        text: 'District-wise Distribution',
+                        left: 'center'
+                    },
+                    tooltip: { trigger: 'item' },
+                    series: [{
+                        type: 'pie',
+                        radius: '60%',
+                        data: sampleData.districtWise
+                    }]
+                });
+            }
+
+            /* ===============================
+               AGE-WISE (REPLACED OCCUPATION)
+            ================================ */
+            function initAgeWiseChart() {
+                const el = document.getElementById('age_distribution_bar');
+                charts.ageBar = echarts.init(el);
+
+                charts.ageBar.setOption({
+                    title: {
+                        text: 'Age-wise Distribution',
+                        left: 'center'
+                    },
+                    tooltip: { trigger: 'axis' },
+                    xAxis: {
+                        type: 'category',
+                        data: sampleData.ageWise.map(a => a.range)
+                    },
+                    yAxis: { type: 'value' },
+                    series: [{
+                        type: 'bar',
+                        data: sampleData.ageWise.map(a => a.count)
+                    }]
+                });
+            }
+
+            /* ===============================
+               SCHEME TAB CHART
+            ================================ */
+            function initSchemeChart() {
+                const el = document.getElementById('scheme_distribution_pie');
+                charts.schemePie = echarts.init(el);
+
+                charts.schemePie.setOption({
+                    title: {
+                        text: 'Scheme-wise Distribution',
+                        left: 'center'
+                    },
+                    tooltip: { trigger: 'item' },
+                    series: [{
+                        type: 'pie',
+                        radius: ['40%', '70%'],
+                        data: sampleData.schemeWise.map(s => ({
+                            name: s.scheme,
+                            value: s.count
+                        }))
+                    }]
+                });
+            }
+
+            /* ===============================
+               INITIAL LOAD (FIRST TAB ONLY)
+            ================================ */
+            document.addEventListener('DOMContentLoaded', function () {
+                initDistrictChart();
+            });
+
+            /* ===============================
+               BOOTSTRAP TAB FIX (NO EMPTY SPACE)
+            ================================ */
+            document
+                .querySelectorAll('button[data-bs-toggle="tab"]')
+                .forEach(tab => {
+
+                    tab.addEventListener('shown.bs.tab', function (e) {
+                        const target = e.target.getAttribute('data-bs-target');
+
+                        if (target === '#beneficiary-pane' && !charts.ageBar) {
+                            initAgeWiseChart();
+                        }
+
+                        if (target === '#scheme-pane' && !charts.schemePie) {
+                            initSchemeChart();
+                        }
+
+                        // Resize visible charts only
+                        setTimeout(() => {
+                            Object.values(charts).forEach(chart => chart.resize());
+                        }, 100);
+                    });
+
+                });
+
+            /* ===============================
+               WINDOW RESIZE FIX
+            ================================ */
+            window.addEventListener('resize', function () {
+                Object.values(charts).forEach(chart => chart.resize());
+            });
+        </script>
+
+
+</body>
+
+</html>
