@@ -779,7 +779,7 @@
         <script src="assets/js/crypto-js.min.js"></script>
         <script src="assets/js/encrypt_decrypt.js"></script>
 
-        <!-- <script>
+        <script>
             $(document).ready(function () {
                 // Initialize all data from APIs
                 initializeAllData();
@@ -793,7 +793,7 @@
                 districtPie: null,
                 familyStatus: null,
                 familyAgeGender: null,
-                ageGender: null,
+                ageGenderPyramid: null,
                 schemeCount: null,
                 schemeCoverage: null,
                 dreamBar: null,
@@ -813,158 +813,93 @@
             // Store data from APIs
             let API_DATA = {
                 districts: [],
+                schemes: [],
                 allTaluks: [],
                 filteredTaluks: [],
                 chartData: [],
                 detailedData: [],
-                ageGenderData: null
+                ageGenderData: null,
+                ageGenderPyramidData: null,
+                top5SchemesData: null,
+                selectedSchemeId: 'ALL',
+                selectedSchemeName: 'All Schemes'
             };
 
             const API_CONFIG = {
                 baseUrl: 'https://tngis.tnega.org/state_scholarship_portal_api/sfdb_survey/api/v1/dashboard2/',
                 endpoints: {
                     dynamic_input: 'dynamic_input',
-                    get_districts: 'get_districts',
-                    dashboard_count_form1: 'dashboard_count_form1',
                     description_details: 'description_details',
                     get_district_taluk_counts: 'get_district_taluk_counts',
-                    get_age_gender_distribution_dashboard_form1: 'get_age_gender_distribution_dashboard_form1'
+                    get_age_gender_distribution_dashboard_form1: 'get_age_gender_distribution_dashboard_form1',
+                    get_top5_schemes_by_state: 'get_top5_schemes_by_state',
+                    get_scheme_filter: 'get_scheme_filter',
+                    get_scheme_age_gender_counts: 'get_scheme_age_gender_counts'
                 }
             };
 
-            // ================== PIE CHART FUNCTIONS ==================
+            // ================== SCHEME FILTER FUNCTIONS ==================
 
-            function initDistrictPieChart() {
-                if (!charts.districtPie) {
-                    const pieElement = document.getElementById('district_distribution_pie');
-                    if (!pieElement) {
-                        console.error('Pie chart element not found');
-                        return null;
-                    }
+            async function loadSchemes() {
+                try {
+                    console.log("Loading schemes for chart filter...");
 
-                    charts.districtPie = echarts.init(pieElement);
-
-                    // Add click event for drill-down
-                    charts.districtPie.on('click', function (params) {
-                        handlePieChartClick(params);
-                    });
-
-                    // Initialize breadcrumb navigation
-                    setupDrillDownNavigation();
+                    const response = await makeSchemeFilterApiRequest();
+                    handleSchemeFilterResponse(response);
+                } catch (error) {
+                    console.error('Error loading schemes:', error);
+                    API_DATA.schemes = [];
                 }
-                return charts.districtPie;
             }
 
-            // Setup drill-down navigation
-            function setupDrillDownNavigation() {
-                const pieContainer = document.getElementById('district_distribution_pie');
-                if (!pieContainer) return;
+            async function makeSchemeFilterApiRequest() {
+                try {
+                    const url = API_CONFIG.baseUrl + API_CONFIG.endpoints.get_scheme_filter;
 
-                const parentContainer = pieContainer.parentNode;
+                    return await $.ajax({
+                        url: url,
+                        type: "POST",
+                        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                        dataType: "json",
+                        data: { data: '' }
+                    });
+                } catch (error) {
+                    console.error('Scheme Filter API Request Error:', error);
+                    return null;
+                }
+            }
 
-                // Check if navigation already exists
-                if (document.getElementById('pie-nav-container')) {
+            function handleSchemeFilterResponse(response) {
+                if (!response || response.success !== 1) {
+                    console.warn('No data or API error for schemes:', response);
+                    API_DATA.schemes = [];
                     return;
                 }
 
-                // Create navigation container
-                let navContainer = document.createElement('div');
-                navContainer.id = 'pie-nav-container';
-                navContainer.style.cssText = 'margin-bottom: 10px; padding: 8px; background: #f8f9fa; border-radius: 6px; display: none;';
+                let apiData;
+                try {
+                    const decrypted = decryptData(response.data);
+                    apiData = typeof decrypted === 'string' ? JSON.parse(decrypted) : decrypted;
 
-                // Create breadcrumb
-                let breadcrumb = document.createElement('div');
-                breadcrumb.id = 'pie-breadcrumb';
-                breadcrumb.style.cssText = 'font-size: 14px; color: #495057; margin-bottom: 5px;';
+                    if (typeof apiData === 'string') {
+                        apiData = JSON.parse(apiData);
+                    }
+                } catch (e) {
+                    console.error('Decrypt/parse failed for schemes data', e);
+                    API_DATA.schemes = [];
+                    return;
+                }
 
-                // Create back button
-                let backButton = document.createElement('button');
-                backButton.id = 'pie-back-button';
-                backButton.innerHTML = '← Back';
-                backButton.style.cssText = 'padding: 4px 12px; background: #4f46e5; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 5px;';
-                backButton.onclick = function () {
-                    navigateBack();
-                };
-
-                navContainer.appendChild(breadcrumb);
-                navContainer.appendChild(backButton);
-                parentContainer.insertBefore(navContainer, pieContainer);
-            }
-
-            function updateBreadcrumb() {
-                const nav = document.getElementById('pie-nav-container');
-                const breadcrumb = document.getElementById('pie-breadcrumb');
-
-                if (drillState.level === 'state') {
-                    nav.style.display = 'none';
-                    breadcrumb.innerHTML = '';
+                if (!Array.isArray(apiData) || apiData.length === 0) {
+                    console.log('No schemes data available');
+                    API_DATA.schemes = [];
                 } else {
-                    nav.style.display = 'block';
-                    breadcrumb.innerHTML = `<strong>${drillState.district_name}</strong>`;
+                    API_DATA.schemes = apiData;
+                    console.log("Loaded schemes:", API_DATA.schemes.length);
                 }
             }
 
-            function navigateBack() {
-                if (drillState.level === 'district') {
-                    // DISTRICT → STATE (show all districts)
-                    drillState.level = 'state';
-
-                    drillState.district_id = null;
-                    drillState.district_name = null;
-                    drillState.taluk_id = null;
-                    drillState.taluk_name = null;
-                    drillState.village_id = null;
-                    drillState.village_name = null;
-                }
-
-                else if (drillState.level === 'taluk') {
-                    // TALUK → DISTRICT
-                    drillState.level = 'district';
-
-                    drillState.taluk_id = null;
-                    drillState.taluk_name = null;
-                    drillState.village_id = null;
-                    drillState.village_name = null;
-                    // keep district info
-                }
-
-                else if (drillState.level === 'village') {
-                    // VILLAGE → TALUK
-                    drillState.level = 'taluk';
-
-                    drillState.village_id = null;
-                    drillState.village_name = null;
-                    // keep district + taluk info
-                }
-
-                updateBreadcrumb();
-                fetchPieData();
-            }
-
-            // Handle pie chart click for drill-down
-            function handlePieChartClick(params) {
-                if (!params.data || !params.data.id) return;
-
-                if (drillState.level === 'state') {
-                    drillState.level = 'district';
-                    drillState.district_id = params.data.id;
-                    drillState.district_name = params.data.name;
-
-                    updateBreadcrumb();
-                    fetchPieData();
-                }
-            }
-
-            // Get title for pie chart based on current drill level
-            function getPieTitle() {
-                switch (drillState.level) {
-                    case 'district': return 'Families by District';
-                    case 'taluk': return `Families in ${drillState.taluk_name || 'District'} - By Taluk`;
-                    default: return '';
-                }
-            }
-
-            // ================== AGE GENDER DISTRIBUTION API ==================
+            // ================== AGE GENDER DISTRIBUTION (FAMILY PROFILE TAB) ==================
 
             async function fetchAgeGenderData() {
                 try {
@@ -1041,6 +976,7 @@
                 // Process the API response data
                 processAgeGenderData(apiData);
             }
+
             function processAgeGenderData(apiData) {
                 // Initialize arrays for different age groups
                 const ageGroups = ['0-18', '19-30', '31-45', '46-60', '60+'];
@@ -1124,8 +1060,8 @@
                 // Render the chart
                 renderAgeGenderChart();
             }
+
             function renderAgeGenderChart() {
-                debugger
                 const chartElement = document.getElementById('age_distribution_bar');
                 if (!chartElement) {
                     console.error('Age gender chart element not found');
@@ -1174,444 +1110,6 @@
                         subtextStyle: {
                             fontSize: 12,
                             color: '#6b7280'
-                        }
-                    },
-                    tooltip: {
-                        trigger: 'axis',
-                        axisPointer: {
-                            type: 'shadow'
-                        },
-                        formatter: function (params) {
-                            let result = `<div style="padding: 10px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                    <strong style="color: #1f2937; font-size: 14px; margin-bottom: 8px; display: block;">${params[0].name}</strong>
-                    <div style="margin: 8px 0;">`;
-
-                            let total = 0;
-                            params.forEach(item => {
-                                const value = item.value || 0;
-                                total += value;
-
-                                result += `<div style="display: flex; align-items: center; justify-content: space-between; margin: 6px 0;">
-                        <div style="display: flex; align-items: center;">
-                            <span style="display:inline-block;margin-right:8px;border-radius:3px;width:12px;height:12px;background-color:${item.color}"></span>
-                            <span style="font-size:13px; color: #6b7280;">${item.seriesName}</span>
-                        </div>
-                        <div style="text-align: right;">
-                            <strong style="color: #1f2937;">${value.toLocaleString()}</strong>
-                        </div>
-                    </div>`;
-                            });
-
-                            result += `</div>
-                    <hr style="border:none;border-top:2px solid #e5e7eb;margin:10px 0;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;">
-                        <span style="font-size:14px;color:#1f2937;font-weight:600;">Total:</span>
-                        <strong style="color: #1f2937; font-size: 16px;">${total.toLocaleString()}</strong>
-                    </div>
-                </div>`;
-                            return result;
-                        }
-                    },
-                    legend: {
-                        top: 40,
-                        data: ['Male', 'Female'],
-                        textStyle: {
-                            fontSize: 12
-                        },
-                        itemGap: 15
-                    },
-                    grid: {
-                        top: 90,
-                        bottom: 30,
-                        left: '10%',
-                        right: '5%',
-                        containLabel: true
-                    },
-                    xAxis: {
-                        type: 'category',
-                        data: ageGroups,
-                        name: 'Age Groups',
-                        nameTextStyle: {
-                            color: '#374151',
-                            fontSize: 12
-                        },
-                        axisLine: {
-                            lineStyle: {
-                                color: '#d1d5db',
-                                width: 1
-                            }
-                        },
-                        axisTick: {
-                            lineStyle: { color: '#d1d5db' }
-                        },
-                        axisLabel: {
-                            fontSize: 11,
-                            color: '#374151'
-                        }
-                    },
-                    yAxis: {
-                        type: 'value',
-                        name: 'Family Count',
-                        nameTextStyle: {
-                            padding: [0, 0, 0, 10],
-                            color: '#374151',
-                            fontSize: 12
-                        },
-                        axisLine: {
-                            lineStyle: {
-                                color: '#d1d5db',
-                                width: 1
-                            }
-                        },
-                        splitLine: {
-                            lineStyle: {
-                                color: '#e5e7eb',
-                                type: 'dashed'
-                            }
-                        },
-                        axisLabel: {
-                            formatter: function (value) {
-                                // Format large numbers with K or M suffix
-                                if (value >= 1000000) {
-                                    return (value / 1000000).toFixed(1) + 'M';
-                                } else if (value >= 1000) {
-                                    return (value / 1000).toFixed(1) + 'K';
-                                }
-                                return value;
-                            }
-                        }
-                    },
-                    series: [
-                        {
-                            name: 'Male',
-                            type: 'bar',
-                            data: male,
-                            itemStyle: {
-                                color: '#3b82f6',
-                                borderColor: '#2563eb',
-                                borderWidth: 1,
-                                borderRadius: [2, 2, 0, 0]
-                            },
-                            emphasis: {
-                                itemStyle: {
-                                    shadowBlur: 10,
-                                    shadowOffsetX: 0,
-                                    shadowColor: 'rgba(59, 130, 246, 0.5)'
-                                }
-                            },
-                            label: {
-                                show: true,
-                                position: 'top',
-                                formatter: function (params) {
-                                    // Only show label if value is significant
-                                    return params.value > 1000 ? (params.value / 1000).toFixed(1) + 'K' : params.value;
-                                },
-                                fontSize: 10,
-                                color: '#1f2937'
-                            }
-                        },
-                        {
-                            name: 'Female',
-                            type: 'bar',
-                            data: female,
-                            itemStyle: {
-                                color: '#ec4899',
-                                borderColor: '#db2777',
-                                borderWidth: 1,
-                                borderRadius: [2, 2, 0, 0]
-                            },
-                            emphasis: {
-                                itemStyle: {
-                                    shadowBlur: 10,
-                                    shadowOffsetX: 0,
-                                    shadowColor: 'rgba(236, 72, 153, 0.5)'
-                                }
-                            },
-                            label: {
-                                show: true,
-                                position: 'top',
-                                formatter: function (params) {
-                                    // Only show label if value is significant
-                                    return params.value > 1000 ? (params.value / 1000).toFixed(1) + 'K' : params.value;
-                                },
-                                fontSize: 10,
-                                color: '#1f2937'
-                            }
-                        }
-                    ]
-                };
-
-                // Clear and set new options
-                chart.clear();
-                chart.setOption(option, true);
-
-                // Force a resize to ensure proper rendering
-                setTimeout(() => {
-                    chart.resize();
-                }, 50);
-            }
-            function showEmptyAgeGenderChart() {
-                const chartElement = document.getElementById('age_distribution_bar');
-                if (!chartElement) return;
-
-                let chart = charts.familyAgeGender;
-                if (!chart) {
-                    chart = echarts.init(chartElement);
-                    charts.familyAgeGender = chart;
-                }
-
-                const isFiltered = $('#district').val() !== 'ALL';
-                const chartTitle = isFiltered
-                    ? `Age-wise Family Distribution in ${drillState.district_name || 'Selected District'}`
-                    : 'Age-wise Family Distribution';
-
-                chart.setOption({
-                    title: {
-                        text: chartTitle,
-                        left: 'center',
-                        subtext: 'No data available',
-                        subtextStyle: {
-                            fontSize: 12,
-                            color: '#6b7280'
-                        }
-                    },
-                    tooltip: {
-                        trigger: 'item'
-                    },
-                    xAxis: {
-                        type: 'category',
-                        data: ['0-18', '19-30', '31-45', '46-60', '60+'],
-                        name: 'Age Groups',
-                        nameTextStyle: {
-                            color: '#374151'
-                        },
-                        axisLine: {
-                            lineStyle: { color: '#d1d5db' }
-                        }
-                    },
-                    yAxis: {
-                        type: 'value',
-                        name: 'Family Count',
-                        nameTextStyle: {
-                            padding: [0, 0, 0, 10],
-                            color: '#374151'
-                        },
-                        axisLine: {
-                            lineStyle: { color: '#d1d5db' }
-                        }
-                    },
-                    series: [
-                        {
-                            name: 'Male',
-                            type: 'bar',
-                            data: [0, 0, 0, 0, 0],
-                            itemStyle: {
-                                color: '#3b82f6',
-                                opacity: 0.3
-                            }
-                        },
-                        {
-                            name: 'Female',
-                            type: 'bar',
-                            data: [0, 0, 0, 0, 0],
-                            itemStyle: {
-                                color: '#ec4899',
-                                opacity: 0.3
-                            }
-                        }
-                    ]
-                }, true);
-            }
-
-            // ================== STACKED BAR CHART FUNCTIONS ==================
-
-            async function fetchStackedBarData() {
-                try {
-                    const districtId = $('#district').val();
-                    const talukId = $('#taluk').val();
-
-                    const filterDistrictId = districtId !== 'ALL' ? Number(districtId) : null;
-
-                    const payload = {
-                        district_id: filterDistrictId,
-                        taluk_id: talukId !== 'ALL' ? Number(talukId) : null,
-                        village_id: null,
-                        shopcode: null
-                    };
-
-                    console.log("Fetching stacked bar data with payload:", payload);
-
-                    const response = await makeApiCountRequest(payload);
-                    handleStackedBarApiResponse(response, filterDistrictId);
-                } catch (error) {
-                    console.error('Error fetching stacked bar data:', error);
-                    showEmptyStackedBarChart();
-                }
-            }
-
-            function handleStackedBarApiResponse(response, filterDistrictId) {
-                if (!response || response.success !== 1) {
-                    console.warn('No data or API error for stacked bar:', response);
-                    showEmptyStackedBarChart();
-                    return;
-                }
-
-                let apiData;
-                try {
-                    const decrypted = decryptData(response.data);
-                    apiData = typeof decrypted === 'string'
-                        ? JSON.parse(decrypted)
-                        : decrypted;
-                } catch (e) {
-                    console.error('Decrypt failed for stacked bar data', e);
-                    showEmptyStackedBarChart();
-                    return;
-                }
-
-                if (!Array.isArray(apiData) || apiData.length === 0) {
-                    showEmptyStackedBarChart();
-                    return;
-                }
-
-                // Process data based on whether we're showing all districts or filtered
-                let chartData;
-                if (filterDistrictId) {
-                    chartData = processFilteredDistrictData(apiData);
-                } else {
-                    chartData = processAllDistrictsData(apiData);
-                }
-
-                renderStackedBarChart(chartData);
-            }
-
-            function processAllDistrictsData(apiData) {
-                const districts = [];
-                const completedData = [];
-                const pendingData = [];
-                const rejectedData = [];
-                const closedData = [];
-
-                apiData.forEach(item => {
-                    if (item.district_name) {
-                        districts.push(item.district_name);
-                        completedData.push(Number(item.total_completedcount || 0));
-                        pendingData.push(Number(item.total_pendingcount || 0));
-                        rejectedData.push(Number(item.total_rejectedcount || 0));
-                        closedData.push(Number(item.total_closedcount || 0));
-                    }
-                });
-
-                return {
-                    districts,
-                    series: [
-                        {
-                            name: 'Completed',
-                            data: completedData,
-                            color: '#10b981'
-                        },
-                        {
-                            name: 'Pending',
-                            data: pendingData,
-                            color: '#f59e0b'
-                        },
-                        {
-                            name: 'Rejected',
-                            data: rejectedData,
-                            color: '#ef4444'
-                        },
-                        {
-                            name: 'Closed',
-                            data: closedData,
-                            color: '#6b7280'
-                        }
-                    ]
-                };
-            }
-
-            function processFilteredDistrictData(apiData) {
-                const districts = [];
-                const completedData = [];
-                const pendingData = [];
-                const rejectedData = [];
-                const closedData = [];
-
-                apiData.forEach(item => {
-                    if (item.taluk_name) {
-                        districts.push(item.taluk_name);
-                    } else if (item.district_name) {
-                        districts.push(item.district_name);
-                    } else {
-                        districts.push('Location ' + (districts.length + 1));
-                    }
-
-                    completedData.push(Number(item.total_completedcount || 0));
-                    pendingData.push(Number(item.total_pendingcount || 0));
-                    rejectedData.push(Number(item.total_rejectedcount || 0));
-                    closedData.push(Number(item.total_closedcount || 0));
-                });
-
-                return {
-                    districts,
-                    series: [
-                        {
-                            name: 'Completed',
-                            data: completedData,
-                            color: '#10b981'
-                        },
-                        {
-                            name: 'Pending',
-                            data: pendingData,
-                            color: '#f59e0b'
-                        },
-                        {
-                            name: 'Rejected',
-                            data: rejectedData,
-                            color: '#ef4444'
-                        },
-                        {
-                            name: 'Closed',
-                            data: closedData,
-                            color: '#6b7280'
-                        }
-                    ]
-                };
-            }
-
-            function renderStackedBarChart(chartData) {
-                const chartElement = document.getElementById('family_status_bar');
-                if (!chartElement) {
-                    console.error('Stacked bar chart element not found');
-                    return;
-                }
-
-                let chart = charts.familyStatus;
-                if (!chart) {
-                    chart = echarts.init(chartElement);
-                    charts.familyStatus = chart;
-                }
-
-                const isFiltered = $('#district').val() !== 'ALL';
-                const chartTitle = isFiltered
-                    ? `Family Status Distribution in ${drillState.district_name || 'Selected District'}`
-                    : 'Family Status Distribution by District';
-
-                // Calculate totals for tooltip
-                const districtTotals = [];
-                for (let i = 0; i < chartData.districts.length; i++) {
-                    let total = 0;
-                    chartData.series.forEach(series => {
-                        total += series.data[i] || 0;
-                    });
-                    districtTotals.push(total);
-                }
-
-                const option = {
-                    title: {
-                        text: chartTitle,
-                        left: 'center',
-                        textStyle: {
-                            fontSize: 14,
-                            fontWeight: 'normal'
                         }
                     },
                     tooltip: {
@@ -1628,9 +1126,6 @@
                             params.forEach(item => {
                                 const value = item.value || 0;
                                 total += value;
-                                const percentage = districtTotals[params[0].dataIndex] > 0
-                                    ? ((value / districtTotals[params[0].dataIndex]) * 100).toFixed(1)
-                                    : 0;
 
                                 result += `<div style="display: flex; align-items: center; justify-content: space-between; margin: 6px 0;">
                             <div style="display: flex; align-items: center;">
@@ -1639,7 +1134,6 @@
                             </div>
                             <div style="text-align: right;">
                                 <strong style="color: #1f2937;">${value.toLocaleString()}</strong>
-                                <span style="font-size:11px; color: #9ca3af; margin-left: 5px;">(${percentage}%)</span>
                             </div>
                         </div>`;
                             });
@@ -1651,1314 +1145,6 @@
                             <strong style="color: #1f2937; font-size: 16px;">${total.toLocaleString()}</strong>
                         </div>
                     </div>`;
-                            return result;
-                        }
-                    },
-                    legend: {
-                        top: 30,
-                        data: chartData.series.map(series => series.name),
-                        type: 'scroll'
-                    },
-                    grid: {
-                        top: 80,
-                        bottom: chartData.districts.length > 10 ? 120 : 60,
-                        left: '3%',
-                        right: '4%',
-                        containLabel: true
-                    },
-                    xAxis: {
-                        type: 'category',
-                        data: chartData.districts,
-                        axisLabel: {
-                            rotate: chartData.districts.length > 10 ? 45 : 0,
-                            interval: 0,
-                            fontSize: chartData.districts.length > 15 ? 10 : 12,
-                            color: '#374151',
-                            formatter: function (value) {
-                                return value.length > 15 ? value.substring(0, 15) + '...' : value;
-                            }
-                        },
-                        axisLine: {
-                            lineStyle: { color: '#d1d5db' }
-                        },
-                        axisTick: {
-                            alignWithLabel: true,
-                            lineStyle: { color: '#d1d5db' }
-                        }
-                    },
-                    yAxis: {
-                        type: 'value',
-                        name: 'Family Count',
-                        nameTextStyle: {
-                            padding: [0, 0, 0, 10],
-                            color: '#374151'
-                        },
-                        axisLine: {
-                            lineStyle: { color: '#d1d5db' }
-                        },
-                        splitLine: {
-                            lineStyle: {
-                                color: '#e5e7eb'
-                            }
-                        }
-                    },
-                    dataZoom: chartData.districts.length > 10 ? [
-                        {
-                            type: 'slider',
-                            bottom: 30,
-                            start: 0,
-                            end: 100,
-                            height: 20,
-                            backgroundColor: '#f9fafb',
-                            borderColor: '#d1d5db',
-                            fillerColor: 'rgba(79, 70, 229, 0.1)',
-                            borderWidth: 1
-                        },
-                        { type: 'inside' }
-                    ] : [],
-                    series: chartData.series.map(series => ({
-                        name: series.name,
-                        type: 'bar',
-                        stack: 'status',
-                        data: series.data,
-                        itemStyle: {
-                            color: series.color,
-                            borderColor: '#ffffff',
-                            borderWidth: 1
-                        },
-                        emphasis: {
-                            focus: 'series'
-                        }
-                    }))
-                };
-
-                chart.setOption(option);
-                chart.resize();
-            }
-
-            function showEmptyStackedBarChart() {
-                const chartElement = document.getElementById('family_status_bar');
-                if (!chartElement) return;
-
-                let chart = charts.familyStatus;
-                if (!chart) {
-                    chart = echarts.init(chartElement);
-                    charts.familyStatus = chart;
-                }
-
-                chart.setOption({
-                    title: {
-                        text: 'Family Status Distribution',
-                        left: 'center',
-                        subtext: 'No data available',
-                        subtextStyle: {
-                            fontSize: 12,
-                            color: '#6b7280'
-                        }
-                    },
-                    tooltip: {
-                        trigger: 'item'
-                    },
-                    xAxis: {
-                        type: 'category',
-                        data: [],
-                        axisLine: {
-                            lineStyle: { color: '#d1d5db' }
-                        }
-                    },
-                    yAxis: {
-                        type: 'value',
-                        name: 'Family Count',
-                        nameTextStyle: {
-                            padding: [0, 0, 0, 10],
-                            color: '#374151'
-                        },
-                        axisLine: {
-                            lineStyle: { color: '#d1d5db' }
-                        }
-                    },
-                    series: []
-                });
-            }
-
-            // ================== GEOGRAPHIC API FUNCTIONS ==================
-
-            // Load districts
-            async function loadDistricts() {
-                try {
-                    const payload = {
-                        action: "select",
-                        _table_name: "pds_master_district",
-                        selected_columns: ["district_id", "district_name"],
-                        filter_conditions: {},
-                        sort_columns: {},
-                        limit_rows: 50,
-                        offset_rows: 0
-                    };
-
-                    const response = await makeApiRequest(payload);
-
-                    if (response && response.success === 1) {
-                        const decryptedData = decryptData(response.data);
-                        let districtList = typeof decryptedData === 'string' ? JSON.parse(decryptedData) : decryptedData;
-
-                        API_DATA.districts = Array.isArray(districtList) ? districtList : [];
-                        return API_DATA.districts;
-                    } else {
-                        API_DATA.districts = [];
-                        return [];
-                    }
-                } catch (error) {
-                    console.error('Error loading districts:', error);
-                    API_DATA.districts = [];
-                    return [];
-                }
-            }
-
-            // ================== GENERIC API FUNCTIONS ==================
-            async function makeApiRequest(payload) {
-                try {
-                    const encryptedPayload = encryptData(payload);
-                    const url = API_CONFIG.baseUrl + API_CONFIG.endpoints.dynamic_input;
-
-                    return await $.ajax({
-                        url: url,
-                        type: "POST",
-                        dataType: "json",
-                        data: { data: encryptedPayload }
-                    });
-                } catch (error) {
-                    console.error('API Request Error:', error);
-                    return null;
-                }
-            }
-
-            async function makeApiCountRequest(payload) {
-                try {
-                    var encryptedPayload = encryptData(payload);
-                    var url = API_CONFIG.baseUrl + API_CONFIG.endpoints.get_district_taluk_counts;
-
-                    return await $.ajax({
-                        url: url,
-                        type: "POST",
-                        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
-                        dataType: "json",
-                        data: { data: encryptedPayload }
-                    });
-
-                } catch (err) {
-                    console.error("Count API error:", err);
-                    return null;
-                }
-            }
-
-            // ================== DROPDOWN POPULATION ==================
-
-            function populateDistrictDropdown() {
-                const districtSelect = $('#district');
-                districtSelect.empty();
-                districtSelect.append('<option value="ALL" selected>All Districts</option>');
-
-                API_DATA.districts.sort((a, b) => a.district_name.localeCompare(b.district_name))
-                    .forEach(d => districtSelect.append(`<option value="${d.district_id}">${d.district_name}</option>`));
-            }
-
-            // Fetch pie chart data based on current drill state
-            async function fetchPieData() {
-                const payload = {
-                    district_id: drillState.district_id,
-                    taluk_id: drillState.taluk_id,
-                    village_id: drillState.village_id,
-                    shopcode: null
-                };
-
-                console.log("Fetching pie data with payload:", payload);
-
-                const response = await makeApiCountRequest(payload);
-                handlePieApiResponse(response);
-            }
-
-            function handlePieApiResponse(response) {
-                if (!response || response.success !== 1) {
-                    showEmptyPieChart();
-                    return;
-                }
-
-                let apiData;
-                try {
-                    const decrypted = decryptData(response.data);
-                    apiData = typeof decrypted === 'string'
-                        ? JSON.parse(decrypted)
-                        : decrypted;
-                } catch (e) {
-                    console.error('Decrypt failed', e);
-                    showEmptyPieChart();
-                    return;
-                }
-
-                if (!Array.isArray(apiData) || apiData.length === 0) {
-                    showEmptyPieChart();
-                    return;
-                }
-
-                let pieData = [];
-
-                /* ===============================
-                   DRILL STATE HANDLING
-                ================================*/
-                if (drillState.level === 'state') {
-                    // INITIAL → DISTRICT WISE
-                    pieData = apiData.map(item => ({
-                        name: item.district_name,
-                        value: Number(item.total_familycount || 0),
-                        id: item.district_id
-                    }));
-                }
-                else if (drillState.level === 'district') {
-                    // CLICKED DISTRICT → TALUK WISE
-                    pieData = apiData.map(item => ({
-                        name: item.taluk_name,
-                        value: Number(item.total_familycount || 0),
-                        id: item.taluk_id
-                    }));
-                }
-
-                const total = pieData.reduce((sum, i) => sum + i.value, 0);
-
-                const chart = initDistrictPieChart();
-                if (!chart) return;
-
-                chart.clear();
-                chart.setOption({
-                    title: {
-                        text: getPieTitle(),
-                        left: 'center',
-                        subtext: `Total Families: ${total}`,
-                        subtextStyle: {
-                            fontSize: 12,
-                            color: '#6b7280'
-                        }
-                    },
-                    tooltip: {
-                        trigger: 'item',
-                        formatter: p => {
-                            const percent = total
-                                ? ((p.value / total) * 100).toFixed(1)
-                                : 0;
-                            return `${p.name}<br/>Families: ${p.value} (${percent}%)`;
-                        }
-                    },
-                    series: [{
-                        type: 'pie',
-                        radius: '60%',
-                        data: pieData,
-                        label: { formatter: '{b}: {c}' }
-                    }]
-                });
-
-                chart.resize();
-            }
-
-            // Show empty pie chart
-            function showEmptyPieChart() {
-                const chart = initDistrictPieChart();
-                if (!chart) return;
-
-                chart.setOption({
-                    title: {
-                        text: getPieTitle(),
-                        left: 'center',
-                        subtext: 'No data available',
-                        subtextStyle: {
-                            fontSize: 12,
-                            color: '#6b7280'
-                        }
-                    },
-                    tooltip: {
-                        trigger: 'item'
-                    },
-                    series: [{
-                        type: 'pie',
-                        radius: '60%',
-                        data: [],
-                        itemStyle: {
-                            color: '#e5e7eb'
-                        },
-                        label: {
-                            show: false
-                        }
-                    }]
-                });
-            }
-
-            // ================== FILTER FUNCTIONS ==================
-
-            // Apply filters button handler
-            async function applyFilters() {
-                const districtId = $('#district').val();
-
-                drillState = {
-                    level: 'state',
-                    district_id: null,
-                    district_name: null
-                };
-
-                if (districtId !== 'ALL') {
-                    const district = API_DATA.districts.find(d => d.district_id == districtId);
-                    if (district) {
-                        drillState.level = 'district';
-                        drillState.district_id = Number(districtId);
-                        drillState.district_name = district.district_name;
-                    }
-                }
-
-                updateBreadcrumb();
-                fetchPieData();
-                fetchStackedBarData();
-                fetchAgeGenderData(); // Fetch age gender data when filters are applied
-            }
-
-            // Reset all filters
-            function resetAll() {
-                $('#district').val('ALL');
-
-                drillState = {
-                    level: 'state',
-                    district_id: null,
-                    district_name: null,
-                    taluk_id: null,
-                    taluk_name: null,
-                    village_id: null,
-                    village_name: null
-                };
-
-                updateBreadcrumb();
-                fetchPieData();
-                fetchStackedBarData();
-                fetchAgeGenderData(); // Fetch age gender data when resetting filters
-            }
-
-            // Initialize all data
-            async function initializeAllData() {
-                await loadDistricts();
-                populateDistrictDropdown();
-
-                // Initialize pie chart
-                initDistrictPieChart();
-
-                // Load initial data
-                resetDrillState();
-                fetchPieData();
-                fetchStackedBarData();
-                fetchAgeGenderData(); // Fetch initial age gender data
-            }
-
-            // Reset drill state to district level
-            function resetDrillState() {
-                drillState = {
-                    level: 'state',
-                    district_id: null,
-                    district_name: null,
-                    taluk_id: null,
-                    taluk_name: null,
-                    village_id: null,
-                    village_name: null
-                };
-                updateBreadcrumb();
-            }
-
-            // ================== OTHER CHART FUNCTIONS ==================
-
-            // Sample data for other charts
-            let topSchemes = ['கலைஞரின் கனவு இல்லம்', 'முதலமைச்சரின் விரிவான மருத்துவ காப்பீட்டு திட்டம்', 'வீட்டுமனைப் பட்டா', 'கூட்டுறவுச் சங்கம்/வங்கி கடன் (சுய வேலைவாய்ப்புக் கடன், கால்நடை கடன்)', 'இதர'];
-
-            const districts = [
-                'Ariyalur', 'Chengalpattu', 'Chennai', 'Coimbatore', 'Cuddalore', 'Dharmapuri',
-                'Dindigul', 'Erode', 'Kallakurichi', 'Kancheepuram', 'Kanniyakumari', 'Karur',
-                'Krishnagiri', 'Madurai', 'Mayiladuthurai', 'Nagapattinam', 'Namakkal', 'Nilgiris',
-                'Perambalur', 'Pudukkottai', 'Ramanathapuram', 'Ranipet', 'Salem', 'Sivaganga',
-                'Tenkasi', 'Thanjavur', 'Theni', 'Thoothukudi', 'Tiruchirappalli', 'Tirunelveli',
-                'Tirupathur', 'Tiruppur', 'Tiruvallur', 'Tiruvannamalai', 'Tiruvarur',
-                'Vellore', 'Viluppuram', 'Virudhunagar'
-            ];
-
-            const statusColors = {
-                active: '#91cc75',
-                inactive: '#f59e0b',
-                migrated: '#ef4444'
-            };
-
-            const genderColors = {
-                male: '#3b82f6',
-                female: '#ec4899'
-            };
-
-            const schemeColors = [
-                '#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'
-            ];
-
-            const dreamColors = [
-                '#4f46e5', '#10b981', '#f59e0b', '#ef4444'
-            ];
-
-            const ageGroups = ['0-18', '19–30', '31–45', '46–60', '60+'];
-            const genderCounts = {
-                male: [40, 80, 60, 35, 20],
-                female: [45, 70, 55, 30, 25]
-            };
-
-            const schemeCountBar = [90, 70, 40];
-
-            const dreamSchemes = ['Housing', 'Education', 'Employment', 'Health'];
-            const dreamCounts = [95, 120, 70, 50];
-
-            const dreamDistrictData = districts.map(d => ({
-                name: d,
-                value: Math.floor(Math.random() * 80) + 20
-            }));
-
-            /* =====================================================
-               FAMILY PROFILE
-            ===================================================== */
-            function initFamilyProfileCharts() {
-                // Age gender chart is already initialized via fetchAgeGenderData()
-                fetchStackedBarData(); // Load stacked bar data on initialization
-            }
-
-            /* =====================================================
-               BENEFICIARY
-            ===================================================== */
-            function initBeneficiaryCharts() {
-                if (!charts.ageGender) {
-                    charts.ageGender = echarts.init(document.getElementById('age_gender_grouped_bar'));
-                    charts.ageGender.setOption({
-                        title: {
-                            text: 'Age vs Gender (Beneficiary Count)',
-                            left: 'center',
-                            textStyle: { fontSize: 16 }
-                        },
-                        tooltip: { trigger: 'axis' },
-                        legend: {
-                            top: 30
-                        },
-                        grid: {
-                            top: 70,
-                            bottom: 30,
-                            left: '10%',
-                            right: '5%'
-                        },
-                        xAxis: {
-                            type: 'category',
-                            data: ageGroups,
-                            name: 'Age Groups',
-                            nameTextStyle: { color: '#374151' },
-                            axisLine: {
-                                lineStyle: { color: '#d1d5db' }
-                            }
-                        },
-                        yAxis: {
-                            type: 'value',
-                            name: 'Beneficiary Count',
-                            nameTextStyle: { color: '#374151' },
-                            axisLine: {
-                                lineStyle: { color: '#d1d5db' }
-                            },
-                            splitLine: {
-                                lineStyle: {
-                                    color: '#e5e7eb'
-                                }
-                            }
-                        },
-                        series: [
-                            {
-                                name: 'Male',
-                                type: 'bar',
-                                data: genderCounts.male,
-                                itemStyle: {
-                                    color: genderColors.male,
-                                    borderColor: '#2563eb',
-                                    borderWidth: 1
-                                }
-                            },
-                            {
-                                name: 'Female',
-                                type: 'bar',
-                                data: genderCounts.female,
-                                itemStyle: {
-                                    color: genderColors.female,
-                                    borderColor: '#db2777',
-                                    borderWidth: 1
-                                }
-                            }
-                        ]
-                    });
-                }
-
-                if (!charts.schemeCount) {
-                    charts.schemeCount = echarts.init(document.getElementById('scheme_count_bar'));
-                    charts.schemeCount.setOption({
-                        title: {
-                            text: 'Scheme Count per Beneficiary',
-                            left: 'center',
-                            textStyle: { fontSize: 16 }
-                        },
-                        tooltip: { trigger: 'axis' },
-                        grid: {
-                            top: 70,
-                            bottom: 30,
-                            left: '10%',
-                            right: '5%'
-                        },
-                        xAxis: {
-                            type: 'category',
-                            data: ['1 Scheme', '2 Schemes', '3+ Schemes'],
-                            name: 'Number of Schemes',
-                            nameTextStyle: { color: '#374151' },
-                            axisLine: {
-                                lineStyle: { color: '#d1d5db' }
-                            }
-                        },
-                        yAxis: {
-                            type: 'value',
-                            name: 'Beneficiary Count',
-                            nameTextStyle: { color: '#374151' },
-                            axisLine: {
-                                lineStyle: { color: '#d1d5db' }
-                            },
-                            splitLine: {
-                                lineStyle: {
-                                    color: '#e5e7eb'
-                                }
-                            }
-                        },
-                        series: [{
-                            type: 'bar',
-                            data: schemeCountBar,
-                            itemStyle: {
-                                color: '#8b5cf6',
-                                borderColor: '#7c3aed',
-                                borderWidth: 1
-                            }
-                        }]
-                    });
-                }
-
-                /* 🔥 Beneficiary Coverage by Top 5 Schemes (District-wise) */
-                if (!charts.schemeCoverage) {
-                    charts.schemeCoverage = echarts.init(document.getElementById('beneficiary_scheme_pie'));
-
-                    // Prepare data for the chart
-                    const seriesData = topSchemes.map((scheme, index) => ({
-                        name: scheme,
-                        type: 'bar',
-                        stack: 'scheme',
-                        itemStyle: {
-                            color: schemeColors[index],
-                            borderColor: schemeColors[index].replace(/[a-f0-9]{2}$/, '80'),
-                            borderWidth: 1
-                        },
-                        emphasis: {
-                            focus: 'series'
-                        },
-                        data: districts.map(district => Math.floor(Math.random() * 50) + 10)
-                    }));
-
-                    charts.schemeCoverage.setOption({
-                        title: {
-                            text: 'Top 5 Schemes',
-                            left: 'center',
-                            top: 10,
-                            textStyle: {
-                                fontSize: 16,
-                                color: '#1f2937'
-                            }
-                        },
-                        tooltip: {
-                            trigger: 'axis',
-                            axisPointer: { type: 'shadow' },
-                            formatter: function (params) {
-                                let result = `<div style="padding: 10px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                            <strong style="color: #1f2937; font-size: 14px; margin-bottom: 8px; display: block;">${params[0].name}</strong>
-                            <div style="margin: 8px 0;">`;
-                                let total = 0;
-                                params.forEach(item => {
-                                    result += `<div style="display: flex; align-items: center; justify-content: space-between; margin: 6px 0;">
-                                <div style="display: flex; align-items: center;">
-                                    <span style="display:inline-block;margin-right:8px;border-radius:3px;width:12px;height:12px;background-color:${item.color}"></span>
-                                    <span style="font-size:13px; color: #6b7280;">${item.seriesName}</span>
-                                </div>
-                                    <strong style="color: #1f2937;">${item.value}</strong>
-                                </div>`;
-                                    total += item.value;
-                                });
-                                result += `</div>
-                            <hr style="border:none;border-top:2px solid #e5e7eb;margin:10px 0;">
-                            <div style="display:flex;justify-content:space-between;align-items:center;">
-                                <span style="font-size:14px;color:#1f2937;font-weight:600;">Total:</span>
-                                <strong style="color: #1f2937; font-size: 16px;">${total}</strong>
-                            </div>
-                        </div>`;
-                                return result;
-                            }
-                        },
-                        legend: {
-                            show: false
-                        },
-                        grid: {
-                            top: 50,
-                            bottom: 100,
-                            left: '3%',
-                            right: '4%',
-                            containLabel: true
-                        },
-                        xAxis: {
-                            type: 'category',
-                            data: districts,
-                            axisLabel: {
-                                rotate: 45,
-                                interval: 0,
-                                fontSize: 10,
-                                color: '#374151',
-                                formatter: function (value) {
-                                    return value.length > 10 ? value.substring(0, 10) + '...' : value;
-                                }
-                            },
-                            axisLine: {
-                                lineStyle: { color: '#d1d5db' }
-                            },
-                            axisTick: {
-                                alignWithLabel: true,
-                                lineStyle: { color: '#d1d5db' }
-                            },
-                            name: 'Districts',
-                            nameLocation: 'middle',
-                            nameGap: 35,
-                            nameTextStyle: {
-                                color: '#374151',
-                                fontWeight: 'bold'
-                            }
-                        },
-                        yAxis: {
-                            type: 'value',
-                            name: 'Beneficiary Count',
-                            nameTextStyle: {
-                                padding: [0, 0, 0, 10],
-                                color: '#374151',
-                                fontWeight: 'bold'
-                            },
-                            axisLine: {
-                                lineStyle: { color: '#d1d5db' }
-                            },
-                            splitLine: {
-                                lineStyle: {
-                                    color: '#e5e7eb'
-                                }
-                            }
-                        },
-                        dataZoom: [
-                            {
-                                type: 'slider',
-                                bottom: 30,
-                                start: 0,
-                                end: 20,
-                                height: 20,
-                                backgroundColor: '#f9fafb',
-                                borderColor: '#d1d5db'
-                            },
-                            { type: 'inside' }
-                        ],
-                        series: seriesData
-                    });
-                }
-            }
-
-            /* =====================================================
-               DREAM SCHEME
-            ===================================================== */
-            function initDreamSchemeCharts() {
-                if (!charts.dreamBar) {
-                    charts.dreamBar = echarts.init(document.getElementById('dream_scheme_bar'));
-                    charts.dreamBar.setOption({
-                        title: {
-                            text: 'Top Dream Schemes (Count)',
-                            left: 'center',
-                            textStyle: { fontSize: 16 }
-                        },
-                        tooltip: { trigger: 'axis' },
-                        grid: {
-                            top: 70,
-                            bottom: 30,
-                            left: '10%',
-                            right: '5%'
-                        },
-                        xAxis: {
-                            type: 'category',
-                            data: dreamSchemes,
-                            name: 'Dream Schemes',
-                            nameTextStyle: { color: '#374151' },
-                            axisLine: {
-                                lineStyle: { color: '#d1d5db' }
-                            }
-                        },
-                        yAxis: {
-                            type: 'value',
-                            name: 'Count',
-                            nameTextStyle: { color: '#374151' },
-                            axisLine: {
-                                lineStyle: { color: '#d1d5db' }
-                            },
-                            splitLine: {
-                                lineStyle: {
-                                    color: '#e5e7eb'
-                                }
-                            }
-                        },
-                        series: dreamSchemes.map((scheme, index) => ({
-                            name: scheme,
-                            type: 'bar',
-                            data: [dreamCounts[index]],
-                            itemStyle: {
-                                color: dreamColors[index],
-                                borderColor: dreamColors[index].replace(/[a-f0-9]{2}$/, '80'),
-                                borderWidth: 1
-                            }
-                        }))
-                    });
-                }
-
-                if (!charts.dreamPie) {
-                    charts.dreamPie = echarts.init(document.getElementById('dream_scheme_district_pie'));
-                    charts.dreamPie.setOption({
-                        title: {
-                            text: 'District-wise Dream Demand',
-                            left: 'center',
-                            textStyle: { fontSize: 16 }
-                        },
-                        tooltip: { trigger: 'item' },
-                        series: [{
-                            type: 'pie',
-                            radius: ['40%', '70%'],
-                            data: dreamDistrictData,
-                            itemStyle: {
-                                color: function (params) {
-                                    const colorList = [
-                                        '#4f46e5', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef',
-                                        '#ec4899', '#f43f5e', '#ef4444', '#f97316', '#f59e0b',
-                                        '#eab308', '#84cc16', '#22c55e', '#10b981', '#14b8a6',
-                                        '#06b6d4', '#0ea5e9', '#3b82f6', '#2563eb', '#1d4ed8'
-                                    ];
-                                    return colorList[params.dataIndex % colorList.length];
-                                },
-                                borderColor: '#ffffff',
-                                borderWidth: 2
-                            },
-                            emphasis: {
-                                itemStyle: {
-                                    shadowBlur: 10,
-                                    shadowOffsetX: 0,
-                                    shadowColor: 'rgba(0, 0, 0, 0.3)'
-                                }
-                            }
-                        }]
-                    });
-                }
-            }
-
-            // ================== EVENT LISTENERS AND INITIALIZATION ==================
-
-            // Setup tab listeners
-            function setupTabListeners() {
-                document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
-                    tab.addEventListener('shown.bs.tab', e => {
-                        const target = e.target.dataset.bsTarget;
-
-                        if (target === '#family-profile-pane') {
-                            initFamilyProfileCharts();
-                        }
-                        if (target === '#beneficiary-details-pane') {
-                            initBeneficiaryCharts();
-                        }
-                        if (target === '#dream-scheme-pane') {
-                            initDreamSchemeCharts();
-                        }
-
-                        setTimeout(() => {
-                            Object.values(charts).forEach(chart => {
-                                if (chart && chart.resize) chart.resize();
-                            });
-                        }, 100);
-                    });
-                });
-            }
-
-            // Setup event listeners
-            function setupEventListeners() {
-                // Add tab listeners
-                setupTabListeners();
-
-                // Add resize event for charts
-                window.addEventListener('resize', function () {
-                    Object.values(charts).forEach(chart => {
-                        if (chart && chart.resize) chart.resize();
-                    });
-                });
-            }
-
-            // Initialize everything on page load
-            document.addEventListener('DOMContentLoaded', function () {
-                initializeAllData();
-                setupEventListeners();
-
-                // Initialize Family Profile charts immediately since it's the default active tab
-                setTimeout(() => {
-                    if (document.querySelector('#family-profile-pane.active')) {
-                        initFamilyProfileCharts();
-                    }
-                }, 500);
-            });
-
-            // Sidebar toggle function (if needed)
-            function toggleSidebar() {
-                const sidebar = document.getElementById('sidebar');
-                const main = document.getElementById('main');
-                sidebar.classList.toggle('collapsed');
-                main.classList.toggle('collapsed');
-            }
-        </script> -->
-        <script>
-            $(document).ready(function () {
-                // Initialize all data from APIs
-                initializeAllData();
-
-                // Set up event listeners
-                setupEventListeners();
-            });
-
-            // ================== GLOBAL VARIABLES ==================
-            let charts = {
-                districtPie: null,
-                familyStatus: null,
-                familyAgeGender: null,
-                ageGender: null,
-                schemeCount: null,
-                schemeCoverage: null,
-                dreamBar: null,
-                dreamPie: null
-            };
-
-            let drillState = {
-                level: 'state',
-                district_id: null,
-                district_name: null,
-                taluk_id: null,
-                taluk_name: null,
-                village_id: null,
-                village_name: null
-            };
-
-            // Store data from APIs
-            let API_DATA = {
-                districts: [],
-                allTaluks: [],
-                filteredTaluks: [],
-                chartData: [],
-                detailedData: [],
-                ageGenderData: null,
-                top5SchemesData: null
-            };
-
-            const API_CONFIG = {
-                baseUrl: 'https://tngis.tnega.org/state_scholarship_portal_api/sfdb_survey/api/v1/dashboard2/',
-                endpoints: {
-                    dynamic_input: 'dynamic_input',
-                    get_districts: 'get_districts',
-                    dashboard_count_form1: 'dashboard_count_form1',
-                    description_details: 'description_details',
-                    get_district_taluk_counts: 'get_district_taluk_counts',
-                    get_age_gender_distribution_dashboard_form1: 'get_age_gender_distribution_dashboard_form1',
-                    get_top5_schemes_by_state: 'get_top5_schemes_by_state'
-                }
-            };
-
-            // ================== PIE CHART FUNCTIONS ==================
-
-            function initDistrictPieChart() {
-                if (!charts.districtPie) {
-                    const pieElement = document.getElementById('district_distribution_pie');
-                    if (!pieElement) {
-                        console.error('Pie chart element not found');
-                        return null;
-                    }
-
-                    charts.districtPie = echarts.init(pieElement);
-
-                    // Add click event for drill-down
-                    charts.districtPie.on('click', function (params) {
-                        handlePieChartClick(params);
-                    });
-
-                    // Initialize breadcrumb navigation
-                    setupDrillDownNavigation();
-                }
-                return charts.districtPie;
-            }
-
-            // Setup drill-down navigation
-            function setupDrillDownNavigation() {
-                const pieContainer = document.getElementById('district_distribution_pie');
-                if (!pieContainer) return;
-
-                const parentContainer = pieContainer.parentNode;
-
-                // Check if navigation already exists
-                if (document.getElementById('pie-nav-container')) {
-                    return;
-                }
-
-                // Create navigation container
-                let navContainer = document.createElement('div');
-                navContainer.id = 'pie-nav-container';
-                navContainer.style.cssText = 'margin-bottom: 10px; padding: 8px; background: #f8f9fa; border-radius: 6px; display: none;';
-
-                // Create breadcrumb
-                let breadcrumb = document.createElement('div');
-                breadcrumb.id = 'pie-breadcrumb';
-                breadcrumb.style.cssText = 'font-size: 14px; color: #495057; margin-bottom: 5px;';
-
-                // Create back button
-                let backButton = document.createElement('button');
-                backButton.id = 'pie-back-button';
-                backButton.innerHTML = '← Back';
-                backButton.style.cssText = 'padding: 4px 12px; background: #4f46e5; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 5px;';
-                backButton.onclick = function () {
-                    navigateBack();
-                };
-
-                navContainer.appendChild(breadcrumb);
-                navContainer.appendChild(backButton);
-                parentContainer.insertBefore(navContainer, pieContainer);
-            }
-
-            function updateBreadcrumb() {
-                const nav = document.getElementById('pie-nav-container');
-                const breadcrumb = document.getElementById('pie-breadcrumb');
-
-                if (drillState.level === 'state') {
-                    nav.style.display = 'none';
-                    breadcrumb.innerHTML = '';
-                } else {
-                    nav.style.display = 'block';
-                    breadcrumb.innerHTML = `<strong>${drillState.district_name}</strong>`;
-                }
-            }
-
-            function navigateBack() {
-                if (drillState.level === 'district') {
-                    // DISTRICT → STATE (show all districts)
-                    drillState.level = 'state';
-
-                    drillState.district_id = null;
-                    drillState.district_name = null;
-                    drillState.taluk_id = null;
-                    drillState.taluk_name = null;
-                    drillState.village_id = null;
-                    drillState.village_name = null;
-                }
-
-                else if (drillState.level === 'taluk') {
-                    // TALUK → DISTRICT
-                    drillState.level = 'district';
-
-                    drillState.taluk_id = null;
-                    drillState.taluk_name = null;
-                    drillState.village_id = null;
-                    drillState.village_name = null;
-                    // keep district info
-                }
-
-                else if (drillState.level === 'village') {
-                    // VILLAGE → TALUK
-                    drillState.level = 'taluk';
-
-                    drillState.village_id = null;
-                    drillState.village_name = null;
-                    // keep district + taluk info
-                }
-
-                updateBreadcrumb();
-                fetchPieData();
-            }
-
-            // Handle pie chart click for drill-down
-            function handlePieChartClick(params) {
-                if (!params.data || !params.data.id) return;
-
-                if (drillState.level === 'state') {
-                    drillState.level = 'district';
-                    drillState.district_id = params.data.id;
-                    drillState.district_name = params.data.name;
-
-                    updateBreadcrumb();
-                    fetchPieData();
-                }
-            }
-
-            // Get title for pie chart based on current drill level
-            function getPieTitle() {
-                switch (drillState.level) {
-                    case 'district': return 'Families by District';
-                    case 'taluk': return `Families in ${drillState.taluk_name || 'District'} - By Taluk`;
-                    default: return '';
-                }
-            }
-
-            // ================== AGE GENDER DISTRIBUTION API ==================
-
-            async function fetchAgeGenderData() {
-                try {
-                    const districtId = $('#district').val();
-
-                    // Prepare payload - null for ALL districts, or specific district ID
-                    const payload = {
-                        district_id: districtId !== 'ALL' ? Number(districtId) : null
-                    };
-
-                    console.log("Fetching age gender data with payload:", payload);
-
-                    const response = await makeAgeGenderApiRequest(payload);
-                    handleAgeGenderApiResponse(response);
-                } catch (error) {
-                    console.error('Error fetching age gender data:', error);
-                    showEmptyAgeGenderChart();
-                }
-            }
-
-            async function makeAgeGenderApiRequest(payload) {
-                try {
-                    const encryptedPayload = encryptData(payload);
-                    const url = API_CONFIG.baseUrl + API_CONFIG.endpoints.get_age_gender_distribution_dashboard_form1;
-
-                    return await $.ajax({
-                        url: url,
-                        type: "POST",
-                        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
-                        dataType: "json",
-                        data: { data: encryptedPayload }
-                    });
-                } catch (error) {
-                    console.error('Age Gender API Request Error:', error);
-                    return null;
-                }
-            }
-
-            function handleAgeGenderApiResponse(response) {
-                if (!response || response.success !== 1) {
-                    console.warn('No data or API error for age gender:', response);
-                    showEmptyAgeGenderChart();
-                    return;
-                }
-
-                let apiData;
-                try {
-                    const decrypted = decryptData(response.data);
-
-                    // Parse the decrypted data
-                    apiData = typeof decrypted === 'string' ? JSON.parse(decrypted) : decrypted;
-
-                    console.log("Decrypted API data structure:", apiData);
-
-                    // Check if it's an array
-                    if (!Array.isArray(apiData) || apiData.length === 0) {
-                        console.log('No age gender data available (empty or not array)');
-                        showEmptyAgeGenderChart();
-                        return;
-                    }
-
-                    // Check if the first item has the get_age_gender_distribution_json_arr property
-                    if (apiData[0] && apiData[0].get_age_gender_distribution_json_arr) {
-                        console.log("Found get_age_gender_distribution_json_arr property");
-                    }
-                } catch (e) {
-                    console.error('Decrypt/parse failed for age gender data', e);
-                    showEmptyAgeGenderChart();
-                    return;
-                }
-
-                console.log("Age gender API data structure:", apiData);
-
-                // Process the API response data
-                processAgeGenderData(apiData);
-            }
-
-            function processAgeGenderData(apiData) {
-                // Initialize arrays for different age groups
-                const ageGroups = ['0-18', '19-30', '31-45', '46-60', '60+'];
-                const maleData = [0, 0, 0, 0, 0];
-                const femaleData = [0, 0, 0, 0, 0];
-                let level = 'UNKNOWN';
-
-                // Extract the actual data from the API response structure
-                let actualData;
-                try {
-                    // The data is in get_age_gender_distribution_json_arr as a JSON string
-                    const jsonString = apiData[0].get_age_gender_distribution_json_arr;
-                    console.log("Raw JSON string:", jsonString);
-
-                    // Parse the JSON string to get the actual data array
-                    actualData = JSON.parse(jsonString);
-                    console.log("Parsed actual data:", actualData);
-                } catch (e) {
-                    console.error('Failed to parse age gender data:', e);
-                    showEmptyAgeGenderChart();
-                    return;
-                }
-
-                // Check if the data is in the new aggregated format
-                const firstDataItem = actualData[0];
-
-                if (firstDataItem && (firstDataItem['0-18'] || firstDataItem['19-30'] || firstDataItem['31-45'] || firstDataItem['46-60'] || firstDataItem['60+'])) {
-                    // Process aggregated format
-                    console.log("Processing aggregated age gender data format");
-
-                    actualData.forEach(item => {
-                        // Extract level if present
-                        if (item.level) {
-                            level = item.level;
-                        }
-
-                        // Process each age group
-                        ageGroups.forEach((ageGroup, index) => {
-                            if (item[ageGroup]) {
-                                maleData[index] += item[ageGroup].male || 0;
-                                femaleData[index] += item[ageGroup].female || 0;
-                            }
-                        });
-                    });
-                } else {
-                    // Process individual records format
-                    console.log("Processing individual age gender records");
-
-                    actualData.forEach(item => {
-                        const age = Number(item.age || 0);
-                        const gender = String(item.gender || '').toLowerCase();
-                        const count = Number(item.count || 0);
-
-                        // Determine age group
-                        let ageGroupIndex = -1;
-                        if (age <= 18) ageGroupIndex = 0;
-                        else if (age <= 30) ageGroupIndex = 1;
-                        else if (age <= 45) ageGroupIndex = 2;
-                        else if (age <= 60) ageGroupIndex = 3;
-                        else ageGroupIndex = 4;
-
-                        // Add to appropriate gender array
-                        if (gender === 'male' || gender === 'm') {
-                            maleData[ageGroupIndex] += count;
-                        } else if (gender === 'female' || gender === 'f') {
-                            femaleData[ageGroupIndex] += count;
-                        }
-                    });
-                }
-
-                // Store the processed data
-                API_DATA.ageGenderData = {
-                    ageGroups,
-                    male: maleData,
-                    female: femaleData,
-                    level: level
-                };
-
-                console.log("Processed age gender data:", API_DATA.ageGenderData);
-
-                // Render the chart
-                renderAgeGenderChart();
-            }
-
-            function renderAgeGenderChart() {
-                debugger
-                const chartElement = document.getElementById('age_distribution_bar');
-                if (!chartElement) {
-                    console.error('Age gender chart element not found');
-                    return;
-                }
-
-                let chart = charts.familyAgeGender;
-                if (!chart) {
-                    chart = echarts.init(chartElement);
-                    charts.familyAgeGender = chart;
-                }
-
-                // Check if we have data
-                if (!API_DATA.ageGenderData) {
-                    showEmptyAgeGenderChart();
-                    return;
-                }
-
-                const { ageGroups, male, female, level } = API_DATA.ageGenderData;
-                const isFiltered = $('#district').val() !== 'ALL';
-
-                // Create chart title based on level and filters
-                let chartTitle;
-                if (isFiltered) {
-                    chartTitle = `Age-wise Family Distribution in ${drillState.district_name || 'Selected District'}`;
-                } else if (level === 'STATE') {
-                    chartTitle = 'Age-wise Family Distribution (State Level)';
-                } else {
-                    chartTitle = 'Age-wise Family Distribution';
-                }
-
-                // Calculate totals for display
-                const totalMale = male.reduce((sum, val) => sum + val, 0);
-                const totalFemale = female.reduce((sum, val) => sum + val, 0);
-                const totalPopulation = totalMale + totalFemale;
-
-                const option = {
-                    title: {
-                        text: chartTitle,
-                        left: 'center',
-                        textStyle: {
-                            fontSize: 16,
-                            fontWeight: 'bold'
-                        },
-                        subtext: `Total: ${totalPopulation.toLocaleString()} | Male: ${totalMale.toLocaleString()} | Female: ${totalFemale.toLocaleString()}`,
-                        subtextStyle: {
-                            fontSize: 12,
-                            color: '#6b7280'
-                        }
-                    },
-                    tooltip: {
-                        trigger: 'axis',
-                        axisPointer: {
-                            type: 'shadow'
-                        },
-                        formatter: function (params) {
-                            let result = `<div style="padding: 10px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                    <strong style="color: #1f2937; font-size: 14px; margin-bottom: 8px; display: block;">${params[0].name}</strong>
-                    <div style="margin: 8px 0;">`;
-
-                            let total = 0;
-                            params.forEach(item => {
-                                const value = item.value || 0;
-                                total += value;
-
-                                result += `<div style="display: flex; align-items: center; justify-content: space-between; margin: 6px 0;">
-                        <div style="display: flex; align-items: center;">
-                            <span style="display:inline-block;margin-right:8px;border-radius:3px;width:12px;height:12px;background-color:${item.color}"></span>
-                            <span style="font-size:13px; color: #6b7280;">${item.seriesName}</span>
-                        </div>
-                        <div style="text-align: right;">
-                            <strong style="color: #1f2937;">${value.toLocaleString()}</strong>
-                        </div>
-                    </div>`;
-                            });
-
-                            result += `</div>
-                    <hr style="border:none;border-top:2px solid #e5e7eb;margin:10px 0;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;">
-                        <span style="font-size:14px;color:#1f2937;font-weight:600;">Total:</span>
-                        <strong style="color: #1f2937; font-size: 16px;">${total.toLocaleString()}</strong>
-                    </div>
-                </div>`;
                             return result;
                         }
                     },
@@ -3172,6 +1358,830 @@
                         }
                     ]
                 }, true);
+            }
+
+            // ================== PYRAMID CHART (BENEFICIARY TAB) - FIXED ==================
+
+            async function fetchAgeGenderPyramidData() {
+                try {
+                    const districtId = $('#district').val();
+                    const schemeId = API_DATA.selectedSchemeId;
+
+                    // Prepare payload
+                    const payload = {
+                        district_id: districtId !== 'ALL' ? Number(districtId) : null,
+                        scheme_id: schemeId !== 'ALL' ? Number(schemeId) : null
+                    };
+
+                    console.log("Fetching age gender pyramid data with payload:", payload);
+
+                    const response = await makeAgeGenderPyramidApiRequest(payload);
+                    handleAgeGenderPyramidApiResponse(response);
+                } catch (error) {
+                    console.error('Error fetching age gender pyramid data:', error);
+                    showEmptyAgeGenderPyramidChart();
+                }
+            }
+
+            async function makeAgeGenderPyramidApiRequest(payload) {
+                try {
+                    const encryptedPayload = encryptData(payload);
+                    const url = API_CONFIG.baseUrl + API_CONFIG.endpoints.get_scheme_age_gender_counts;
+
+                    return await $.ajax({
+                        url: url,
+                        type: "POST",
+                        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                        dataType: "json",
+                        data: { data: encryptedPayload }
+                    });
+
+                    console.log("get_scheme_age_gender_counts", payload);
+                } catch (error) {
+                    console.error('Age Gender Pyramid API Request Error:', error);
+                    return null;
+                }
+            }
+
+            function handleAgeGenderPyramidApiResponse(response) {
+                console.log("Pyramid API response:", response);
+
+                if (!response || response.success !== 1) {
+                    console.warn('No data or API error for age gender pyramid:', response);
+                    showEmptyAgeGenderPyramidChart();
+                    return;
+                }
+
+                let apiData;
+                try {
+                    const decrypted = decryptData(response.data);
+                    console.log("Decrypted data:", decrypted);
+
+                    apiData = typeof decrypted === 'string' ? JSON.parse(decrypted) : decrypted;
+
+                    if (typeof apiData === 'string') {
+                        apiData = JSON.parse(apiData);
+                    }
+                } catch (e) {
+                    console.error('Decrypt/parse failed for pyramid data', e);
+                    showEmptyAgeGenderPyramidChart();
+                    return;
+                }
+
+                if (!Array.isArray(apiData) || apiData.length === 0) {
+                    console.log('No pyramid data available');
+                    showEmptyAgeGenderPyramidChart();
+                    return;
+                }
+
+                console.log("Pyramid API data structure:", apiData);
+                processPyramidData(apiData);
+            }
+
+            function processPyramidData(apiData) {
+                console.log("Processing pyramid data:", apiData);
+
+                // Define age groups based on the sample data structure
+                const allAgeGroups = ['0-14', '15-18', '19-30', '31-45', '46-60', '60+'];
+                const maleData = [0, 0, 0, 0, 0, 0];
+                const femaleData = [0, 0, 0, 0, 0, 0];
+
+                // Check if data has expected structure
+                const firstItem = apiData[0];
+
+                if (firstItem && (firstItem.age_bucket || firstItem.age_group)) {
+                    // Process new format with age_bucket
+                    apiData.forEach(item => {
+                        const ageBucket = item.age_bucket || item.age_group;
+                        const gender = String(item.gender || '').toUpperCase();
+                        const count = Number(item.beneficiary_count || item.count || 0);
+
+                        // Map age bucket to array index
+                        let ageGroupIndex = -1;
+                        switch (ageBucket) {
+                            case '<15':
+                            case '0-14':
+                                ageGroupIndex = 0;
+                                break;
+                            case '15-18':
+                                ageGroupIndex = 1;
+                                break;
+                            case '19-30':
+                                ageGroupIndex = 2;
+                                break;
+                            case '31-45':
+                                ageGroupIndex = 3;
+                                break;
+                            case '46-60':
+                                ageGroupIndex = 4;
+                                break;
+                            case '60+':
+                            case '>60':
+                                ageGroupIndex = 5;
+                                break;
+                            default:
+                                // Try to parse other formats
+                                if (ageBucket && ageBucket.includes('-')) {
+                                    const parts = ageBucket.split('-');
+                                    const startAge = parseInt(parts[0]);
+                                    if (startAge < 15) ageGroupIndex = 0;
+                                    else if (startAge <= 18) ageGroupIndex = 1;
+                                    else if (startAge <= 30) ageGroupIndex = 2;
+                                    else if (startAge <= 45) ageGroupIndex = 3;
+                                    else if (startAge <= 60) ageGroupIndex = 4;
+                                    else ageGroupIndex = 5;
+                                }
+                        }
+
+                        if (ageGroupIndex >= 0) {
+                            // Add to appropriate gender array
+                            if (gender === 'M' || gender === 'MALE' || gender === 'ம') {
+                                maleData[ageGroupIndex] += count;
+                            } else if (gender === 'F' || gender === 'FEMALE' || gender === 'ப') {
+                                femaleData[ageGroupIndex] += count;
+                            }
+                        }
+                    });
+                } else if (firstItem && (firstItem['0-14'] || firstItem['15-18'])) {
+                    // Process aggregated format
+                    apiData.forEach(item => {
+                        allAgeGroups.forEach((ageGroup, index) => {
+                            if (item[ageGroup]) {
+                                maleData[index] += item[ageGroup].male || 0;
+                                femaleData[index] += item[ageGroup].female || 0;
+                            }
+                        });
+                    });
+                } else {
+                    // Try to process as raw data
+                    apiData.forEach(item => {
+                        const age = Number(item.age || 0);
+                        const gender = String(item.gender || '').toUpperCase();
+                        const count = Number(item.count || item.beneficiary_count || 0);
+
+                        // Determine age group
+                        let ageGroupIndex = -1;
+                        if (age <= 14) ageGroupIndex = 0;
+                        else if (age <= 18) ageGroupIndex = 1;
+                        else if (age <= 30) ageGroupIndex = 2;
+                        else if (age <= 45) ageGroupIndex = 3;
+                        else if (age <= 60) ageGroupIndex = 4;
+                        else ageGroupIndex = 5;
+
+                        if (ageGroupIndex >= 0) {
+                            if (gender === 'M' || gender === 'MALE' || gender === 'ம') {
+                                maleData[ageGroupIndex] += count;
+                            } else if (gender === 'F' || gender === 'FEMALE' || gender === 'ப') {
+                                femaleData[ageGroupIndex] += count;
+                            }
+                        }
+                    });
+                }
+
+                // Store the processed data
+                API_DATA.ageGenderPyramidData = {
+                    ageGroups: allAgeGroups,
+                    male: maleData,
+                    female: femaleData
+                };
+
+                console.log("Processed pyramid data:", API_DATA.ageGenderPyramidData);
+                renderAgeGenderPyramidChart();
+            }
+
+            function renderAgeGenderPyramidChart() {
+                const chartElement = document.getElementById('age_gender_grouped_bar');
+                if (!chartElement) {
+                    console.error('Age gender pyramid chart element not found');
+                    return;
+                }
+
+                let chart = charts.ageGenderPyramid;
+                if (!chart) {
+                    chart = echarts.init(chartElement);
+                    charts.ageGenderPyramid = chart;
+                }
+
+                // Check if we have data
+                if (!API_DATA.ageGenderPyramidData) {
+                    showEmptyAgeGenderPyramidChart();
+                    return;
+                }
+
+                const { ageGroups, male, female } = API_DATA.ageGenderPyramidData;
+                const districtId = $('#district').val();
+                const schemeName = API_DATA.selectedSchemeName;
+
+                // Create chart title based on filters
+                let chartTitle = 'Age vs Gender Distribution (Beneficiary Count)';
+                let subtitle = '';
+
+                if (districtId !== 'ALL' || API_DATA.selectedSchemeId !== 'ALL') {
+                    const districtName = districtId !== 'ALL' ? $('#district option:selected').text() : 'All Districts';
+                    subtitle = `${districtName} | ${schemeName}`;
+                }
+
+                // Calculate totals
+                const totalMale = male.reduce((sum, val) => sum + val, 0);
+                const totalFemale = female.reduce((sum, val) => sum + val, 0);
+                const totalPopulation = totalMale + totalFemale;
+
+                // For pyramid chart, male data needs to be negative
+                const maleDataForPyramid = male.map(value => -value);
+                const maxValue = Math.max(...male, ...female);
+
+                const option = {
+                    title: {
+                        text: chartTitle,
+                        left: 'center',
+                        textStyle: {
+                            fontSize: 16,
+                            fontWeight: 'bold'
+                        },
+                        subtext: subtitle + (subtitle ? ' | ' : '') + `Total: ${totalPopulation.toLocaleString()} | Male: ${totalMale.toLocaleString()} | Female: ${totalFemale.toLocaleString()}`,
+                        subtextStyle: {
+                            fontSize: 12,
+                            color: '#6b7280'
+                        }
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'shadow'
+                        },
+                        formatter: function (params) {
+                            const maleParam = params[0];
+                            const femaleParam = params[1];
+
+                            const maleValue = Math.abs(maleParam.value);
+                            const femaleValue = femaleParam.value;
+                            const total = maleValue + femaleValue;
+                            const ageGroup = maleParam.name;
+
+                            return `
+<div style="padding: 10px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <strong style="color: #1f2937; font-size: 14px; margin-bottom: 8px; display: block;">${ageGroup}</strong>
+    <div style="margin: 8px 0;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin: 6px 0;">
+            <div style="display: flex; align-items: center;">
+                <span style="display:inline-block;margin-right:8px;border-radius:3px;width:12px;height:12px;background-color:${maleParam.color}"></span>
+                <span style="font-size:13px; color: #6b7280;">Male</span>
+            </div>
+            <div style="text-align: right;">
+                <strong style="color: #1f2937;">${maleValue.toLocaleString()}</strong>
+                <span style="font-size:11px; color: #9ca3af; margin-left: 5px;">(${total > 0 ? ((maleValue / total) * 100).toFixed(1) : 0}%)</span>
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin: 6px 0;">
+            <div style="display: flex; align-items: center;">
+                <span style="display:inline-block;margin-right:8px;border-radius:3px;width:12px;height:12px;background-color:${femaleParam.color}"></span>
+                <span style="font-size:13px; color: #6b7280;">Female</span>
+            </div>
+            <div style="text-align: right;">
+                <strong style="color: #1f2937;">${femaleValue.toLocaleString()}</strong>
+                <span style="font-size:11px; color: #9ca3af; margin-left: 5px;">(${total > 0 ? ((femaleValue / total) * 100).toFixed(1) : 0}%)</span>
+            </div>
+        </div>
+    </div>
+    <hr style="border:none;border-top:2px solid #e5e7eb;margin:10px 0;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:14px;color:#1f2937;font-weight:600;">Total:</span>
+        <strong style="color: #1f2937; font-size: 16px;">${total.toLocaleString()}</strong>
+    </div>
+</div>`;
+                        }
+                    },
+                    legend: {
+                        top: 40,
+                        data: ['Male', 'Female'],
+                        textStyle: {
+                            fontSize: 12
+                        },
+                        itemGap: 15
+                    },
+                    grid: {
+                        top: 90,
+                        bottom: 30,
+                        left: '10%',
+                        right: '10%',
+                        containLabel: true
+                    },
+                    xAxis: [
+                        {
+                            type: 'value',
+                            name: 'Count',
+                            min: -maxValue * 1.1,
+                            max: maxValue * 1.1,
+                            axisLabel: {
+                                formatter: function (value) {
+                                    return Math.abs(value).toLocaleString();
+                                }
+                            },
+                            splitLine: {
+                                lineStyle: {
+                                    type: 'dashed'
+                                }
+                            }
+                        },
+                        {
+                            type: 'value',
+                            gridIndex: 0,
+                            min: -maxValue * 1.1,
+                            max: maxValue * 1.1,
+                            axisLabel: { show: false },
+                            splitLine: { show: false }
+                        }
+                    ],
+                    yAxis: {
+                        type: 'category',
+                        data: ageGroups,
+                        name: 'Age Groups',
+                        axisLine: { show: false },
+                        axisTick: { show: false },
+                        axisLabel: {
+                            fontSize: 11,
+                            color: '#374151'
+                        }
+                    },
+                    series: [
+                        {
+                            name: 'Male',
+                            type: 'bar',
+                            stack: 'gender',
+                            data: maleDataForPyramid,
+                            itemStyle: {
+                                color: '#3b82f6',
+                                borderColor: '#2563eb',
+                                borderWidth: 1,
+                                borderRadius: [0, 2, 2, 0]
+                            },
+                            label: {
+                                show: true,
+                                position: 'left',
+                                formatter: function (params) {
+                                    const value = Math.abs(params.value);
+                                    return value > 0 ? value.toLocaleString() : '';
+                                },
+                                fontSize: 10,
+                                color: '#1f2937'
+                            }
+                        },
+                        {
+                            name: 'Female',
+                            type: 'bar',
+                            stack: 'gender',
+                            data: female,
+                            itemStyle: {
+                                color: '#ec4899',
+                                borderColor: '#db2777',
+                                borderWidth: 1,
+                                borderRadius: [2, 0, 0, 2]
+                            },
+                            label: {
+                                show: true,
+                                position: 'right',
+                                formatter: function (params) {
+                                    return params.value > 0 ? params.value.toLocaleString() : '';
+                                },
+                                fontSize: 10,
+                                color: '#1f2937'
+                            }
+                        }
+                    ]
+                };
+
+                chart.clear();
+                chart.setOption(option, true);
+
+                // Add scheme filter button BELOW the chart (outside ECharts)
+                addSchemeFilterButton(chartElement);
+
+                // Force a resize to ensure proper rendering
+                setTimeout(() => {
+                    chart.resize();
+                }, 50);
+            }
+
+            // Add scheme filter button outside the chart WITH DROPDOWN
+            function addSchemeFilterButton(chartElement) {
+                // Remove existing button if any
+                const existingButton = chartElement.parentNode.querySelector('.scheme-filter-container');
+                if (existingButton) {
+                    existingButton.remove();
+                }
+
+                // Create container for button and dropdown
+                const container = document.createElement('div');
+                container.className = 'scheme-filter-container';
+                container.style.cssText = `
+        position: relative;
+        display: inline-block;
+        margin-left: 20px;
+    `;
+
+                // Create button
+                const button = document.createElement('button');
+                button.id = 'scheme-filter-btn';
+                button.innerHTML = `Scheme: <span id="scheme-filter-btn-text">${API_DATA.selectedSchemeName}</span> ▼`;
+                button.style.cssText = `
+        padding: 4px 12px;
+        background: white;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        color: #495057;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    `;
+
+                // Add hover effect
+                button.onmouseover = () => button.style.backgroundColor = '#f8f9fa';
+                button.onmouseout = () => button.style.backgroundColor = 'white';
+
+                // Create dropdown (hidden by default)
+                const dropdown = document.createElement('div');
+                dropdown.id = 'scheme-filter-dropdown';
+                dropdown.style.cssText = `
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        z-index: 1000;
+        max-height: 300px;
+        overflow-y: auto;
+        padding: 8px 0;
+        min-width: 250px;
+        display: none;
+    `;
+
+                // Add dropdown content
+                dropdown.innerHTML = `
+        <div style="padding: 8px 16px; font-weight: bold; color: #374151; border-bottom: 1px solid #e5e7eb;">
+            Select Scheme
+        </div>
+        ${API_DATA.schemes.map(scheme => `
+            <div class="scheme-option" 
+                 data-id="${scheme.scheme_id}" 
+                 data-name="${scheme.scheme_name}"
+                 style="padding: 8px 16px; cursor: pointer; font-size: 12px; color: #374151;"
+                 onmouseover="this.style.backgroundColor='#f3f4f6'"
+                 onmouseout="this.style.backgroundColor='transparent'">
+                ${scheme.scheme_name}
+            </div>
+        `).join('')}
+        <div class="scheme-option" 
+             data-id="ALL" 
+             data-name="All Schemes"
+             style="padding: 8px 16px; cursor: pointer; font-size: 12px; color: #374151; border-top: 1px solid #e5e7eb;"
+             onmouseover="this.style.backgroundColor='#f3f4f6'"
+             onmouseout="this.style.backgroundColor='transparent'">
+            All Schemes
+        </div>
+    `;
+
+                // Toggle dropdown on button click
+                button.onclick = (e) => {
+                    e.stopPropagation();
+                    dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+                };
+
+                // Add click handlers for scheme options
+                dropdown.querySelectorAll('.scheme-option').forEach(option => {
+                    option.addEventListener('click', function () {
+                        const schemeId = this.getAttribute('data-id');
+                        const schemeName = this.getAttribute('data-name');
+
+                        // Update selected scheme
+                        API_DATA.selectedSchemeId = schemeId;
+                        API_DATA.selectedSchemeName = schemeName;
+
+                        // Update button text
+                        document.getElementById('scheme-filter-btn-text').textContent = schemeName;
+
+                        // Hide dropdown
+                        dropdown.style.display = 'none';
+
+                        // Refresh chart data
+                        fetchAgeGenderPyramidData();
+                    });
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!container.contains(e.target)) {
+                        dropdown.style.display = 'none';
+                    }
+                });
+
+                // Assemble container
+                container.appendChild(button);
+                container.appendChild(dropdown);
+
+                // Insert container in the chart title area or top right corner
+                const chartTitle = chartElement.previousElementSibling;
+                if (chartTitle && chartTitle.classList.contains('chart-title')) {
+                    chartTitle.appendChild(container);
+                } else {
+                    // Insert at top right of chart container
+                    chartElement.parentNode.insertBefore(container, chartElement);
+                    container.style.cssText += 'position: absolute; top: 10px; right: 10px;';
+                }
+            }
+            // Fixed scheme filter dropdown function - show in top right corner
+            function showSchemeFilterDropdown(chart) {
+                // Remove existing dropdown if any
+                const existingDropdown = document.getElementById('scheme-filter-dropdown');
+                if (existingDropdown) {
+                    existingDropdown.remove();
+                    return;
+                }
+
+                // Create dropdown container
+                const dropdownHtml = `
+        <div id="scheme-filter-dropdown" style="
+            position: absolute;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 10000;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 8px 0;
+            min-width: 250px;
+        ">
+            <div style="padding: 8px 16px; font-weight: bold; color: #374151; border-bottom: 1px solid #e5e7eb;">
+                Select Scheme
+            </div>
+            ${API_DATA.schemes.map(scheme => `
+                <div class="scheme-option" 
+                     data-id="${scheme.scheme_id}" 
+                     data-name="${scheme.scheme_name}"
+                     style="padding: 8px 16px; cursor: pointer; font-size: 12px; color: #374151;"
+                     onmouseover="this.style.backgroundColor='#f3f4f6'"
+                     onmouseout="this.style.backgroundColor='transparent'">
+                    ${scheme.scheme_name}
+                </div>
+            `).join('')}
+            <div class="scheme-option" 
+                 data-id="ALL" 
+                 data-name="All Schemes"
+                 style="padding: 8px 16px; cursor: pointer; font-size: 12px; color: #374151; border-top: 1px solid #e5e7eb;"
+                 onmouseover="this.style.backgroundColor='#f3f4f6'"
+                 onmouseout="this.style.backgroundColor='transparent'">
+                All Schemes
+            </div>
+        </div>
+    `;
+
+                // Add dropdown to body
+                const dropdown = document.createElement('div');
+                dropdown.innerHTML = dropdownHtml;
+                document.body.appendChild(dropdown);
+
+                // Position dropdown in TOP RIGHT CORNER of the chart
+                const chartElement = document.getElementById('age_gender_grouped_bar');
+                if (chartElement) {
+                    const chartRect = chartElement.getBoundingClientRect();
+
+                    // Position in top right corner of chart (10px from top, 10px from right)
+                    dropdown.style.left = (chartRect.right - dropdown.offsetWidth - 10) + 'px';
+                    dropdown.style.top = (chartRect.top + 40) + 'px'; // 40px down from top to avoid title
+
+                    // Ensure dropdown stays within viewport
+                    if (parseInt(dropdown.style.left) < 10) {
+                        dropdown.style.left = '10px';
+                    }
+                    if (parseInt(dropdown.style.top) < 10) {
+                        dropdown.style.top = '10px';
+                    }
+                } else {
+                    // Fallback positioning - top right of screen
+                    dropdown.style.right = '20px';
+                    dropdown.style.top = '80px';
+                }
+
+                // Add click handlers for scheme options
+                const options = dropdown.querySelectorAll('.scheme-option');
+                options.forEach(option => {
+                    option.addEventListener('click', function () {
+                        const schemeId = this.getAttribute('data-id');
+                        const schemeName = this.getAttribute('data-name');
+
+                        // Update selected scheme
+                        API_DATA.selectedSchemeId = schemeId;
+                        API_DATA.selectedSchemeName = schemeName;
+
+                        // Update button text
+                        const btnText = document.getElementById('scheme-filter-btn-text');
+                        if (btnText) {
+                            btnText.textContent = schemeName;
+                        }
+
+                        // Remove dropdown
+                        dropdown.remove();
+
+                        // Refresh chart data
+                        fetchAgeGenderPyramidData();
+                    });
+                });
+
+                // Close dropdown when clicking outside
+                setTimeout(() => {
+                    const closeHandler = function (event) {
+                        if (!dropdown.contains(event.target) && event.target.id !== 'scheme-filter-btn') {
+                            dropdown.remove();
+                            document.removeEventListener('click', closeHandler);
+                        }
+                    };
+                    document.addEventListener('click', closeHandler);
+                }, 10);
+            }
+
+            function showEmptyAgeGenderPyramidChart() {
+                const chartElement = document.getElementById('age_gender_grouped_bar');
+                if (!chartElement) return;
+
+                let chart = charts.ageGenderPyramid;
+                if (!chart) {
+                    chart = echarts.init(chartElement);
+                    charts.ageGenderPyramid = chart;
+                }
+
+                const ageGroups = ['0-14', '15-18', '19-30', '31-45', '46-60', '60+'];
+                const districtId = $('#district').val();
+                const schemeName = API_DATA.selectedSchemeName;
+
+                let chartTitle = 'Age vs Gender Distribution (Beneficiary Count)';
+                if (districtId !== 'ALL' || API_DATA.selectedSchemeId !== 'ALL') {
+                    const districtName = districtId !== 'ALL' ? $('#district option:selected').text() : 'All Districts';
+                    chartTitle = `${chartTitle} - ${districtName} | ${schemeName}`;
+                }
+
+                const option = {
+                    title: {
+                        text: chartTitle,
+                        left: 'center',
+                        subtext: 'No data available',
+                        subtextStyle: {
+                            fontSize: 12,
+                            color: '#6b7280'
+                        }
+                    },
+                    tooltip: { trigger: 'item' },
+                    xAxis: {
+                        type: 'value',
+                        name: 'Count',
+                        axisLine: { lineStyle: { color: '#d1d5db' } }
+                    },
+                    yAxis: {
+                        type: 'category',
+                        data: ageGroups,
+                        name: 'Age Groups',
+                        axisLine: { lineStyle: { color: '#d1d5db' } }
+                    },
+                    series: [
+                        {
+                            name: 'Male',
+                            type: 'bar',
+                            stack: 'gender',
+                            data: [0, 0, 0, 0, 0, 0],
+                            itemStyle: { color: '#3b82f6', opacity: 0.3 }
+                        },
+                        {
+                            name: 'Female',
+                            type: 'bar',
+                            stack: 'gender',
+                            data: [0, 0, 0, 0, 0, 0],
+                            itemStyle: { color: '#ec4899', opacity: 0.3 }
+                        }
+                    ]
+                };
+
+                chart.setOption(option, true);
+
+                // Add scheme filter button even for empty chart
+                addSchemeFilterButton(chartElement);
+            }
+
+            // ================== PIE CHART FUNCTIONS ==================
+
+            function initDistrictPieChart() {
+                if (!charts.districtPie) {
+                    const pieElement = document.getElementById('district_distribution_pie');
+                    if (!pieElement) {
+                        console.error('Pie chart element not found');
+                        return null;
+                    }
+
+                    charts.districtPie = echarts.init(pieElement);
+
+                    charts.districtPie.on('click', function (params) {
+                        handlePieChartClick(params);
+                    });
+
+                    setupDrillDownNavigation();
+                }
+                return charts.districtPie;
+            }
+
+            function setupDrillDownNavigation() {
+                const pieContainer = document.getElementById('district_distribution_pie');
+                if (!pieContainer) return;
+
+                const parentContainer = pieContainer.parentNode;
+
+                if (document.getElementById('pie-nav-container')) {
+                    return;
+                }
+
+                let navContainer = document.createElement('div');
+                navContainer.id = 'pie-nav-container';
+                navContainer.style.cssText = 'margin-bottom: 10px; padding: 8px; background: #f8f9fa; border-radius: 6px; display: none;';
+
+                let breadcrumb = document.createElement('div');
+                breadcrumb.id = 'pie-breadcrumb';
+                breadcrumb.style.cssText = 'font-size: 14px; color: #495057; margin-bottom: 5px;';
+
+                let backButton = document.createElement('button');
+                backButton.id = 'pie-back-button';
+                backButton.innerHTML = '← Back';
+                backButton.style.cssText = 'padding: 4px 12px; background: #4f46e5; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 5px;';
+                backButton.onclick = function () {
+                    navigateBack();
+                };
+
+                navContainer.appendChild(breadcrumb);
+                navContainer.appendChild(backButton);
+                parentContainer.insertBefore(navContainer, pieContainer);
+            }
+
+            function updateBreadcrumb() {
+                const nav = document.getElementById('pie-nav-container');
+                const breadcrumb = document.getElementById('pie-breadcrumb');
+
+                if (drillState.level === 'state') {
+                    nav.style.display = 'none';
+                    breadcrumb.innerHTML = '';
+                } else {
+                    nav.style.display = 'block';
+                    breadcrumb.innerHTML = `<strong>${drillState.district_name}</strong>`;
+                }
+            }
+
+            function navigateBack() {
+                if (drillState.level === 'district') {
+                    drillState.level = 'state';
+                    drillState.district_id = null;
+                    drillState.district_name = null;
+                    drillState.taluk_id = null;
+                    drillState.taluk_name = null;
+                    drillState.village_id = null;
+                    drillState.village_name = null;
+                }
+
+                else if (drillState.level === 'taluk') {
+                    drillState.level = 'district';
+                    drillState.taluk_id = null;
+                    drillState.taluk_name = null;
+                    drillState.village_id = null;
+                    drillState.village_name = null;
+                }
+
+                else if (drillState.level === 'village') {
+                    drillState.level = 'taluk';
+                    drillState.village_id = null;
+                    drillState.village_name = null;
+                }
+
+                updateBreadcrumb();
+                fetchPieData();
+            }
+
+            function handlePieChartClick(params) {
+                if (!params.data || !params.data.id) return;
+
+                if (drillState.level === 'state') {
+                    drillState.level = 'district';
+                    drillState.district_id = params.data.id;
+                    drillState.district_name = params.data.name;
+
+                    updateBreadcrumb();
+                    fetchPieData();
+                }
+            }
+
+            function getPieTitle() {
+                switch (drillState.level) {
+                    case 'district': return 'Families by District';
+                    case 'taluk': return `Families in ${drillState.taluk_name || 'District'} - By Taluk`;
+                    default: return '';
+                }
             }
 
             // ================== TOP 5 SCHEMES API ==================
@@ -3190,7 +2200,6 @@
 
             async function makeTop5SchemesApiRequest() {
                 try {
-                    // This endpoint has no parameters according to your requirement
                     const url = API_CONFIG.baseUrl + API_CONFIG.endpoints.get_top5_schemes_by_state;
 
                     return await $.ajax({
@@ -3198,7 +2207,7 @@
                         type: "POST",
                         contentType: "application/x-www-form-urlencoded; charset=UTF-8",
                         dataType: "json",
-                        data: { data: '' } // Empty payload as per requirement
+                        data: { data: '' }
                     });
                 } catch (error) {
                     console.error('Top 5 Schemes API Request Error:', error);
@@ -3216,13 +2225,10 @@
                 let apiData;
                 try {
                     const decrypted = decryptData(response.data);
-
-                    // Parse the decrypted data
                     apiData = typeof decrypted === 'string' ? JSON.parse(decrypted) : decrypted;
 
                     console.log("Top 5 schemes API data:", apiData);
 
-                    // If apiData is still a string, parse it again
                     if (typeof apiData === 'string') {
                         apiData = JSON.parse(apiData);
                     }
@@ -3239,17 +2245,13 @@
                 }
 
                 console.log("Top 5 schemes data structure:", apiData);
-
-                // Process the API response data
                 processTop5SchemesData(apiData);
             }
 
             function processTop5SchemesData(apiData) {
-                // Extract scheme names and counts
                 const schemeNames = [];
                 const schemeCounts = [];
 
-                // Process the data - your API returns array of objects with scheme_name and beneficiary_count
                 apiData.forEach((item, index) => {
                     const schemeName = item.scheme_name || `Scheme ${index + 1}`;
                     const count = Number(item.beneficiary_count || 0);
@@ -3261,15 +2263,12 @@
                 console.log("Processed scheme names:", schemeNames);
                 console.log("Processed scheme counts:", schemeCounts);
 
-                // Store the processed data
                 API_DATA.top5SchemesData = {
                     schemeNames: schemeNames,
                     schemeCounts: schemeCounts
                 };
 
                 console.log("Processed top 5 schemes data:", API_DATA.top5SchemesData);
-
-                // Render the chart
                 renderTop5SchemesChart();
             }
 
@@ -3286,7 +2285,6 @@
                     charts.schemeCount = chart;
                 }
 
-                // Check if we have data
                 if (!API_DATA.top5SchemesData) {
                     showEmptyTop5SchemesChart();
                     return;
@@ -3294,13 +2292,11 @@
 
                 const { schemeNames, schemeCounts } = API_DATA.top5SchemesData;
 
-                // Color palette for the chart
                 const schemeColors = [
                     '#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
                     '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1'
                 ];
 
-                // Prepare data for chart with colors
                 const chartData = schemeNames.map((name, index) => ({
                     name: name,
                     value: schemeCounts[index],
@@ -3364,7 +2360,6 @@
                             fontSize: 11,
                             color: '#374151',
                             formatter: function (value) {
-                                // Truncate long scheme names and show in Tamil properly
                                 if (value.length > 15) {
                                     return value.substring(0, 15) + '...';
                                 }
@@ -3403,7 +2398,6 @@
                         },
                         axisLabel: {
                             formatter: function (value) {
-                                // Format large numbers with K or M suffix
                                 if (value >= 1000000) {
                                     return (value / 1000000).toFixed(1) + 'M';
                                 } else if (value >= 1000) {
@@ -3435,7 +2429,6 @@
                                 position: 'top',
                                 formatter: function (params) {
                                     const value = params.value || 0;
-                                    // Format with K or M suffix for display
                                     if (value >= 1000000) {
                                         return (value / 1000000).toFixed(1) + 'M';
                                     } else if (value >= 1000) {
@@ -3451,11 +2444,9 @@
                     ]
                 };
 
-                // Clear and set new options
                 chart.clear();
                 chart.setOption(option, true);
 
-                // Force a resize to ensure proper rendering
                 setTimeout(() => {
                     chart.resize();
                 }, 50);
@@ -3566,7 +2557,6 @@
                     return;
                 }
 
-                // Process data based on whether we're showing all districts or filtered
                 let chartData;
                 if (filterDistrictId) {
                     chartData = processFilteredDistrictData(apiData);
@@ -3688,7 +2678,6 @@
                     ? `Family Status Distribution in ${drillState.district_name || 'Selected District'}`
                     : 'Family Status Distribution by District';
 
-                // Calculate totals for tooltip
                 const districtTotals = [];
                 for (let i = 0; i < chartData.districts.length; i++) {
                     let total = 0;
@@ -3739,7 +2728,7 @@
 
                             result += `</div>
                         <hr style="border:none;border-top:2px solid #e5e7eb;margin:10px 0;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div style="display:flex;justifycontent:space-between;align-items:center;">
                             <span style="font-size:14px;color:#1f2937;font-weight:600;">Total:</span>
                             <strong style="color: #1f2937; font-size: 16px;">${total.toLocaleString()}</strong>
                         </div>
@@ -3876,7 +2865,6 @@
 
             // ================== GEOGRAPHIC API FUNCTIONS ==================
 
-            // Load districts
             async function loadDistricts() {
                 try {
                     const payload = {
@@ -3956,7 +2944,6 @@
                     .forEach(d => districtSelect.append(`<option value="${d.district_id}">${d.district_name}</option>`));
             }
 
-            // Fetch pie chart data based on current drill state
             async function fetchPieData() {
                 const payload = {
                     district_id: drillState.district_id,
@@ -3996,11 +2983,7 @@
 
                 let pieData = [];
 
-                /* ===============================
-                   DRILL STATE HANDLING
-                ================================*/
                 if (drillState.level === 'state') {
-                    // INITIAL → DISTRICT WISE
                     pieData = apiData.map(item => ({
                         name: item.district_name,
                         value: Number(item.total_familycount || 0),
@@ -4008,7 +2991,6 @@
                     }));
                 }
                 else if (drillState.level === 'district') {
-                    // CLICKED DISTRICT → TALUK WISE
                     pieData = apiData.map(item => ({
                         name: item.taluk_name,
                         value: Number(item.total_familycount || 0),
@@ -4052,7 +3034,6 @@
                 chart.resize();
             }
 
-            // Show empty pie chart
             function showEmptyPieChart() {
                 const chart = initDistrictPieChart();
                 if (!chart) return;
@@ -4086,7 +3067,6 @@
 
             // ================== FILTER FUNCTIONS ==================
 
-            // Apply filters button handler
             async function applyFilters() {
                 const districtId = $('#district').val();
 
@@ -4108,13 +3088,20 @@
                 updateBreadcrumb();
                 fetchPieData();
                 fetchStackedBarData();
-                fetchAgeGenderData(); // Fetch age gender data when filters are applied
-                // Note: Top 5 schemes data is state-level, no need to refresh on district filter
+                fetchAgeGenderData(); // For Family Profile tab
+
+                // Refresh pyramid chart if it exists (Beneficiary tab)
+                if (charts.ageGenderPyramid) {
+                    fetchAgeGenderPyramidData();
+                }
+
+                // Note: Top 5 schemes doesn't need to be refreshed as it's state-level
             }
 
-            // Reset all filters
             function resetAll() {
                 $('#district').val('ALL');
+                API_DATA.selectedSchemeId = 'ALL';
+                API_DATA.selectedSchemeName = 'All Schemes';
 
                 drillState = {
                     level: 'state',
@@ -4129,27 +3116,32 @@
                 updateBreadcrumb();
                 fetchPieData();
                 fetchStackedBarData();
-                fetchAgeGenderData(); // Fetch age gender data when resetting filters
-                fetchTop5SchemesData(); // Optionally refresh top 5 schemes data
+                fetchAgeGenderData(); // For Family Profile tab
+
+                // Refresh pyramid chart if it exists (Beneficiary tab)
+                if (charts.ageGenderPyramid) {
+                    fetchAgeGenderPyramidData();
+                }
+
+                fetchTop5SchemesData();
             }
 
             // Initialize all data
             async function initializeAllData() {
                 await loadDistricts();
+                await loadSchemes();
                 populateDistrictDropdown();
 
-                // Initialize pie chart
                 initDistrictPieChart();
 
-                // Load initial data
                 resetDrillState();
                 fetchPieData();
                 fetchStackedBarData();
-                fetchAgeGenderData(); // Fetch initial age gender data
-                fetchTop5SchemesData(); // Fetch initial top 5 schemes data
+                fetchAgeGenderData(); // Initialize Family Profile age gender chart
+                fetchTop5SchemesData();
+                // Don't fetch pyramid data here - it will be fetched when Beneficiary tab is opened
             }
 
-            // Reset drill state to district level
             function resetDrillState() {
                 drillState = {
                     level: 'state',
@@ -4163,380 +3155,334 @@
                 updateBreadcrumb();
             }
 
-            // ================== OTHER CHART FUNCTIONS ==================
-
-            // Sample data for other charts
-            let topSchemes = ['கலைஞரின் கனவு இல்லம்', 'முதலமைச்சரின் விரிவான மருத்துவ காப்பீட்டு திட்டம்', 'வீட்டுமனைப் பட்டா', 'கூட்டுறவுச் சங்கம்/வங்கி கடன் (சுய வேலைவாய்ப்புக் கடன், கால்நடை கடன்)', 'இதர'];
-
-            const districts = [
-                'Ariyalur', 'Chengalpattu', 'Chennai', 'Coimbatore', 'Cuddalore', 'Dharmapuri',
-                'Dindigul', 'Erode', 'Kallakurichi', 'Kancheepuram', 'Kanniyakumari', 'Karur',
-                'Krishnagiri', 'Madurai', 'Mayiladuthurai', 'Nagapattinam', 'Namakkal', 'Nilgiris',
-                'Perambalur', 'Pudukkottai', 'Ramanathapuram', 'Ranipet', 'Salem', 'Sivaganga',
-                'Tenkasi', 'Thanjavur', 'Theni', 'Thoothukudi', 'Tiruchirappalli', 'Tirunelveli',
-                'Tirupathur', 'Tiruppur', 'Tiruvallur', 'Tiruvannamalai', 'Tiruvarur',
-                'Vellore', 'Viluppuram', 'Virudhunagar'
-            ];
-
-            const statusColors = {
-                active: '#91cc75',
-                inactive: '#f59e0b',
-                migrated: '#ef4444'
-            };
-
-            const genderColors = {
-                male: '#3b82f6',
-                female: '#ec4899'
-            };
-
-            const schemeColors = [
-                '#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'
-            ];
-
-            const dreamColors = [
-                '#4f46e5', '#10b981', '#f59e0b', '#ef4444'
-            ];
-
-            const ageGroups = ['0-18', '19–30', '31–45', '46–60', '60+'];
-            const genderCounts = {
-                male: [40, 80, 60, 35, 20],
-                female: [45, 70, 55, 30, 25]
-            };
-
-            const dreamSchemes = ['Housing', 'Education', 'Employment', 'Health'];
-            const dreamCounts = [95, 120, 70, 50];
-
-            const dreamDistrictData = districts.map(d => ({
-                name: d,
-                value: Math.floor(Math.random() * 80) + 20
-            }));
+            // ================== TAB CHANGE API CALLS ==================
 
             /* =====================================================
-               FAMILY PROFILE
+               FAMILY PROFILE - API CALLS ON TAB CHANGE
             ===================================================== */
             function initFamilyProfileCharts() {
-                // Age gender chart is already initialized via fetchAgeGenderData()
-                fetchStackedBarData(); // Load stacked bar data on initialization
+                console.log("Initializing Family Profile charts...");
+
+                // Stacked bar chart for family status - CALL API
+                fetchStackedBarData();
+
+                // Age gender chart for family distribution - CALL API
+                fetchAgeGenderData();
+
+                // Force resize all charts
+                setTimeout(() => {
+                    if (charts.familyStatus) charts.familyStatus.resize();
+                    if (charts.familyAgeGender) charts.familyAgeGender.resize();
+                    if (charts.districtPie) charts.districtPie.resize();
+                }, 100);
             }
 
             /* =====================================================
-               BENEFICIARY
+               BENEFICIARY - API CALLS ON TAB CHANGE
             ===================================================== */
             function initBeneficiaryCharts() {
-                // Initialize age gender chart (replacing the old hardcoded one)
-                if (!charts.ageGender) {
-                    charts.ageGender = echarts.init(document.getElementById('age_gender_grouped_bar'));
-                    // This chart now uses sample data, but you might want to fetch actual data from API
-                    charts.ageGender.setOption({
-                        title: {
-                            text: 'Age vs Gender (Beneficiary Count)',
-                            left: 'center',
-                            textStyle: { fontSize: 16 }
-                        },
-                        tooltip: { trigger: 'axis' },
-                        legend: {
-                            top: 30
-                        },
-                        grid: {
-                            top: 70,
-                            bottom: 30,
-                            left: '10%',
-                            right: '5%'
-                        },
-                        xAxis: {
-                            type: 'category',
-                            data: ageGroups,
-                            name: 'Age Groups',
-                            nameTextStyle: { color: '#374151' },
-                            axisLine: {
-                                lineStyle: { color: '#d1d5db' }
-                            }
-                        },
-                        yAxis: {
-                            type: 'value',
-                            name: 'Beneficiary Count',
-                            nameTextStyle: { color: '#374151' },
-                            axisLine: {
-                                lineStyle: { color: '#d1d5db' }
-                            },
-                            splitLine: {
-                                lineStyle: {
-                                    color: '#e5e7eb'
-                                }
-                            }
-                        },
-                        series: [
-                            {
-                                name: 'Male',
-                                type: 'bar',
-                                data: genderCounts.male,
-                                itemStyle: {
-                                    color: genderColors.male,
-                                    borderColor: '#2563eb',
-                                    borderWidth: 1
-                                }
-                            },
-                            {
-                                name: 'Female',
-                                type: 'bar',
-                                data: genderCounts.female,
-                                itemStyle: {
-                                    color: genderColors.female,
-                                    borderColor: '#db2777',
-                                    borderWidth: 1
-                                }
-                            }
-                        ]
-                    });
+                console.log("Initializing Beneficiary charts...");
+
+                // Initialize pyramid chart for age vs gender
+                if (!charts.ageGenderPyramid) {
+                    const chartElement = document.getElementById('age_gender_grouped_bar');
+                    if (chartElement) {
+                        charts.ageGenderPyramid = echarts.init(chartElement);
+                    }
                 }
 
-                // Initialize top 5 schemes chart (uses API data)
+                // Fetch pyramid data - CALL API
+                fetchAgeGenderPyramidData();
+
+                // Initialize top 5 schemes chart
                 if (!charts.schemeCount) {
-                    charts.schemeCount = echarts.init(document.getElementById('scheme_count_bar'));
-                    // Chart will be populated by fetchTop5SchemesData()
+                    const chartElement = document.getElementById('scheme_count_bar');
+                    if (chartElement) {
+                        charts.schemeCount = echarts.init(chartElement);
+                    }
                 }
 
-                /* 🔥 Beneficiary Coverage by Top 5 Schemes (District-wise) */
+                // Fetch top 5 schemes data - CALL API
+                fetchTop5SchemesData();
+
+                // Initialize scheme coverage chart (static data)
                 if (!charts.schemeCoverage) {
-                    charts.schemeCoverage = echarts.init(document.getElementById('beneficiary_scheme_pie'));
+                    const chartElement = document.getElementById('beneficiary_scheme_pie');
+                    if (chartElement) {
+                        charts.schemeCoverage = echarts.init(chartElement);
 
-                    // Prepare data for the chart
-                    const seriesData = topSchemes.map((scheme, index) => ({
-                        name: scheme,
-                        type: 'bar',
-                        stack: 'scheme',
-                        itemStyle: {
-                            color: schemeColors[index],
-                            borderColor: schemeColors[index].replace(/[a-f0-9]{2}$/, '80'),
-                            borderWidth: 1
-                        },
-                        emphasis: {
-                            focus: 'series'
-                        },
-                        data: districts.map(district => Math.floor(Math.random() * 50) + 10)
-                    }));
+                        const topSchemes = ['கலைஞரின் கனவு இல்லம்', 'முதலமைச்சரின் விரிவான மருத்துவ காப்பீட்டு திட்டம்', 'வீட்டுமனைப் பட்டா', 'கூட்டுறவுச் சங்கம்/வங்கி கடன் (சுய வேலைவாய்ப்புக் கடன், கால்நடை கடன்)', 'இதர'];
+                        const districts = API_DATA.districts.map(d => d.district_name);
+                        const schemeColors = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
-                    charts.schemeCoverage.setOption({
-                        title: {
-                            text: 'Top 5 Schemes',
-                            left: 'center',
-                            top: 10,
-                            textStyle: {
-                                fontSize: 16,
-                                color: '#1f2937'
-                            }
-                        },
-                        tooltip: {
-                            trigger: 'axis',
-                            axisPointer: { type: 'shadow' },
-                            formatter: function (params) {
-                                let result = `<div style="padding: 10px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                            <strong style="color: #1f2937; font-size: 14px; margin-bottom: 8px; display: block;">${params[0].name}</strong>
-                            <div style="margin: 8px 0;">`;
-                                let total = 0;
-                                params.forEach(item => {
-                                    result += `<div style="display: flex; align-items: center; justify-content: space-between; margin: 6px 0;">
-                                <div style="display: flex; align-items: center;">
-                                    <span style="display:inline-block;margin-right:8px;border-radius:3px;width:12px;height:12px;background-color:${item.color}"></span>
-                                    <span style="font-size:13px; color: #6b7280;">${item.seriesName}</span>
+                        const seriesData = topSchemes.map((scheme, index) => ({
+                            name: scheme,
+                            type: 'bar',
+                            stack: 'scheme',
+                            itemStyle: {
+                                color: schemeColors[index],
+                                borderColor: schemeColors[index].replace(/[a-f0-9]{2}$/, '80'),
+                                borderWidth: 1
+                            },
+                            emphasis: {
+                                focus: 'series'
+                            },
+                            data: districts.map(() => Math.floor(Math.random() * 50) + 10)
+                        }));
+
+                        charts.schemeCoverage.setOption({
+                            title: {
+                                text: 'Top 5 Schemes',
+                                left: 'center',
+                                top: 10,
+                                textStyle: {
+                                    fontSize: 16,
+                                    color: '#1f2937'
+                                }
+                            },
+                            tooltip: {
+                                trigger: 'axis',
+                                axisPointer: { type: 'shadow' },
+                                formatter: function (params) {
+                                    let result = `<div style="padding: 10px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                                <strong style="color: #1f2937; font-size: 14px; margin-bottom: 8px; display: block;">${params[0].name}</strong>
+                                <div style="margin: 8px 0;">`;
+                                    let total = 0;
+                                    params.forEach(item => {
+                                        result += `<div style="display: flex; align-items: center; justify-content: space-between; margin: 6px 0;">
+                                    <div style="display: flex; align-items: center;">
+                                        <span style="display:inline-block;margin-right:8px;border-radius:3px;width:12px;height:12px;background-color:${item.color}"></span>
+                                        <span style="font-size:13px; color: #6b7280;">${item.seriesName}</span>
+                                    </div>
+                                        <strong style="color: #1f2937;">${item.value}</strong>
+                                    </div>`;
+                                        total += item.value;
+                                    });
+                                    result += `</div>
+                                <hr style="border:none;border-top:2px solid #e5e7eb;margin:10px 0;">
+                                <div style="display:flex;justify-content:space-between;align-items:center;">
+                                    <span style="font-size:14px;color:#1f2937;font-weight:600;">Total:</span>
+                                    <strong style="color: #1f2937; font-size: 16px;">${total}</strong>
                                 </div>
-                                    <strong style="color: #1f2937;">${item.value}</strong>
-                                </div>`;
-                                    total += item.value;
-                                });
-                                result += `</div>
-                            <hr style="border:none;border-top:2px solid #e5e7eb;margin:10px 0;">
-                            <div style="display:flex;justify-content:space-between;align-items:center;">
-                                <span style="font-size:14px;color:#1f2937;font-weight:600;">Total:</span>
-                                <strong style="color: #1f2937; font-size: 16px;">${total}</strong>
-                            </div>
-                        </div>`;
-                                return result;
-                            }
-                        },
-                        legend: {
-                            show: false
-                        },
-                        grid: {
-                            top: 50,
-                            bottom: 100,
-                            left: '3%',
-                            right: '4%',
-                            containLabel: true
-                        },
-                        xAxis: {
-                            type: 'category',
-                            data: districts,
-                            axisLabel: {
-                                rotate: 45,
-                                interval: 0,
-                                fontSize: 10,
-                                color: '#374151',
-                                formatter: function (value) {
-                                    return value.length > 10 ? value.substring(0, 10) + '...' : value;
+                            </div>`;
+                                    return result;
                                 }
                             },
-                            axisLine: {
-                                lineStyle: { color: '#d1d5db' }
+                            legend: {
+                                show: false
                             },
-                            axisTick: {
-                                alignWithLabel: true,
-                                lineStyle: { color: '#d1d5db' }
+                            grid: {
+                                top: 50,
+                                bottom: 100,
+                                left: '3%',
+                                right: '4%',
+                                containLabel: true
                             },
-                            name: 'Districts',
-                            nameLocation: 'middle',
-                            nameGap: 35,
-                            nameTextStyle: {
-                                color: '#374151',
-                                fontWeight: 'bold'
-                            }
-                        },
-                        yAxis: {
-                            type: 'value',
-                            name: 'Beneficiary Count',
-                            nameTextStyle: {
-                                padding: [0, 0, 0, 10],
-                                color: '#374151',
-                                fontWeight: 'bold'
-                            },
-                            axisLine: {
-                                lineStyle: { color: '#d1d5db' }
-                            },
-                            splitLine: {
-                                lineStyle: {
-                                    color: '#e5e7eb'
+                            xAxis: {
+                                type: 'category',
+                                data: districts,
+                                axisLabel: {
+                                    rotate: 45,
+                                    interval: 0,
+                                    fontSize: 10,
+                                    color: '#374151',
+                                    formatter: function (value) {
+                                        return value.length > 10 ? value.substring(0, 10) + '...' : value;
+                                    }
+                                },
+                                axisLine: {
+                                    lineStyle: { color: '#d1d5db' }
+                                },
+                                axisTick: {
+                                    alignWithLabel: true,
+                                    lineStyle: { color: '#d1d5db' }
+                                },
+                                name: 'Districts',
+                                nameLocation: 'middle',
+                                nameGap: 35,
+                                nameTextStyle: {
+                                    color: '#374151',
+                                    fontWeight: 'bold'
                                 }
-                            }
-                        },
-                        dataZoom: [
-                            {
-                                type: 'slider',
-                                bottom: 30,
-                                start: 0,
-                                end: 20,
-                                height: 20,
-                                backgroundColor: '#f9fafb',
-                                borderColor: '#d1d5db'
                             },
-                            { type: 'inside' }
-                        ],
-                        series: seriesData
-                    });
+                            yAxis: {
+                                type: 'value',
+                                name: 'Beneficiary Count',
+                                nameTextStyle: {
+                                    padding: [0, 0, 0, 10],
+                                    color: '#374151',
+                                    fontWeight: 'bold'
+                                },
+                                axisLine: {
+                                    lineStyle: { color: '#d1d5db' }
+                                },
+                                splitLine: {
+                                    lineStyle: {
+                                        color: '#e5e7eb'
+                                    }
+                                }
+                            },
+                            dataZoom: [
+                                {
+                                    type: 'slider',
+                                    bottom: 30,
+                                    start: 0,
+                                    end: 20,
+                                    height: 20,
+                                    backgroundColor: '#f9fafb',
+                                    borderColor: '#d1d5db'
+                                },
+                                { type: 'inside' }
+                            ],
+                            series: seriesData
+                        });
+                    }
                 }
+
+                // Force resize all charts
+                setTimeout(() => {
+                    if (charts.ageGenderPyramid) charts.ageGenderPyramid.resize();
+                    if (charts.schemeCount) charts.schemeCount.resize();
+                    if (charts.schemeCoverage) charts.schemeCoverage.resize();
+                }, 100);
             }
 
             /* =====================================================
-               DREAM SCHEME
+               DREAM SCHEME - Static data
             ===================================================== */
             function initDreamSchemeCharts() {
+                console.log("Initializing Dream Scheme charts...");
+
                 if (!charts.dreamBar) {
-                    charts.dreamBar = echarts.init(document.getElementById('dream_scheme_bar'));
-                    charts.dreamBar.setOption({
-                        title: {
-                            text: 'Top Dream Schemes (Count)',
-                            left: 'center',
-                            textStyle: { fontSize: 16 }
-                        },
-                        tooltip: { trigger: 'axis' },
-                        grid: {
-                            top: 70,
-                            bottom: 30,
-                            left: '10%',
-                            right: '5%'
-                        },
-                        xAxis: {
-                            type: 'category',
-                            data: dreamSchemes,
-                            name: 'Dream Schemes',
-                            nameTextStyle: { color: '#374151' },
-                            axisLine: {
-                                lineStyle: { color: '#d1d5db' }
-                            }
-                        },
-                        yAxis: {
-                            type: 'value',
-                            name: 'Count',
-                            nameTextStyle: { color: '#374151' },
-                            axisLine: {
-                                lineStyle: { color: '#d1d5db' }
+                    const chartElement = document.getElementById('dream_scheme_bar');
+                    if (chartElement) {
+                        charts.dreamBar = echarts.init(chartElement);
+
+                        const dreamSchemes = ['Housing', 'Education', 'Employment', 'Health'];
+                        const dreamCounts = [95, 120, 70, 50];
+                        const dreamColors = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444'];
+
+                        charts.dreamBar.setOption({
+                            title: {
+                                text: 'Top Dream Schemes (Count)',
+                                left: 'center',
+                                textStyle: { fontSize: 16 }
                             },
-                            splitLine: {
-                                lineStyle: {
-                                    color: '#e5e7eb'
+                            tooltip: { trigger: 'axis' },
+                            grid: {
+                                top: 70,
+                                bottom: 30,
+                                left: '10%',
+                                right: '5%'
+                            },
+                            xAxis: {
+                                type: 'category',
+                                data: dreamSchemes,
+                                name: 'Dream Schemes',
+                                nameTextStyle: { color: '#374151' },
+                                axisLine: {
+                                    lineStyle: { color: '#d1d5db' }
                                 }
-                            }
-                        },
-                        series: dreamSchemes.map((scheme, index) => ({
-                            name: scheme,
-                            type: 'bar',
-                            data: [dreamCounts[index]],
-                            itemStyle: {
-                                color: dreamColors[index],
-                                borderColor: dreamColors[index].replace(/[a-f0-9]{2}$/, '80'),
-                                borderWidth: 1
-                            }
-                        }))
-                    });
+                            },
+                            yAxis: {
+                                type: 'value',
+                                name: 'Count',
+                                nameTextStyle: { color: '#374151' },
+                                axisLine: {
+                                    lineStyle: { color: '#d1d5db' }
+                                },
+                                splitLine: {
+                                    lineStyle: {
+                                        color: '#e5e7eb'
+                                    }
+                                }
+                            },
+                            series: dreamSchemes.map((scheme, index) => ({
+                                name: scheme,
+                                type: 'bar',
+                                data: [dreamCounts[index]],
+                                itemStyle: {
+                                    color: dreamColors[index],
+                                    borderColor: dreamColors[index].replace(/[a-f0-9]{2}$/, '80'),
+                                    borderWidth: 1
+                                }
+                            }))
+                        });
+                    }
                 }
 
                 if (!charts.dreamPie) {
-                    charts.dreamPie = echarts.init(document.getElementById('dream_scheme_district_pie'));
-                    charts.dreamPie.setOption({
-                        title: {
-                            text: 'District-wise Dream Demand',
-                            left: 'center',
-                            textStyle: { fontSize: 16 }
-                        },
-                        tooltip: { trigger: 'item' },
-                        series: [{
-                            type: 'pie',
-                            radius: ['40%', '70%'],
-                            data: dreamDistrictData,
-                            itemStyle: {
-                                color: function (params) {
-                                    const colorList = [
-                                        '#4f46e5', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef',
-                                        '#ec4899', '#f43f5e', '#ef4444', '#f97316', '#f59e0b',
-                                        '#eab308', '#84cc16', '#22c55e', '#10b981', '#14b8a6',
-                                        '#06b6d4', '#0ea5e9', '#3b82f6', '#2563eb', '#1d4ed8'
-                                    ];
-                                    return colorList[params.dataIndex % colorList.length];
-                                },
-                                borderColor: '#ffffff',
-                                borderWidth: 2
+                    const chartElement = document.getElementById('dream_scheme_district_pie');
+                    if (chartElement) {
+                        charts.dreamPie = echarts.init(chartElement);
+
+                        const dreamDistrictData = API_DATA.districts.map(d => ({
+                            name: d.district_name,
+                            value: Math.floor(Math.random() * 80) + 20
+                        }));
+
+                        charts.dreamPie.setOption({
+                            title: {
+                                text: 'District-wise Dream Demand',
+                                left: 'center',
+                                textStyle: { fontSize: 16 }
                             },
-                            emphasis: {
+                            tooltip: { trigger: 'item' },
+                            series: [{
+                                type: 'pie',
+                                radius: ['40%', '70%'],
+                                data: dreamDistrictData,
                                 itemStyle: {
-                                    shadowBlur: 10,
-                                    shadowOffsetX: 0,
-                                    shadowColor: 'rgba(0, 0, 0, 0.3)'
+                                    color: function (params) {
+                                        const colorList = [
+                                            '#4f46e5', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef',
+                                            '#ec4899', '#f43f5e', '#ef4444', '#f97316', '#f59e0b',
+                                            '#eab308', '#84cc16', '#22c55e', '#10b981', '#14b8a6',
+                                            '#06b6d4', '#0ea5e9', '#3b82f6', '#2563eb', '#1d4ed8'
+                                        ];
+                                        return colorList[params.dataIndex % colorList.length];
+                                    },
+                                    borderColor: '#ffffff',
+                                    borderWidth: 2
+                                },
+                                emphasis: {
+                                    itemStyle: {
+                                        shadowBlur: 10,
+                                        shadowOffsetX: 0,
+                                        shadowColor: 'rgba(0, 0, 0, 0.3)'
+                                    }
                                 }
-                            }
-                        }]
-                    });
+                            }]
+                        });
+                    }
                 }
+
+                // Force resize all charts
+                setTimeout(() => {
+                    if (charts.dreamBar) charts.dreamBar.resize();
+                    if (charts.dreamPie) charts.dreamPie.resize();
+                }, 100);
             }
 
             // ================== EVENT LISTENERS AND INITIALIZATION ==================
 
-            // Setup tab listeners
             function setupTabListeners() {
                 document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
                     tab.addEventListener('shown.bs.tab', e => {
                         const target = e.target.dataset.bsTarget;
+                        console.log(`Tab changed to: ${target}`);
 
                         if (target === '#family-profile-pane') {
                             initFamilyProfileCharts();
                         }
                         if (target === '#beneficiary-details-pane') {
                             initBeneficiaryCharts();
-                            // Fetch fresh data when beneficiary tab is opened
-                            fetchTop5SchemesData();
                         }
                         if (target === '#dream-scheme-pane') {
                             initDreamSchemeCharts();
                         }
 
+                        // Resize all charts after tab change
                         setTimeout(() => {
                             Object.values(charts).forEach(chart => {
                                 if (chart && chart.resize) chart.resize();
@@ -4546,12 +3492,21 @@
                 });
             }
 
-            // Setup event listeners
             function setupEventListeners() {
-                // Add tab listeners
                 setupTabListeners();
 
-                // Add resize event for charts
+                // Add Apply Filters button listener
+                $('#apply-filters-btn').on('click', function () {
+                    console.log("Apply Filters clicked");
+                    applyFilters();
+                });
+
+                // Add Reset button listener
+                $('#reset-all-btn').on('click', function () {
+                    console.log("Reset All clicked");
+                    resetAll();
+                });
+
                 window.addEventListener('resize', function () {
                     Object.values(charts).forEach(chart => {
                         if (chart && chart.resize) chart.resize();
@@ -4559,7 +3514,6 @@
                 });
             }
 
-            // Initialize everything on page load
             document.addEventListener('DOMContentLoaded', function () {
                 initializeAllData();
                 setupEventListeners();
@@ -4572,14 +3526,24 @@
                 }, 500);
             });
 
-            // Sidebar toggle function (if needed)
             function toggleSidebar() {
                 const sidebar = document.getElementById('sidebar');
                 const main = document.getElementById('main');
                 sidebar.classList.toggle('collapsed');
                 main.classList.toggle('collapsed');
+
+                // Resize charts after sidebar toggle
+                setTimeout(() => {
+                    Object.values(charts).forEach(chart => {
+                        if (chart && chart.resize) chart.resize();
+                    });
+                }, 300);
             }
+
+            // Make showSchemeFilterDropdown available globally
+            window.showSchemeFilterDropdown = showSchemeFilterDropdown;
         </script>
+
 </body>
 
 </html>
