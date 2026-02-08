@@ -742,7 +742,7 @@
                                     <div class="col-lg-12">
                                         <div class="card p-3 shadow">
                                             <h5>Top 5 Benefitted Scheme - District Wise Distribution</h5>
-                                            <div id="beneficiary_scheme_pie" style="height:780px;"></div>
+                                            <div id="beneficiary_scheme_pie" style="height:520px;"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -767,15 +767,6 @@
                                         </div>
                                     </div>
                                 </div>
-
-                                <div class="row g-3 mt-3">
-                                    <div class="col-lg-12">
-                                        <div class="card p-3 shadow">
-                                            <h5>Top 3 Dream Scheme - District Wise Distribution</h5>
-                                            <div id="top3_dream_scheme_bar" style="height:780px;"></div>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -796,10 +787,9 @@
                 familyAgeGender: null,
                 ageGenderPyramid: null,
                 schemeCount: null,
-                top5BenefittedScheme: null,
+                top5BenefittedScheme: null, // NEW: For Top 5 Benefitted Scheme
                 dreamBar: null,
-                dreamPie: null,
-                top3DreamScheme: null
+                dreamPie: null
             };
 
             let drillState = {
@@ -823,9 +813,7 @@
                 ageGenderData: null,
                 ageGenderPyramidData: null,
                 top5SchemesData: null, // For Top 5 Schemes across All Districts
-                top5BenefittedSchemeData: null,
-                top3DreamSchemeData: null,
-                dreamSchemeCategoryData: null,
+                top5BenefittedSchemeData: null, // NEW: For Top 5 Benefitted Scheme
                 selectedSchemeId: 'ALL',
                 selectedSchemeName: 'All Schemes'
             };
@@ -838,9 +826,7 @@
                     get_district_taluk_counts: 'get_district_taluk_counts',
                     get_age_gender_distribution_dashboard_form1: 'get_age_gender_distribution_dashboard_form1',
                     get_top5_schemes_by_state: 'get_top5_schemes_by_state',
-                    get_top5_mostbenefit_schemes_by_district: 'get_top5_mostbenefit_schemes_by_district',
-                    get_top5_suggestionform_by_district: 'get_top5_suggestionform_by_district',
-                    get_schemecategory_count: 'get_schemecategory_count',
+                    get_top5_mostbenefit_schemes_by_district: 'get_top5_mostbenefit_schemes_by_district', // ADDED
                     get_scheme_filter: 'get_scheme_filter',
                     get_scheme_age_gender_counts: 'get_scheme_age_gender_counts'
                 }
@@ -2716,7 +2702,7 @@
                 const total = districtCountsByScheme.reduce((sum, row) =>
                     sum + row.reduce((s, c) => s + c, 0), 0);
 
-                const shortSchemeNames = schemeNames.map(n => n.length > 30 ? n.substring(0, 30) + '...' : n);
+                const shortSchemeNames = schemeNames.map(n => n.length > 24 ? n.substring(0, 24) + '...' : n);
 
                 const series = shortSchemeNames.map((name, idx) => ({
                     name: name,
@@ -2739,7 +2725,7 @@
                         left: 'center',
                         textStyle: { fontSize: 16, fontWeight: 'bold' },
                         subtext: `Total: ${total.toLocaleString('en-IN')} • Each district shows its own top 5 schemes`,
-                        subtextStyle: { fontSize: 13, color: '#6b7280' }
+                        subtextStyle: { fontSize: 12, color: '#6b7280' }
                     },
                     tooltip: {
                         trigger: 'axis',
@@ -2770,22 +2756,22 @@
                         type: 'scroll',
                         orient: 'vertical',
                         right: 10,
-                        top: 80,
-                        bottom: 40,
-                        width: '20%',
-                        pageIconSize: 12,
-                        pageTextStyle: { fontSize: 11 },
-                        pageButtonItemGap: 6,
-                        textStyle: { fontSize: 12 },
-                        itemWidth: 16,
-                        itemHeight: 12,
-                        itemGap: 6
+                        top: 70,
+                        bottom: 30,
+                        width: '18%',
+                        pageIconSize: 10,
+                        pageTextStyle: { fontSize: 10 },
+                        pageButtonItemGap: 4,
+                        textStyle: { fontSize: 10 },
+                        itemWidth: 14,
+                        itemHeight: 10,
+                        itemGap: 4
                     },
                     grid: {
-                        top: 95,
-                        bottom: 40,
-                        left: 80,
-                        right: '24%',
+                        top: 85,
+                        bottom: 30,
+                        left: '15%',
+                        right: '22%',
                         containLabel: true
                     },
                     xAxis: {
@@ -2793,11 +2779,10 @@
                         name: 'Count',
                         nameLocation: 'middle',
                         nameGap: 25,
-                        nameTextStyle: { color: '#374151', fontSize: 13 },
+                        nameTextStyle: { color: '#374151', fontSize: 12 },
                         axisLine: { lineStyle: { color: '#d1d5db' } },
                         splitLine: { lineStyle: { color: '#e5e7eb', type: 'dashed' } },
                         axisLabel: {
-                            fontSize: 12,
                             formatter: function (v) {
                                 if (v >= 1000000) return (v / 1000000).toFixed(1) + 'M';
                                 if (v >= 1000) return (v / 1000).toFixed(0) + 'K';
@@ -2807,8 +2792,8 @@
                     },
                     yAxis: {
                         type: 'category',
-                        data: districtNames.map(d => d.length > 28 ? d.substring(0, 28) + '...' : d),
-                        axisLabel: { interval: 0, fontSize: 13, color: '#000' },
+                        data: districtNames.map(d => d.length > 22 ? d.substring(0, 22) + '...' : d),
+                        axisLabel: { interval: 0, fontSize: 11 },
                         axisLine: { lineStyle: { color: '#d1d5db' } },
                         axisTick: { lineStyle: { color: '#d1d5db' } }
                     },
@@ -2846,370 +2831,6 @@
                     series: [{ name: 'No data', type: 'bar', data: [], itemStyle: { color: '#e5e7eb' } }]
                 }, true);
             }
-
-            // ================== TOP DREAM SCHEMES (COUNT) API ==================
-
-            async function fetchDreamSchemeCategoryData() {
-                try {
-                    const payload = { type_id: 0 };
-                    const response = await makeDreamSchemeCategoryApiRequest(payload);
-                    handleDreamSchemeCategoryApiResponse(response);
-                } catch (error) {
-                    console.error('Error fetching dream scheme category data:', error);
-                    showEmptyDreamSchemeBarChart();
-                }
-            }
-
-            async function makeDreamSchemeCategoryApiRequest(payload) {
-                try {
-                    const encryptedPayload = encryptData(payload);
-                    const url = API_CONFIG.baseUrl + API_CONFIG.endpoints.get_schemecategory_count;
-                    return await $.ajax({
-                        url: url,
-                        type: "POST",
-                        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
-                        dataType: "json",
-                        data: { data: encryptedPayload }
-                    });
-                } catch (error) {
-                    console.error('Dream Scheme Category API Request Error:', error);
-                    return null;
-                }
-            }
-
-            function handleDreamSchemeCategoryApiResponse(response) {
-                if (!response || response.success !== 1) {
-                    showEmptyDreamSchemeBarChart();
-                    return;
-                }
-                let apiData;
-                try {
-                    const decrypted = decryptData(response.data);
-                    apiData = typeof decrypted === 'string' ? JSON.parse(decrypted) : decrypted;
-                    if (typeof apiData === 'string') apiData = JSON.parse(apiData);
-                    if (apiData && apiData.data && Array.isArray(apiData.data)) apiData = apiData.data;
-                } catch (e) {
-                    console.error('Decrypt/parse failed for dream scheme category', e);
-                    showEmptyDreamSchemeBarChart();
-                    return;
-                }
-                if (!Array.isArray(apiData) || apiData.length === 0) {
-                    showEmptyDreamSchemeBarChart();
-                    return;
-                }
-                const names = apiData.map(item => (item.scheme_name || item.type_name || item.name || '').trim() || 'Scheme');
-                const counts = apiData.map(item => Number(item.total_count || item.count || item.beneficiary_count || 0));
-                API_DATA.dreamSchemeCategoryData = { names, counts };
-                renderDreamSchemeBarChart();
-            }
-
-            function renderDreamSchemeBarChart() {
-                const chartElement = document.getElementById('dream_scheme_bar');
-                if (!chartElement) return;
-                let chart = charts.dreamBar;
-                if (!chart) {
-                    chart = echarts.init(chartElement);
-                    charts.dreamBar = chart;
-                }
-                if (!API_DATA.dreamSchemeCategoryData || !API_DATA.dreamSchemeCategoryData.names.length) {
-                    showEmptyDreamSchemeBarChart();
-                    return;
-                }
-                const { names, counts } = API_DATA.dreamSchemeCategoryData;
-                const dreamColors = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16'];
-                chart.setOption({
-                    title: { text: 'Top Dream Schemes (Count)', left: 'center', textStyle: { fontSize: 16 } },
-                    tooltip: { trigger: 'axis' },
-                    grid: { top: 70, bottom: 30, left: '10%', right: '5%' },
-                    xAxis: {
-                        type: 'category',
-                        data: names.map(n => n.length > 25 ? n.substring(0, 25) + '...' : n),
-                        name: 'Dream Schemes',
-                        nameTextStyle: { color: '#374151' },
-                        axisLabel: { rotate: names.some(n => n.length > 15) ? 45 : 0 },
-                        axisLine: { lineStyle: { color: '#d1d5db' } }
-                    },
-                    yAxis: {
-                        type: 'value',
-                        name: 'Count',
-                        nameTextStyle: { color: '#374151' },
-                        axisLine: { lineStyle: { color: '#d1d5db' } },
-                        splitLine: { lineStyle: { color: '#e5e7eb' } }
-                    },
-                    series: [{
-                        type: 'bar',
-                        data: counts.map((val, i) => ({
-                            value: val,
-                            itemStyle: { color: dreamColors[i % dreamColors.length] }
-                        })),
-                        itemStyle: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.5)' }
-                    }]
-                }, true);
-                setTimeout(() => chart.resize(), 50);
-            }
-
-            function showEmptyDreamSchemeBarChart() {
-                const chartElement = document.getElementById('dream_scheme_bar');
-                if (!chartElement) return;
-                let chart = charts.dreamBar;
-                if (!chart) { chart = echarts.init(chartElement); charts.dreamBar = chart; }
-                chart.setOption({
-                    title: { text: 'Top Dream Schemes (Count)', left: 'center', subtext: 'No data available', subtextStyle: { fontSize: 12, color: '#6b7280' } },
-                    tooltip: { trigger: 'axis' },
-                    xAxis: { type: 'category', data: [], axisLine: { lineStyle: { color: '#d1d5db' } } },
-                    yAxis: { type: 'value', name: 'Count', axisLine: { lineStyle: { color: '#d1d5db' } } },
-                    series: [{ type: 'bar', data: [], itemStyle: { color: '#e5e7eb' } }]
-                }, true);
-            }
-
-            // ================== TOP 3 DREAM SCHEME API ==================
-
-            async function fetchTop3DreamSchemeData() {
-                try {
-                    const districtId = $('#district').val();
-                    const payload = districtId !== 'ALL'
-                        ? { district_id: Number(districtId) }
-                        : { district_id: null };
-                    console.log("Fetching Top 3 Dream Scheme data...", payload);
-                    const response = await makeTop3DreamSchemeApiRequest(payload);
-                    handleTop3DreamSchemeApiResponse(response);
-                } catch (error) {
-                    console.error('Error fetching top 3 dream scheme data:', error);
-                    showEmptyTop3DreamSchemeChart();
-                    showEmptyDreamSchemeDonutChart();
-                }
-            }
-
-            async function makeTop3DreamSchemeApiRequest(payload) {
-                try {
-                    const encryptedPayload = encryptData(payload);
-                    const url = API_CONFIG.baseUrl + API_CONFIG.endpoints.get_top5_suggestionform_by_district;
-                    return await $.ajax({
-                        url: url,
-                        type: "POST",
-                        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
-                        dataType: "json",
-                        data: { data: encryptedPayload }
-                    });
-                } catch (error) {
-                    console.error('Top 3 Dream Scheme API Request Error:', error);
-                    return null;
-                }
-            }
-
-            function handleTop3DreamSchemeApiResponse(response) {
-                if (!response || response.success !== 1) {
-                    console.warn('No data or API error for top 3 dream scheme:', response);
-                    showEmptyTop3DreamSchemeChart();
-                    showEmptyDreamSchemeDonutChart();
-                    return;
-                }
-                let apiData;
-                try {
-                    const decrypted = decryptData(response.data);
-                    apiData = typeof decrypted === 'string' ? JSON.parse(decrypted) : decrypted;
-                    if (typeof apiData === 'string') apiData = JSON.parse(apiData);
-                    if (apiData && apiData.data && Array.isArray(apiData.data)) apiData = apiData.data;
-                } catch (e) {
-                    console.error('Decrypt/parse failed for top 3 dream scheme', e);
-                    showEmptyTop3DreamSchemeChart();
-                    showEmptyDreamSchemeDonutChart();
-                    return;
-                }
-                if (!Array.isArray(apiData) || apiData.length === 0) {
-                    showEmptyTop3DreamSchemeChart();
-                    showEmptyDreamSchemeDonutChart();
-                    return;
-                }
-                processTop3DreamSchemeData(apiData);
-            }
-
-            function processTop3DreamSchemeData(apiData) {
-                const districtMap = {};
-                apiData.forEach(item => {
-                    const districtId = item.district_id;
-                    const districtName = item.district_name || `District ${districtId}`;
-                    const schemeId = item.scheme_id;
-                    const schemeName = (item.scheme_name || '').trim() || `Scheme ${schemeId}`;
-                    const count = Number(item.total_count || item.beneficiary_count || item.count || 0);
-                    if (!districtMap[districtId]) districtMap[districtId] = { name: districtName, schemes: {} };
-                    if (!districtMap[districtId].schemes[schemeId]) districtMap[districtId].schemes[schemeId] = { name: schemeName, count: 0 };
-                    districtMap[districtId].schemes[schemeId].count += count;
-                });
-
-                const allSchemeMap = {};
-                const districtTop3 = {};
-                Object.entries(districtMap).forEach(([districtId, d]) => {
-                    const top3 = Object.entries(d.schemes)
-                        .map(([sid, s]) => ({ id: Number(sid), name: s.name, count: s.count }))
-                        .sort((a, b) => b.count - a.count)
-                        .slice(0, 3);
-                    districtTop3[districtId] = { name: d.name, schemes: top3 };
-                    top3.forEach(s => {
-                        if (!allSchemeMap[s.id]) allSchemeMap[s.id] = { name: s.name, total: 0 };
-                        allSchemeMap[s.id].total += s.count;
-                    });
-                });
-
-                const schemeList = Object.entries(allSchemeMap)
-                    .sort((a, b) => b[1].total - a[1].total)
-                    .map(([id, obj]) => ({ id: Number(id), name: obj.name }));
-                const schemeIds = schemeList.map(s => s.id);
-                const schemeNames = schemeList.map(s => s.name);
-
-                const districtRows = Object.values(districtTop3).sort((a, b) => {
-                    const sumA = a.schemes.reduce((s, x) => s + x.count, 0);
-                    const sumB = b.schemes.reduce((s, x) => s + x.count, 0);
-                    return sumB - sumA;
-                });
-                const districtNames = districtRows.map(d => d.name);
-                const districtCountsByScheme = districtRows.map(d => {
-                    const row = schemeIds.map(() => 0);
-                    d.schemes.forEach(s => {
-                        const idx = schemeIds.indexOf(s.id);
-                        if (idx >= 0) row[idx] = s.count;
-                    });
-                    return row;
-                });
-
-                const donutData = districtRows.map(d => ({
-                    name: d.name,
-                    value: d.schemes.reduce((s, x) => s + x.count, 0)
-                }));
-
-                API_DATA.top3DreamSchemeData = {
-                    districtNames, schemeNames, districtCountsByScheme, donutData
-                };
-                renderTop3DreamSchemeChart();
-                renderDreamSchemeDonutChart();
-            }
-
-            function renderTop3DreamSchemeChart() {
-                const chartElement = document.getElementById('top3_dream_scheme_bar');
-                if (!chartElement) return;
-                let chart = charts.top3DreamScheme;
-                if (!chart) {
-                    chart = echarts.init(chartElement);
-                    charts.top3DreamScheme = chart;
-                }
-                if (!API_DATA.top3DreamSchemeData || !API_DATA.top3DreamSchemeData.districtNames || API_DATA.top3DreamSchemeData.districtNames.length === 0) {
-                    showEmptyTop3DreamSchemeChart();
-                    return;
-                }
-                const { districtNames, schemeNames, districtCountsByScheme } = API_DATA.top3DreamSchemeData;
-                const schemeColors = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16', '#ec4899', '#6366f1'];
-                const total = districtCountsByScheme.reduce((sum, row) => sum + row.reduce((s, c) => s + c, 0), 0);
-                const shortSchemeNames = schemeNames.map(n => n.length > 30 ? n.substring(0, 30) + '...' : n);
-                const series = shortSchemeNames.map((name, idx) => ({
-                    name, type: 'bar', stack: 'total',
-                    data: districtCountsByScheme.map(row => row[idx] || 0),
-                    itemStyle: { color: schemeColors[idx % schemeColors.length] },
-                    emphasis: { itemStyle: { shadowBlur: 8, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.2)' } }
-                }));
-                const option = {
-                    title: {
-                        text: 'Top 3 Dream Scheme - District Wise Distribution',
-                        left: 'center',
-                        textStyle: { fontSize: 16, fontWeight: 'bold' },
-                        subtext: `Total: ${total.toLocaleString('en-IN')} • Each district shows its own top 3 schemes`,
-                        subtextStyle: { fontSize: 13, color: '#6b7280' }
-                    },
-                    tooltip: {
-                        trigger: 'axis',
-                        axisPointer: { type: 'shadow' },
-                        formatter: function (params) {
-                            const district = params[0].axisValue || '';
-                            const withValue = params.filter(p => (p.value || 0) > 0);
-                            let rowTotal = withValue.reduce((s, p) => s + (p.value || 0), 0);
-                            let html = `<div style="padding:10px;background:white;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-                                <strong style="color:#1f2937;font-size:14px;">${district}</strong><br/>
-                                <span style="color:#6b7280;font-size:11px;">(Top 3 dream schemes in this district)</span><br/>`;
-                            withValue.forEach(p => {
-                                const v = p.value || 0;
-                                const pct = rowTotal > 0 ? ((v / rowTotal) * 100).toFixed(1) : 0;
-                                html += `<div style="display:flex;align-items:center;margin:4px 0;">
-                                    <span style="width:10px;height:10px;border-radius:2px;background:${p.color};margin-right:6px;flex-shrink:0;"></span>
-                                    <span style="flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;">${p.seriesName}</span>
-                                    <strong>${v.toLocaleString('en-IN')}</strong>
-                                    <span style="font-size:11px;color:#9ca3af;margin-left:4px;">(${pct}%)</span>
-                                </div>`;
-                            });
-                            html += `<div style="border-top:1px solid #e5e7eb;margin-top:6px;padding-top:6px;font-weight:bold;">Total: ${rowTotal.toLocaleString('en-IN')}</div></div>`;
-                            return html;
-                        }
-                    },
-                    legend: {
-                        type: 'scroll',
-                        orient: 'vertical',
-                        right: 10, top: 80, bottom: 40, width: '20%',
-                        pageIconSize: 12, pageTextStyle: { fontSize: 11 }, pageButtonItemGap: 6,
-                        textStyle: { fontSize: 12 }, itemWidth: 16, itemHeight: 12, itemGap: 6
-                    },
-                    grid: { top: 95, bottom: 40, left: 80, right: '24%', containLabel: true },
-                    xAxis: {
-                        type: 'value', name: 'Count', nameLocation: 'middle', nameGap: 25,
-                        nameTextStyle: { color: '#374151', fontSize: 13 },
-                        axisLine: { lineStyle: { color: '#d1d5db' } },
-                        splitLine: { lineStyle: { color: '#e5e7eb', type: 'dashed' } },
-                        axisLabel: { fontSize: 12, formatter: v => v >= 1000000 ? (v / 1000000).toFixed(1) + 'M' : v >= 1000 ? (v / 1000).toFixed(0) + 'K' : v }
-                    },
-                    yAxis: {
-                        type: 'category',
-                        data: districtNames.map(d => d.length > 28 ? d.substring(0, 28) + '...' : d),
-                        axisLabel: { interval: 0, fontSize: 13, color: '#000' },
-                        axisLine: { lineStyle: { color: '#d1d5db' } },
-                        axisTick: { lineStyle: { color: '#d1d5db' } }
-                    },
-                    series
-                };
-                chart.clear();
-                chart.setOption(option, true);
-                setTimeout(() => chart.resize(), 50);
-            }
-
-            function renderDreamSchemeDonutChart() {
-                if (!API_DATA.top3DreamSchemeData || !API_DATA.top3DreamSchemeData.donutData || !charts.dreamPie) return;
-                const donutData = API_DATA.top3DreamSchemeData.donutData;
-                const colorList = ['#4f46e5', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e', '#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#3b82f6', '#2563eb', '#1d4ed8'];
-                charts.dreamPie.setOption({
-                    tooltip: { trigger: 'item' },
-                    series: [{
-                        type: 'pie',
-                        radius: ['40%', '70%'],
-                        data: donutData,
-                        itemStyle: {
-                            color: (params) => colorList[params.dataIndex % colorList.length],
-                            borderColor: '#ffffff',
-                            borderWidth: 2
-                        },
-                        emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.3)' } }
-                    }]
-                }, true);
-            }
-
-            function showEmptyTop3DreamSchemeChart() {
-                const chartElement = document.getElementById('top3_dream_scheme_bar');
-                if (!chartElement) return;
-                let chart = charts.top3DreamScheme;
-                if (!chart) { chart = echarts.init(chartElement); charts.top3DreamScheme = chart; }
-                chart.setOption({
-                    title: { text: 'Top 3 Dream Scheme - District Wise Distribution', left: 'center', subtext: 'No data available', subtextStyle: { fontSize: 12, color: '#6b7280' } },
-                    tooltip: { trigger: 'axis' },
-                    xAxis: { type: 'value', name: 'Count', axisLine: { lineStyle: { color: '#d1d5db' } } },
-                    yAxis: { type: 'category', data: [], axisLine: { lineStyle: { color: '#d1d5db' } } },
-                    series: [{ name: 'No data', type: 'bar', data: [], itemStyle: { color: '#e5e7eb' } }]
-                }, true);
-            }
-
-            function showEmptyDreamSchemeDonutChart() {
-                if (!charts.dreamPie) return;
-                charts.dreamPie.setOption({
-                    title: { text: 'District-wise Dream Scheme', left: 'center', subtext: 'No data available', subtextStyle: { fontSize: 12, color: '#6b7280' } },
-                    tooltip: { trigger: 'item' },
-                    series: [{ type: 'pie', radius: ['40%', '70%'], data: [], itemStyle: { color: '#e5e7eb' } }]
-                }, true);
-            }
-
             // ================== STACKED BAR CHART FUNCTIONS ==================
 
             async function fetchStackedBarData() {
@@ -3795,10 +3416,6 @@
                     fetchTop5SchemesData();
                     fetchTop5BenefittedSchemeData();
                 }
-                if (tabFetched.dreamScheme) {
-                    fetchDreamSchemeCategoryData();
-                    fetchTop3DreamSchemeData();
-                }
             }
 
             function resetAll() {
@@ -3825,10 +3442,6 @@
                     fetchAgeGenderPyramidData();
                     fetchTop5SchemesData();
                     fetchTop5BenefittedSchemeData();
-                }
-                if (tabFetched.dreamScheme) {
-                    fetchDreamSchemeCategoryData();
-                    fetchTop3DreamSchemeData();
                 }
             }
 
@@ -3919,41 +3532,119 @@
             }
 
             /* =====================================================
-               DREAM SCHEME - API: get_top5_suggestionform_by_district
+               DREAM SCHEME - Static data
             ===================================================== */
             function initDreamSchemeCharts() {
-                if (tabFetched.dreamScheme) return;
-                tabFetched.dreamScheme = true;
-
-                console.log("Fetching Dream Scheme tab APIs...");
+                console.log("Initializing Dream Scheme charts...");
 
                 if (!charts.dreamBar) {
                     const chartElement = document.getElementById('dream_scheme_bar');
                     if (chartElement) {
                         charts.dreamBar = echarts.init(chartElement);
+
+                        const dreamSchemes = ['Housing', 'Education', 'Employment', 'Health'];
+                        const dreamCounts = [95, 120, 70, 50];
+                        const dreamColors = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444'];
+
+                        charts.dreamBar.setOption({
+                            title: {
+                                text: 'Top Dream Schemes (Count)',
+                                left: 'center',
+                                textStyle: { fontSize: 16 }
+                            },
+                            tooltip: { trigger: 'axis' },
+                            grid: {
+                                top: 70,
+                                bottom: 30,
+                                left: '10%',
+                                right: '5%'
+                            },
+                            xAxis: {
+                                type: 'category',
+                                data: dreamSchemes,
+                                name: 'Dream Schemes',
+                                nameTextStyle: { color: '#374151' },
+                                axisLine: {
+                                    lineStyle: { color: '#d1d5db' }
+                                }
+                            },
+                            yAxis: {
+                                type: 'value',
+                                name: 'Count',
+                                nameTextStyle: { color: '#374151' },
+                                axisLine: {
+                                    lineStyle: { color: '#d1d5db' }
+                                },
+                                splitLine: {
+                                    lineStyle: {
+                                        color: '#e5e7eb'
+                                    }
+                                }
+                            },
+                            series: dreamSchemes.map((scheme, index) => ({
+                                name: scheme,
+                                type: 'bar',
+                                data: [dreamCounts[index]],
+                                itemStyle: {
+                                    color: dreamColors[index],
+                                    borderColor: dreamColors[index].replace(/[a-f0-9]{2}$/, '80'),
+                                    borderWidth: 1
+                                }
+                            }))
+                        });
                     }
                 }
-                fetchDreamSchemeCategoryData();
 
                 if (!charts.dreamPie) {
                     const chartElement = document.getElementById('dream_scheme_district_pie');
                     if (chartElement) {
                         charts.dreamPie = echarts.init(chartElement);
-                    }
-                }
-                if (!charts.top3DreamScheme) {
-                    const chartElement = document.getElementById('top3_dream_scheme_bar');
-                    if (chartElement) {
-                        charts.top3DreamScheme = echarts.init(chartElement);
+
+                        const dreamDistrictData = API_DATA.districts.map(d => ({
+                            name: d.district_name,
+                            value: Math.floor(Math.random() * 80) + 20
+                        }));
+
+                        charts.dreamPie.setOption({
+                            title: {
+                                text: 'District-wise Dream Demand',
+                                left: 'center',
+                                textStyle: { fontSize: 16 }
+                            },
+                            tooltip: { trigger: 'item' },
+                            series: [{
+                                type: 'pie',
+                                radius: ['40%', '70%'],
+                                data: dreamDistrictData,
+                                itemStyle: {
+                                    color: function (params) {
+                                        const colorList = [
+                                            '#4f46e5', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef',
+                                            '#ec4899', '#f43f5e', '#ef4444', '#f97316', '#f59e0b',
+                                            '#eab308', '#84cc16', '#22c55e', '#10b981', '#14b8a6',
+                                            '#06b6d4', '#0ea5e9', '#3b82f6', '#2563eb', '#1d4ed8'
+                                        ];
+                                        return colorList[params.dataIndex % colorList.length];
+                                    },
+                                    borderColor: '#ffffff',
+                                    borderWidth: 2
+                                },
+                                emphasis: {
+                                    itemStyle: {
+                                        shadowBlur: 10,
+                                        shadowOffsetX: 0,
+                                        shadowColor: 'rgba(0, 0, 0, 0.3)'
+                                    }
+                                }
+                            }]
+                        });
                     }
                 }
 
-                fetchTop3DreamSchemeData();
-
+                // Force resize all charts
                 setTimeout(() => {
                     if (charts.dreamBar) charts.dreamBar.resize();
                     if (charts.dreamPie) charts.dreamPie.resize();
-                    if (charts.top3DreamScheme) charts.top3DreamScheme.resize();
                 }, 100);
             }
 
