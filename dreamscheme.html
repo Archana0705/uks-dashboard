@@ -795,7 +795,7 @@
                 familyAgeGender: null,
                 ageGenderPyramid: null,
                 schemeCount: null,
-                schemeCoverage: null,
+                top5BenefittedScheme: null, // NEW: For Top 5 Benefitted Scheme
                 dreamBar: null,
                 dreamPie: null
             };
@@ -820,7 +820,8 @@
                 detailedData: [],
                 ageGenderData: null,
                 ageGenderPyramidData: null,
-                top5SchemesData: null,
+                top5SchemesData: null, // For Top 5 Schemes across All Districts
+                top5BenefittedSchemeData: null, // NEW: For Top 5 Benefitted Scheme
                 selectedSchemeId: 'ALL',
                 selectedSchemeName: 'All Schemes'
             };
@@ -833,6 +834,7 @@
                     get_district_taluk_counts: 'get_district_taluk_counts',
                     get_age_gender_distribution_dashboard_form1: 'get_age_gender_distribution_dashboard_form1',
                     get_top5_schemes_by_state: 'get_top5_schemes_by_state',
+                    get_top5_mostbenefit_schemes_by_district: 'get_top5_mostbenefit_schemes_by_district', // ADDED
                     get_scheme_filter: 'get_scheme_filter',
                     get_scheme_age_gender_counts: 'get_scheme_age_gender_counts'
                 }
@@ -2507,6 +2509,439 @@
                 }, true);
             }
 
+            // ================== TOP 5 BENEFITTED SCHEME API ==================
+
+            async function fetchTop5BenefittedSchemeData() {
+                try {
+                    console.log("Fetching Top 5 Benefitted Scheme data...");
+
+                    // Get selected district ID
+                    const districtId = $('#district').val();
+
+                    // Prepare payload - null for ALL districts, or specific district ID
+                    const payload = {
+                        district_id: districtId !== 'ALL' ? Number(districtId) : null
+                    };
+
+                    console.log("Fetching top 5 benefitted scheme with payload:", payload);
+
+                    const response = await makeTop5BenefittedSchemeApiRequest(payload);
+                    handleTop5BenefittedSchemeApiResponse(response);
+
+                } catch (error) {
+                    console.error('Error fetching top 5 benefitted scheme data:', error);
+                    showEmptyTop5BenefittedSchemeChart();
+                }
+            }
+
+            async function makeTop5BenefittedSchemeApiRequest(payload) {
+                try {
+                    const encryptedPayload = encryptData(payload);
+                    const url = API_CONFIG.baseUrl + API_CONFIG.endpoints.get_top5_mostbenefit_schemes_by_district;
+
+                    console.log("Making top 5 benefitted scheme request to:", url);
+                    console.log("Payload:", payload);
+
+                    return await $.ajax({
+                        url: url,
+                        type: "POST",
+                        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                        dataType: "json",
+                        data: { data: encryptedPayload }
+                    });
+                } catch (error) {
+                    console.error('Top 5 Benefitted Scheme API Request Error:', error);
+                    return null;
+                }
+            }
+
+            function handleTop5BenefittedSchemeApiResponse(response) {
+                console.log("Top 5 benefitted scheme API response:", response);
+
+                if (!response || response.success !== 1) {
+                    console.warn('No data or API error for top 5 benefitted scheme:', response);
+                    showEmptyTop5BenefittedSchemeChart();
+                    return;
+                }
+
+                let apiData;
+                try {
+                    const decrypted = decryptData(response.data);
+                    apiData = typeof decrypted === 'string' ? JSON.parse(decrypted) : decrypted;
+
+                    console.log("Decrypted top 5 benefitted scheme data:", apiData);
+
+                    if (typeof apiData === 'string') {
+                        apiData = JSON.parse(apiData);
+                    }
+
+                    // Handle case where data might be nested
+                    if (apiData && apiData.data && Array.isArray(apiData.data)) {
+                        apiData = apiData.data;
+                    }
+                } catch (e) {
+                    console.error('Decrypt/parse failed for top 5 benefitted scheme data', e);
+                    showEmptyTop5BenefittedSchemeChart();
+                    return;
+                }
+
+                if (!Array.isArray(apiData) || apiData.length === 0) {
+                    console.log('No top 5 benefitted scheme data available');
+                    showEmptyTop5BenefittedSchemeChart();
+                    return;
+                }
+
+                console.log("Top 5 benefitted scheme data structure:", apiData);
+                processTop5BenefittedSchemeData(apiData);
+            }
+
+            function processTop5BenefittedSchemeData(apiData) {
+                const schemeNames = [];
+                const schemeCounts = [];
+
+                console.log("Processing top 5 benefitted scheme data, first item:", apiData[0]);
+
+                // Filter data for the selected district (if any)
+                const districtId = $('#district').val();
+
+                let filteredData = apiData;
+
+                if (districtId !== 'ALL') {
+                    // Filter by district_id if a specific district is selected
+                    filteredData = apiData.filter(item => item.district_id == districtId);
+                    console.log(`Filtered data for district ${districtId}:`, filteredData.length, "items");
+                } else {
+                    // For "All Districts", we need to aggregate and find top 5 across all districts
+                    const schemeAggregation = {};
+
+                    apiData.forEach(item => {
+                        const schemeId = item.scheme_id;
+                        const schemeName = item.scheme_name;
+                        const count = Number(item.beneficiary_count || 0);
+
+                        if (!schemeAggregation[schemeId]) {
+                            schemeAggregation[schemeId] = {
+                                name: schemeName,
+                                total: 0
+                            };
+                        }
+
+                        schemeAggregation[schemeId].total += count;
+                    });
+
+                    // Convert to array and sort by total count
+                    const aggregatedArray = Object.values(schemeAggregation);
+                    aggregatedArray.sort((a, b) => b.total - a.total);
+
+                    // Take top 5
+                    filteredData = aggregatedArray.slice(0, 5).map((item, index) => ({
+                        scheme_name: item.name,
+                        beneficiary_count: item.total,
+                        rank_no: index + 1
+                    }));
+
+                    console.log("Aggregated top 5 across all districts:", filteredData);
+                }
+
+                // Sort by rank_no to ensure correct order
+                filteredData.sort((a, b) => (a.rank_no || 99) - (b.rank_no || 99));
+
+                // Extract scheme names and counts
+                filteredData.forEach((item, index) => {
+                    // Use scheme_name from the API response
+                    const schemeName = item.scheme_name || `Scheme ${index + 1}`;
+                    const count = Number(item.beneficiary_count || 0);
+
+                    console.log(`Benefitted Scheme ${index + 1}: ${schemeName} = ${count} (Rank: ${item.rank_no || 'N/A'})`);
+
+                    schemeNames.push(schemeName);
+                    schemeCounts.push(count);
+                });
+
+                // If we have more than 5 items, get only top 5
+                if (schemeNames.length > 5) {
+                    schemeNames.splice(5);
+                    schemeCounts.splice(5);
+                }
+
+                console.log("Final processed benefitted scheme names:", schemeNames);
+                console.log("Final processed benefitted scheme counts:", schemeCounts);
+
+                API_DATA.top5BenefittedSchemeData = {
+                    schemeNames: schemeNames,
+                    schemeCounts: schemeCounts
+                };
+
+                renderTop5BenefittedSchemeChart();
+            }
+
+            function renderTop5BenefittedSchemeChart() {
+                // This chart should replace the static "Top 5 Schemes" stacked bar chart
+                const chartElement = document.getElementById('beneficiary_scheme_pie');
+                if (!chartElement) {
+                    console.error('Top 5 Benefitted Scheme chart element not found');
+                    return;
+                }
+
+                let chart = charts.top5BenefittedScheme;
+                if (!chart) {
+                    chart = echarts.init(chartElement);
+                    charts.top5BenefittedScheme = chart;
+                }
+
+                if (!API_DATA.top5BenefittedSchemeData ||
+                    !API_DATA.top5BenefittedSchemeData.schemeNames ||
+                    API_DATA.top5BenefittedSchemeData.schemeNames.length === 0) {
+                    showEmptyTop5BenefittedSchemeChart();
+                    return;
+                }
+
+                const { schemeNames, schemeCounts } = API_DATA.top5BenefittedSchemeData;
+                const districtId = $('#district').val();
+
+                // Create chart title based on selection
+                let chartTitle;
+                if (districtId === 'ALL') {
+                    chartTitle = 'Top 5 Most Benefitted Schemes (All Districts)';
+                } else {
+                    const districtName = $('#district option:selected').text();
+                    chartTitle = `Top 5 Most Benefitted Schemes in ${districtName}`;
+                }
+
+                // Color palette for schemes
+                const schemeColors = [
+                    '#4f46e5', // Indigo
+                    '#10b981', // Emerald
+                    '#f59e0b', // Amber
+                    '#ef4444', // Red
+                    '#8b5cf6'  // Violet
+                ];
+
+                // Prepare chart data with colors
+                const chartData = schemeNames.map((name, index) => ({
+                    name: name,
+                    value: schemeCounts[index],
+                    itemStyle: {
+                        color: schemeColors[index % schemeColors.length]
+                    }
+                }));
+
+                const total = schemeCounts.reduce((sum, count) => sum + count, 0);
+
+                const option = {
+                    title: {
+                        text: chartTitle,
+                        left: 'center',
+                        textStyle: {
+                            fontSize: 16,
+                            fontWeight: 'bold'
+                        },
+                        subtext: `Total Beneficiaries: ${total.toLocaleString('en-IN')}`,
+                        subtextStyle: {
+                            fontSize: 12,
+                            color: '#6b7280'
+                        }
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'shadow'
+                        },
+                        formatter: function (params) {
+                            let result = `<div style="padding: 10px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <strong style="color: #1f2937; font-size: 14px; margin-bottom: 8px; display: block;">${params[0].name}</strong>`;
+
+                            params.forEach(item => {
+                                const value = item.value || 0;
+                                const percent = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+
+                                result += `<div style="display: flex; align-items: center; justify-content: space-between; margin: 6px 0;">
+                            <div style="display: flex; align-items: center;">
+                                <span style="display:inline-block;margin-right:8px;border-radius:3px;width:12px;height:12px;background-color:${item.color}"></span>
+                                <span style="font-size:13px; color: #6b7280;">Beneficiary Count</span>
+                            </div>
+                            <div style="text-align: right;">
+                                <strong style="color: #1f2937;">${value.toLocaleString('en-IN')}</strong>
+                                <span style="font-size:11px; color: #9ca3af; margin-left: 5px;">(${percent}%)</span>
+                            </div>
+                        </div>`;
+                            });
+
+                            result += `</div>`;
+                            return result;
+                        }
+                    },
+                    grid: {
+                        top: 80,
+                        bottom: 20,
+                        left: '3%',
+                        right: '3%',
+                        containLabel: true
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: schemeNames,
+                        axisLabel: {
+                            rotate: schemeNames.some(name => name.length > 15) ? 45 : 0,
+                            interval: 0,
+                            fontSize: 11,
+                            color: '#374151',
+                            formatter: function (value) {
+                                if (value.length > 20) {
+                                    return value.substring(0, 20) + '...';
+                                }
+                                return value;
+                            }
+                        },
+                        axisLine: {
+                            lineStyle: {
+                                color: '#d1d5db',
+                                width: 1
+                            }
+                        },
+                        axisTick: {
+                            lineStyle: { color: '#d1d5db' }
+                        }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        name: 'Beneficiary Count',
+                        nameTextStyle: {
+                            padding: [0, 0, 0, 10],
+                            color: '#374151',
+                            fontSize: 12
+                        },
+                        axisLine: {
+                            lineStyle: {
+                                color: '#d1d5db',
+                                width: 1
+                            }
+                        },
+                        splitLine: {
+                            lineStyle: {
+                                color: '#e5e7eb',
+                                type: 'dashed'
+                            }
+                        },
+                        axisLabel: {
+                            formatter: function (value) {
+                                if (value >= 1000000) {
+                                    return (value / 1000000).toFixed(1) + 'M';
+                                } else if (value >= 1000) {
+                                    return (value / 1000).toFixed(0) + 'K';
+                                }
+                                return value;
+                            }
+                        }
+                    },
+                    series: [
+                        {
+                            name: 'Beneficiary Count',
+                            type: 'bar',
+                            data: chartData,
+                            itemStyle: {
+                                borderColor: '#ffffff',
+                                borderWidth: 1,
+                                borderRadius: [2, 2, 0, 0]
+                            },
+                            emphasis: {
+                                itemStyle: {
+                                    shadowBlur: 10,
+                                    shadowOffsetX: 0,
+                                    shadowColor: 'rgba(0, 0, 0, 0.3)'
+                                }
+                            },
+                            label: {
+                                show: true,
+                                position: 'top',
+                                formatter: function (params) {
+                                    const value = params.value || 0;
+                                    if (value >= 1000000) {
+                                        return (value / 1000000).toFixed(1) + 'M';
+                                    } else if (value >= 1000) {
+                                        return (value / 1000).toFixed(0) + 'K';
+                                    }
+                                    return value;
+                                },
+                                fontSize: 10,
+                                color: '#1f2937',
+                                fontWeight: 'bold'
+                            }
+                        }
+                    ]
+                };
+
+                chart.clear();
+                chart.setOption(option, true);
+
+                setTimeout(() => {
+                    chart.resize();
+                }, 50);
+            }
+
+            function showEmptyTop5BenefittedSchemeChart() {
+                const chartElement = document.getElementById('beneficiary_scheme_pie');
+                if (!chartElement) return;
+
+                let chart = charts.top5BenefittedScheme;
+                if (!chart) {
+                    chart = echarts.init(chartElement);
+                    charts.top5BenefittedScheme = chart;
+                }
+
+                const districtId = $('#district').val();
+                let chartTitle;
+                if (districtId === 'ALL') {
+                    chartTitle = 'Top 5 Most Benefitted Schemes (All Districts)';
+                } else {
+                    const districtName = $('#district option:selected').text();
+                    chartTitle = `Top 5 Most Benefitted Schemes in ${districtName}`;
+                }
+
+                chart.setOption({
+                    title: {
+                        text: chartTitle,
+                        left: 'center',
+                        subtext: 'No data available',
+                        subtextStyle: {
+                            fontSize: 12,
+                            color: '#6b7280'
+                        }
+                    },
+                    tooltip: {
+                        trigger: 'item'
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: [],
+                        axisLine: {
+                            lineStyle: { color: '#d1d5db' }
+                        }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        name: 'Beneficiary Count',
+                        nameTextStyle: {
+                            padding: [0, 0, 0, 10],
+                            color: '#374151'
+                        },
+                        axisLine: {
+                            lineStyle: { color: '#d1d5db' }
+                        }
+                    },
+                    series: [
+                        {
+                            name: 'Beneficiary Count',
+                            type: 'bar',
+                            data: [],
+                            itemStyle: {
+                                color: '#4f46e5',
+                                opacity: 0.3
+                            }
+                        }
+                    ]
+                }, true);
+            }
             // ================== STACKED BAR CHART FUNCTIONS ==================
 
             async function fetchStackedBarData() {
@@ -3095,7 +3530,9 @@
                     fetchAgeGenderPyramidData();
                 }
 
-                // Note: Top 5 schemes doesn't need to be refreshed as it's state-level
+                // Refresh both top 5 charts
+                fetchTop5SchemesData(); // This doesn't change with district filter (state-level)
+                fetchTop5BenefittedSchemeData(); // This now changes with district filter
             }
 
             function resetAll() {
@@ -3123,7 +3560,8 @@
                     fetchAgeGenderPyramidData();
                 }
 
-                fetchTop5SchemesData();
+                fetchTop5SchemesData(); // Refresh with state data
+                fetchTop5BenefittedSchemeData(); // Refresh with null district_id (all districts)
             }
 
             // Initialize all data
@@ -3138,7 +3576,8 @@
                 fetchPieData();
                 fetchStackedBarData();
                 fetchAgeGenderData(); // Initialize Family Profile age gender chart
-                fetchTop5SchemesData();
+                fetchTop5SchemesData(); // Initialize Top 5 Schemes across All Districts
+                fetchTop5BenefittedSchemeData(); // Initialize Top 5 Benefitted Scheme
                 // Don't fetch pyramid data here - it will be fetched when Beneficiary tab is opened
             }
 
@@ -3194,7 +3633,7 @@
                 // Fetch pyramid data - CALL API
                 fetchAgeGenderPyramidData();
 
-                // Initialize top 5 schemes chart
+                // Initialize top 5 schemes across all districts chart
                 if (!charts.schemeCount) {
                     const chartElement = document.getElementById('scheme_count_bar');
                     if (chartElement) {
@@ -3202,148 +3641,25 @@
                     }
                 }
 
-                // Fetch top 5 schemes data - CALL API
+                // Fetch top 5 schemes across all districts data - CALL API
                 fetchTop5SchemesData();
 
-                // Initialize scheme coverage chart (static data)
-                if (!charts.schemeCoverage) {
+                // Initialize top 5 benefitted scheme chart
+                if (!charts.top5BenefittedScheme) {
                     const chartElement = document.getElementById('beneficiary_scheme_pie');
                     if (chartElement) {
-                        charts.schemeCoverage = echarts.init(chartElement);
-
-                        const topSchemes = ['கலைஞரின் கனவு இல்லம்', 'முதலமைச்சரின் விரிவான மருத்துவ காப்பீட்டு திட்டம்', 'வீட்டுமனைப் பட்டா', 'கூட்டுறவுச் சங்கம்/வங்கி கடன் (சுய வேலைவாய்ப்புக் கடன், கால்நடை கடன்)', 'இதர'];
-                        const districts = API_DATA.districts.map(d => d.district_name);
-                        const schemeColors = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
-
-                        const seriesData = topSchemes.map((scheme, index) => ({
-                            name: scheme,
-                            type: 'bar',
-                            stack: 'scheme',
-                            itemStyle: {
-                                color: schemeColors[index],
-                                borderColor: schemeColors[index].replace(/[a-f0-9]{2}$/, '80'),
-                                borderWidth: 1
-                            },
-                            emphasis: {
-                                focus: 'series'
-                            },
-                            data: districts.map(() => Math.floor(Math.random() * 50) + 10)
-                        }));
-
-                        charts.schemeCoverage.setOption({
-                            title: {
-                                text: 'Top 5 Schemes',
-                                left: 'center',
-                                top: 10,
-                                textStyle: {
-                                    fontSize: 16,
-                                    color: '#1f2937'
-                                }
-                            },
-                            tooltip: {
-                                trigger: 'axis',
-                                axisPointer: { type: 'shadow' },
-                                formatter: function (params) {
-                                    let result = `<div style="padding: 10px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                                <strong style="color: #1f2937; font-size: 14px; margin-bottom: 8px; display: block;">${params[0].name}</strong>
-                                <div style="margin: 8px 0;">`;
-                                    let total = 0;
-                                    params.forEach(item => {
-                                        result += `<div style="display: flex; align-items: center; justify-content: space-between; margin: 6px 0;">
-                                    <div style="display: flex; align-items: center;">
-                                        <span style="display:inline-block;margin-right:8px;border-radius:3px;width:12px;height:12px;background-color:${item.color}"></span>
-                                        <span style="font-size:13px; color: #6b7280;">${item.seriesName}</span>
-                                    </div>
-                                        <strong style="color: #1f2937;">${item.value}</strong>
-                                    </div>`;
-                                        total += item.value;
-                                    });
-                                    result += `</div>
-                                <hr style="border:none;border-top:2px solid #e5e7eb;margin:10px 0;">
-                                <div style="display:flex;justify-content:space-between;align-items:center;">
-                                    <span style="font-size:14px;color:#1f2937;font-weight:600;">Total:</span>
-                                    <strong style="color: #1f2937; font-size: 16px;">${total}</strong>
-                                </div>
-                            </div>`;
-                                    return result;
-                                }
-                            },
-                            legend: {
-                                show: false
-                            },
-                            grid: {
-                                top: 50,
-                                bottom: 100,
-                                left: '3%',
-                                right: '4%',
-                                containLabel: true
-                            },
-                            xAxis: {
-                                type: 'category',
-                                data: districts,
-                                axisLabel: {
-                                    rotate: 45,
-                                    interval: 0,
-                                    fontSize: 10,
-                                    color: '#374151',
-                                    formatter: function (value) {
-                                        return value.length > 10 ? value.substring(0, 10) + '...' : value;
-                                    }
-                                },
-                                axisLine: {
-                                    lineStyle: { color: '#d1d5db' }
-                                },
-                                axisTick: {
-                                    alignWithLabel: true,
-                                    lineStyle: { color: '#d1d5db' }
-                                },
-                                name: 'Districts',
-                                nameLocation: 'middle',
-                                nameGap: 35,
-                                nameTextStyle: {
-                                    color: '#374151',
-                                    fontWeight: 'bold'
-                                }
-                            },
-                            yAxis: {
-                                type: 'value',
-                                name: 'Beneficiary Count',
-                                nameTextStyle: {
-                                    padding: [0, 0, 0, 10],
-                                    color: '#374151',
-                                    fontWeight: 'bold'
-                                },
-                                axisLine: {
-                                    lineStyle: { color: '#d1d5db' }
-                                },
-                                splitLine: {
-                                    lineStyle: {
-                                        color: '#e5e7eb'
-                                    }
-                                }
-                            },
-                            dataZoom: [
-                                {
-                                    type: 'slider',
-                                    bottom: 30,
-                                    start: 0,
-                                    end: 20,
-                                    height: 20,
-                                    backgroundColor: '#f9fafb',
-                                    borderColor: '#d1d5db'
-                                },
-                                { type: 'inside' }
-                            ],
-                            series: seriesData
-                        });
+                        charts.top5BenefittedScheme = echarts.init(chartElement);
                     }
                 }
+
+                // Fetch top 5 benefitted scheme data - CALL API
+                fetchTop5BenefittedSchemeData();
 
                 // Force resize all charts
                 setTimeout(() => {
                     if (charts.ageGenderPyramid) charts.ageGenderPyramid.resize();
                     if (charts.schemeCount) charts.schemeCount.resize();
-                    if (charts.schemeCoverage) charts.schemeCoverage.resize();
+                    if (charts.top5BenefittedScheme) charts.top5BenefittedScheme.resize();
                 }, 100);
             }
 
@@ -3543,7 +3859,6 @@
             // Make showSchemeFilterDropdown available globally
             window.showSchemeFilterDropdown = showSchemeFilterDropdown;
         </script>
-
 </body>
 
 </html>
