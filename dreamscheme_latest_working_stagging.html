@@ -6,7 +6,7 @@
     <title>UKS Analytics - Dream Scheme</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="assets/css/bootstrap.min.css" rel="stylesheet">
-    <link href="assets/css/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="assets/css/bootstrap-icons.css" rel="stylesheet">
 
     <style>
         body {
@@ -134,7 +134,7 @@
         }
 
         .main-content {
-            /* margin-left: 240px; */
+            margin-left: 240px;
             width: 100%;
             transition: .3s;
             margin-top: 64px;
@@ -547,67 +547,15 @@
             border: 1px solid #7274fb !important;
             border-radius: 4px 7px;
         }
-
-        .dashboard-active {
-            background-color: rgba(255, 255, 255, 0.2);
-            /* color: #fff; */
-        }
-
-        .dashboard-active i {
-            font-size: 1.1rem;
-        }
-
-        .card h5 {
-            color: #0a58ca;
-            font-weight: 600;
-        }
-
-        .font24 {
-            font-size: 24px;
-        }
-
-        .card {
-            border-radius: 10px;
-            padding: 12px !important;
-            /* margin-bottom: 10px !important; */
-            border-left: 4px solid;
-            border-left-color: #4f46e5;
-        }
-
-        .header-filter {
-            background: rgba(255, 255, 255, 0.15);
-            padding: 6px 10px;
-            border-radius: 10px;
-            backdrop-filter: blur(6px);
-        }
-
-        /* .header-select {
-            min-width: 160px;
-            border: none;
-            background: transparent;
-            color: #fff;
-        } */
-
-        .header-select option {
-            color: #000;
-        }
-
-        .header-filter .btn {
-            border-radius: 8px;
-        }
-
-        div#pie-nav-container {
-            position: absolute;
-            top: 0;
-            right: 0;
-            z-index: 999;
-        }
     </style>
 </head>
 
 <body>
-    <!-- <nav class="navbar navbar-expand-lg app-header px-4">
+    <nav class="navbar navbar-expand-lg app-header px-4">
         <div class="d-flex align-items-center">
+            <button class="btn btn-sm btn-light" onclick="toggleSidebar()">
+                <i class="bi bi-list"></i>
+            </button>
             <img src="assets/img/tn_logo.png" height="36" class="me-2">
             <span class="ms-2 fw-bold">UKS Analytics</span>
         </div>
@@ -628,79 +576,21 @@
                 </ul>
             </div>
         </div>
-    </nav> -->
-
-
-    <nav class="navbar navbar-expand-lg app-header px-4 fixed-top">
-        <div class="d-flex align-items-center">
-            <img src="assets/img/tn_logo.png" height="36" class="me-2">
-            <span class="ms-2 fw-bold font24">UKS Analytics</span>
-
-            <!-- Dashboard Menu -->
-            <div class="ms-4 d-flex align-items-center">
-                <a href="dashboard.html"
-                    class="d-flex align-items-center gap-2 px-3 py-2 rounded text-decoration-none fw-semibold dashboard-active">
-                    <i class="bi bi-speedometer2"></i>
-                    <span>Dashboard</span>
-                </a>
-            </div>
-
-            <!-- Geographic Filter (Header Version) -->
-            <div class="d-flex align-items-center gap-2 header-filter">
-                <i class="bi bi-geo-alt text-light"></i>
-
-                <select id="district" class="form-select form-select-sm header-select">
-                    <option value="ALL" selected>All Districts</option>
-                </select>
-
-                <button class="btn btn-sm btn-primary" onclick="applyFilters()">
-                    <i class="bi bi-funnel"></i>
-                </button>
-
-                <button class="btn btn-sm btn-outline-danger" onclick="resetAll()">
-                    <i class="bi bi-arrow-counterclockwise"></i>
-                </button>
-            </div>
-
-        </div>
-
-        <!-- RIGHT SIDE AREA -->
-        <div class="ms-auto d-flex align-items-center gap-4 nomob">
-
-
-
-            <!-- User Dropdown -->
-            <div class="dropdown">
-                <button class="btn btn-link text-decoration-none d-flex align-items-center gap-2"
-                    data-bs-toggle="dropdown">
-                    <i class="bi bi-person-circle fs-5"></i>
-                    <span class="text-muted">Welcome, <b>User Name</b></span>
-                    <i class="bi bi-chevron-down"></i>
-                </button>
-
-                <ul class="dropdown-menu dropdown-menu-end shadow">
-                    <li>
-                        <a class="dropdown-item" href="#">
-                            <i class="bi bi-person me-2"></i> Profile
-                        </a>
-                    </li>
-                    <li>
-                        <hr class="dropdown-divider">
-                    </li>
-                    <li>
-                        <a class="dropdown-item text-danger" href="#">
-                            <i class="bi bi-box-arrow-right me-2"></i> Logout
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
     </nav>
 
-
-
     <div class="app-wrapper">
+        <div id="sidebar" class="sidebar">
+            <ul class="sidebar-menu">
+                <!-- <li><a href="index.html"><i class="bi bi-speedometer2"></i> <span>Dashboard</span></a></li>
+                <li><a href="#"><i class="bi bi-people"></i> <span>Beneficiary</span></a></li>
+                <li><a href="#"><i class="bi bi-card-checklist"></i> <span>Beneficial Scheme</span></a></li> -->
+                <li class="active"><a href="dreamscheme.html"><i class="bi bi-stars"></i> <span>Dashboard</span></a>
+                    <!-- <li><a href="dreamscheme-district-wise-distribution.html"><i class="bi bi-stars"></i> <span>Dream
+                            Scheme</span></a>
 
+                </li> -->
+            </ul>
+        </div>
 
         <div id="main" class="main-content">
             <button class="btn btn-outline-primary w-100 d-md-none filterWraps" data-bs-toggle="collapse"
@@ -708,11 +598,15 @@
                 <i class="bi bi-funnel"></i> Filters
             </button>
 
-            <!-- <div id="mobileFilters" class="collapse d-md-block">
-                <div class="filter-bar shadow-sm filter-section geographic-filter"> -->
+            <div id="mobileFilters" class="collapse d-md-block">
+                <div class="filter-bar shadow-sm">
+                    <!-- Logic Toggle -->
+                    <div class="logic-toggle">
+                        <!-- <span class="filter-group-title">Overall Filter Logic:</span> -->
+                    </div>
 
-            <!-- Geographic Filters -->
-            <!-- <div class="">
+                    <!-- Geographic Filters -->
+                    <div class="filter-section geographic-filter">
                         <div class="filter-group-title">
                             <i class="bi bi-geo-alt"></i>
                             Geographic Filters
@@ -725,7 +619,12 @@
                                 </select>
                             </div>
 
-                    
+                            <!-- <div class="col-md-3 mb-2">
+                                <label>Taluk</label>
+                                <select id="taluk" class="form-select">
+                                    <option value="ALL" selected>Select Taluk</option>
+                                </select>
+                            </div> -->
 
                             <div class="col-md-3 mb-2  gap-2 justify-content-end">
                                 <button class="btn btn-primary" onclick="applyFilters()">
@@ -736,15 +635,15 @@
                                 </button>
                             </div>
                         </div>
-                    </div> -->
-            <!-- <div class="row mt-2">
+                    </div>
+                    <div class="row mt-2">
                         <div class="col-md-8">
                             <div id="activeFiltersDisplay" class="d-flex flex-wrap gap-2"></div>
                         </div>
 
-                    </div> -->
-            <!-- </div>
-            </div> -->
+                    </div>
+                </div>
+            </div>
 
             <div class="container-fluid">
                 <div class="row">
@@ -825,7 +724,7 @@
 
                                 </div>
 
-                                <div class="row my-2">
+                                <div class="row g-3 mt-3">
 
                                     <div class="col-lg-12">
                                         <div class="card p-3 shadow">
@@ -857,7 +756,7 @@
                                     </div>
                                 </div>
 
-                                <div class="row my-2">
+                                <div class="row g-3 mt-3">
                                     <div class="col-lg-12">
                                         <div class="card p-3 shadow">
                                             <h5>Top 5 Benefitted Scheme - District Wise Distribution</h5>
@@ -887,7 +786,7 @@
                                     </div>
                                 </div>
 
-                                <div class="row my-2">
+                                <div class="row g-3 mt-3">
                                     <div class="col-lg-12">
                                         <div class="card p-3 shadow">
                                             <h5>Top 3 Dream Scheme - District Wise Distribution</h5>
@@ -896,7 +795,7 @@
                                     </div>
                                 </div>
 
-                                <div class="row my-2">
+                                <div class="row g-3 mt-3">
                                     <div class="col-lg-12">
                                         <div class="card p-3 shadow">
                                             <h5>Scheme Description</h5>
