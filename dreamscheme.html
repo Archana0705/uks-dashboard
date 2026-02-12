@@ -558,7 +558,7 @@
         }
 
         .card h5 {
-            color: #0a58ca;
+            color: #334155;
             font-weight: 600;
         }
 
@@ -892,6 +892,19 @@
                                         <div class="card p-3 shadow">
                                             <h5>Top 3 Dream Scheme - District Wise Distribution</h5>
                                             <div id="top3_dream_scheme_bar" style="height:780px;"></div>
+                                            <div id="legendTooltip" style="
+                                            position:fixed;
+                                            display:none;
+                                            max-width:320px;
+                                            background:#111827;
+                                            color:white;
+                                            padding:8px 10px;
+                                            border-radius:6px;
+                                            font-size:12px;
+                                            line-height:1.4;
+                                            z-index:9999;
+                                            pointer-events:none;
+                                        "></div>
                                         </div>
                                     </div>
                                 </div>
@@ -900,19 +913,6 @@
                                     <div class="col-lg-12">
                                         <div class="card p-3 shadow">
                                             <h5>Scheme Description</h5>
-                                            <!-- <div class="row g-2 align-items-end mb-3">
-                                                <div class="col-md-4">
-                                                    <label class="form-label small text-muted mb-1">Scheme</label>
-                                                    <select id="scheme_description_dropdown"
-                                                        class="form-select form-select-sm">
-                                                        <option value="">-- Select Scheme --</option>
-                                                    </select>
-                                                </div>
-                                                <div class="col-md-2">
-                                                    <button type="button" class="btn btn-sm btn-primary"
-                                                        id="btn_load_scheme_description">Load Description</button>
-                                                </div>
-                                            </div> -->
                                             <div id="scheme_description_content"
                                                 class="border rounded p-3 bg-light small"
                                                 style="min-height:120px; max-height:320px; overflow-y:auto;">
@@ -987,8 +987,8 @@
             };
 
             const API_CONFIG = {
-                baseUrl: 'https://tngis.tnega.org/state_scholarship_portal_api/sfdb_survey/api/v1/dashboard2/',
-                // baseUrl: 'https://tngis.tnega.org/state_scholarship_portal_api/sfdb_survey/api/v1/analytics/',
+                // baseUrl: 'https://tngis.tnega.org/state_scholarship_portal_api/sfdb_survey/api/v1/dashboard2/',
+                baseUrl: 'https://sfdb-web.eba-xxzkshkf.ap-south-2.elasticbeanstalk.com/api/v1/analytics/',
                 endpoints: {
                     dynamic_input: 'dynamic_input',
                     description_details: 'description_details',
@@ -1021,7 +1021,6 @@
             async function makeSchemeFilterApiRequest() {
                 try {
                     const url = API_CONFIG.baseUrl + API_CONFIG.endpoints.get_scheme_filter;
-
                     return await $.ajax({
                         url: url,
                         type: "POST",
@@ -3444,88 +3443,288 @@
                 renderDreamSchemeDonutChart();
             }
 
+            // function renderTop3DreamSchemeChart() {
+            //     const chartElement = document.getElementById('top3_dream_scheme_bar');
+            //     if (!chartElement) return;
+            //     let chart = charts.top3DreamScheme;
+            //     if (!chart) {
+            //         chart = echarts.init(chartElement);
+            //         charts.top3DreamScheme = chart;
+            //     }
+            //     if (!API_DATA.top3DreamSchemeData || !API_DATA.top3DreamSchemeData.districtNames || API_DATA.top3DreamSchemeData.districtNames.length === 0) {
+            //         showEmptyTop3DreamSchemeChart();
+            //         return;
+            //     }
+            //     const { districtNames, schemeNames, districtCountsByScheme } = API_DATA.top3DreamSchemeData;
+            //     const schemeColors = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16', '#ec4899', '#6366f1'];
+            //     const total = districtCountsByScheme.reduce((sum, row) => sum + row.reduce((s, c) => s + c, 0), 0);
+            //     const shortSchemeNames = schemeNames.map(n => n.length > 30 ? n.substring(0, 30) + '...' : n);
+            //     const series = shortSchemeNames.map((name, idx) => ({
+            //         name, type: 'bar', stack: 'total',
+            //         data: districtCountsByScheme.map(row => row[idx] || 0),
+            //         itemStyle: { color: schemeColors[idx % schemeColors.length] },
+            //         emphasis: { itemStyle: { shadowBlur: 8, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.2)' } }
+            //     }));
+            //     const option = {
+            //         title: {
+            //             // text: 'Top 3 Dream Scheme - District Wise Distribution',
+            //             left: 'center',
+            //             textStyle: { fontSize: 16, fontWeight: 'bold' },
+            //             subtext: `Total: ${total.toLocaleString('en-IN')} • Each district shows its own top 3 schemes`,
+            //             subtextStyle: { fontSize: 13, color: '#6b7280' }
+            //         },
+            //         tooltip: {
+            //             trigger: 'axis',
+            //             axisPointer: { type: 'shadow' },
+            //             formatter: function (params) {
+            //                 const district = params[0].axisValue || '';
+            //                 const withValue = params.filter(p => (p.value || 0) > 0);
+            //                 let rowTotal = withValue.reduce((s, p) => s + (p.value || 0), 0);
+            //                 let html = `<div style="padding:10px;background:white;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+            //                     <strong style="color:#1f2937;font-size:14px;">${district}</strong><br/>
+            //                     <span style="color:#6b7280;font-size:11px;">(Top 3 dream schemes in this district)</span><br/>`;
+            //                 withValue.forEach(p => {
+            //                     const v = p.value || 0;
+            //                     const pct = rowTotal > 0 ? ((v / rowTotal) * 100).toFixed(1) : 0;
+            //                     html += `<div style="display:flex;align-items:center;margin:4px 0;">
+            //                         <span style="width:10px;height:10px;border-radius:2px;background:${p.color};margin-right:6px;flex-shrink:0;"></span>
+            //                         <span style="
+            //                                 flex:1;
+            //                                 font-size:12px;
+            //                                 white-space:normal;
+            //                                 word-break:break-word;
+            //                                 line-height:1.4;
+            //                             ">
+            //                                 ${p.seriesName}
+            //                             </span>
+            //                         <strong>${v.toLocaleString('en-IN')}</strong>
+            //                         <span style="font-size:11px;color:#9ca3af;margin-left:4px;">(${pct}%)</span>
+            //                     </div>`;
+            //                 });
+            //                 html += `<div style="border-top:1px solid #e5e7eb;margin-top:6px;padding-top:6px;font-weight:bold;">Total: ${rowTotal.toLocaleString('en-IN')}</div></div>`;
+            //                 return html;
+            //             }
+            //         },
+            //         legend: {
+            //             type: 'scroll',
+            //             orient: 'vertical',
+            //             right: 10,
+            //             top: 80,
+            //             bottom: 40,
+            //             width: '20%',
+            //             triggerEvent: true,   // ⭐ REQUIRED
+            //             formatter: function (name) {
+            //                 return name.length > 18 ? name.slice(0, 18) + '…' : name;
+            //             }
+            //         },
+            //         grid: { top: 95, bottom: 40, left: 80, right: '24%', containLabel: true },
+            //         xAxis: {
+            //             type: 'value', name: 'Count', nameLocation: 'middle', nameGap: 25,
+            //             nameTextStyle: { color: '#374151', fontSize: 13 },
+            //             axisLine: { lineStyle: { color: '#d1d5db' } },
+            //             splitLine: { lineStyle: { color: '#e5e7eb', type: 'dashed' } },
+            //             axisLabel: { fontSize: 12, formatter: v => v >= 1000000 ? (v / 1000000).toFixed(1) + 'M' : v >= 1000 ? (v / 1000).toFixed(0) + 'K' : v }
+            //         },
+            //         yAxis: {
+            //             type: 'category',
+            //             data: districtNames.map(d => d.length > 28 ? d.substring(0, 28) + '...' : d),
+            //             axisLabel: { interval: 0, fontSize: 13, color: '#000' },
+            //             axisLine: { lineStyle: { color: '#d1d5db' } },
+            //             axisTick: { lineStyle: { color: '#d1d5db' } }
+            //         },
+            //         series
+            //     };
+            //     chart.clear();
+            //     chart.setOption(option, true);
+            //     setTimeout(() => chart.resize(), 50);
+
+            //     chart.on('mouseover', function (params) {
+            //         if (params.componentType === 'legend') {
+            //             const tooltip = document.getElementById('legendTooltip');
+            //             tooltip.innerHTML = params.name; // FULL scheme name
+            //             tooltip.style.left = params.event.event.pageX + 12 + 'px';
+            //             tooltip.style.top = params.event.event.pageY + 12 + 'px';
+            //             tooltip.style.display = 'block';
+            //         }
+            //     });
+
+            //     chart.on('mousemove', function (params) {
+            //         if (params.componentType === 'legend') {
+            //             const tooltip = document.getElementById('legendTooltip');
+            //             tooltip.style.left = params.event.event.pageX + 12 + 'px';
+            //             tooltip.style.top = params.event.event.pageY + 12 + 'px';
+            //         }
+            //     });
+
+            //     chart.on('mouseout', function (params) {
+            //         if (params.componentType === 'legend') {
+            //             document.getElementById('legendTooltip').style.display = 'none';
+            //         }
+            //     });
+
+            // }
+
             function renderTop3DreamSchemeChart() {
                 const chartElement = document.getElementById('top3_dream_scheme_bar');
                 if (!chartElement) return;
+
                 let chart = charts.top3DreamScheme;
                 if (!chart) {
                     chart = echarts.init(chartElement);
                     charts.top3DreamScheme = chart;
                 }
-                if (!API_DATA.top3DreamSchemeData || !API_DATA.top3DreamSchemeData.districtNames || API_DATA.top3DreamSchemeData.districtNames.length === 0) {
-                    showEmptyTop3DreamSchemeChart();
+
+                if (
+                    !API_DATA.top3DreamSchemeData ||
+                    !API_DATA.top3DreamSchemeData.districtNames ||
+                    API_DATA.top3DreamSchemeData.districtNames.length === 0
+                ) {
+                    chart.clear();
                     return;
                 }
-                const { districtNames, schemeNames, districtCountsByScheme } = API_DATA.top3DreamSchemeData;
-                const schemeColors = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16', '#ec4899', '#6366f1'];
-                const total = districtCountsByScheme.reduce((sum, row) => sum + row.reduce((s, c) => s + c, 0), 0);
-                const shortSchemeNames = schemeNames.map(n => n.length > 30 ? n.substring(0, 30) + '...' : n);
-                const series = shortSchemeNames.map((name, idx) => ({
-                    name, type: 'bar', stack: 'total',
-                    data: districtCountsByScheme.map(row => row[idx] || 0),
-                    itemStyle: { color: schemeColors[idx % schemeColors.length] },
-                    emphasis: { itemStyle: { shadowBlur: 8, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.2)' } }
+
+                const { districtNames, schemeNames, districtCountsByScheme } =
+                    API_DATA.top3DreamSchemeData;
+
+                const schemeColors = [
+                    '#4f46e5', '#10b981', '#f59e0b',
+                    '#ef4444', '#8b5cf6', '#06b6d4',
+                    '#84cc16', '#ec4899', '#6366f1'
+                ];
+
+                // 🔹 Map full & short names
+                const legendMap = schemeNames.map(name => ({
+                    full: name,
+                    short: name.length > 18 ? name.slice(0, 18) + '…' : name
                 }));
+
+                const series = schemeNames.map((name, idx) => ({
+                    name,
+                    type: 'bar',
+                    stack: 'total',
+                    data: districtCountsByScheme.map(row => row[idx] || 0),
+                    itemStyle: { color: schemeColors[idx % schemeColors.length] }
+                }));
+
                 const option = {
-                    title: {
-                        // text: 'Top 3 Dream Scheme - District Wise Distribution',
-                        left: 'center',
-                        textStyle: { fontSize: 16, fontWeight: 'bold' },
-                        subtext: `Total: ${total.toLocaleString('en-IN')} • Each district shows its own top 3 schemes`,
-                        subtextStyle: { fontSize: 13, color: '#6b7280' }
-                    },
                     tooltip: {
                         trigger: 'axis',
-                        axisPointer: { type: 'shadow' },
-                        formatter: function (params) {
-                            const district = params[0].axisValue || '';
-                            const withValue = params.filter(p => (p.value || 0) > 0);
-                            let rowTotal = withValue.reduce((s, p) => s + (p.value || 0), 0);
-                            let html = `<div style="padding:10px;background:white;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-                                <strong style="color:#1f2937;font-size:14px;">${district}</strong><br/>
-                                <span style="color:#6b7280;font-size:11px;">(Top 3 dream schemes in this district)</span><br/>`;
-                            withValue.forEach(p => {
-                                const v = p.value || 0;
-                                const pct = rowTotal > 0 ? ((v / rowTotal) * 100).toFixed(1) : 0;
-                                html += `<div style="display:flex;align-items:center;margin:4px 0;">
-                                    <span style="width:10px;height:10px;border-radius:2px;background:${p.color};margin-right:6px;flex-shrink:0;"></span>
-                                    <span style="flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;">${p.seriesName}</span>
-                                    <strong>${v.toLocaleString('en-IN')}</strong>
-                                    <span style="font-size:11px;color:#9ca3af;margin-left:4px;">(${pct}%)</span>
-                                </div>`;
-                            });
-                            html += `<div style="border-top:1px solid #e5e7eb;margin-top:6px;padding-top:6px;font-weight:bold;">Total: ${rowTotal.toLocaleString('en-IN')}</div></div>`;
-                            return html;
-                        }
+                        axisPointer: { type: 'shadow' }
                     },
+
                     legend: {
                         type: 'scroll',
                         orient: 'vertical',
-                        right: 10, top: 80, bottom: 40, width: '20%',
-                        pageIconSize: 12, pageTextStyle: { fontSize: 11 }, pageButtonItemGap: 6,
-                        textStyle: { fontSize: 12 }, itemWidth: 16, itemHeight: 12, itemGap: 6
+                        right: 10,
+                        top: 80,
+                        bottom: 40,
+                        width: '20%',
+                        data: schemeNames,
+                        formatter: function (name) {
+                            const found = legendMap.find(l => l.full === name);
+                            return found ? found.short : name;
+                        }
                     },
-                    grid: { top: 95, bottom: 40, left: 80, right: '24%', containLabel: true },
+
+                    grid: {
+                        top: 95,
+                        bottom: 40,
+                        left: 80,
+                        right: '24%',
+                        containLabel: true
+                    },
+
                     xAxis: {
-                        type: 'value', name: 'Count', nameLocation: 'middle', nameGap: 25,
-                        nameTextStyle: { color: '#374151', fontSize: 13 },
-                        axisLine: { lineStyle: { color: '#d1d5db' } },
-                        splitLine: { lineStyle: { color: '#e5e7eb', type: 'dashed' } },
-                        axisLabel: { fontSize: 12, formatter: v => v >= 1000000 ? (v / 1000000).toFixed(1) + 'M' : v >= 1000 ? (v / 1000).toFixed(0) + 'K' : v }
+                        type: 'value'
                     },
+
                     yAxis: {
                         type: 'category',
-                        data: districtNames.map(d => d.length > 28 ? d.substring(0, 28) + '...' : d),
-                        axisLabel: { interval: 0, fontSize: 13, color: '#000' },
-                        axisLine: { lineStyle: { color: '#d1d5db' } },
-                        axisTick: { lineStyle: { color: '#d1d5db' } }
+                        data: districtNames
                     },
+
                     series
                 };
+
                 chart.clear();
                 chart.setOption(option, true);
-                setTimeout(() => chart.resize(), 50);
+                chart.resize();
+
+
+                // ===============================
+                // LEGEND HOVER TOOLTIP (FULL NAME)
+                // ===============================
+                const legendTooltip = document.getElementById('legendTooltip');
+
+                // SHOW tooltip
+                chart.on('legendmouseover', function (params) {
+                    legendTooltip.innerHTML = params.name; // FULL scheme name
+                    legendTooltip.style.display = 'block';
+                });
+
+                // MOVE tooltip with cursor
+                chart.getZr().on('mousemove', function (event) {
+                    if (legendTooltip.style.display === 'block') {
+                        legendTooltip.style.left = event.event.pageX + 12 + 'px';
+                        legendTooltip.style.top = event.event.pageY + 12 + 'px';
+                    }
+                });
+
+                // HIDE tooltip
+                chart.on('legendmouseout', function () {
+                    legendTooltip.style.display = 'none';
+                });
+
+                // ===============================
+                // ⭐ LEGEND FULL NAME TOOLTIP ⭐
+                // ===============================
+                const tooltipDiv = document.getElementById('legendTooltip');
+
+                chart.getZr().on('mousemove', function (event) {
+                    const point = [event.offsetX, event.offsetY];
+                    let hovered = false;
+
+                    chart.getModel().eachComponent('legend', function (legendModel) {
+                        const legendData = legendModel.getData();
+
+                        // ✅ Works whether getData() is array or List
+                        const items = Array.isArray(legendData)
+                            ? legendData
+                            : legendData._data || [];
+
+                        items.forEach(function (item) {
+                            const el = item.getGraphicEl && item.getGraphicEl();
+                            if (!el) return;
+
+                            const rect = el.getBoundingRect().clone();
+                            rect.applyTransform(el.transform);
+
+                            if (
+                                point[0] >= rect.x &&
+                                point[0] <= rect.x + rect.width &&
+                                point[1] >= rect.y &&
+                                point[1] <= rect.y + rect.height
+                            ) {
+                                tooltipDiv.style.display = 'block';
+                                tooltipDiv.innerHTML = item.name || item.get('name');
+                                tooltipDiv.style.left = event.event.pageX + 12 + 'px';
+                                tooltipDiv.style.top = event.event.pageY + 12 + 'px';
+                                hovered = true;
+                            }
+                        });
+                    });
+
+                    if (!hovered) {
+                        tooltipDiv.style.display = 'none';
+                    }
+                });
+
+                chart.getZr().on('mouseout', function () {
+                    tooltipDiv.style.display = 'none';
+                });
+
             }
+
 
             function renderDreamSchemeDonutChart() {
                 if (!API_DATA.top3DreamSchemeData || !API_DATA.top3DreamSchemeData.donutData || !charts.dreamPie) return;
@@ -3585,7 +3784,7 @@
                     const payload = {
                         district_id: filterDistrictId,
                         taluk_id: talukId !== 'ALL' ? Number(talukId) : null,
-                        village_id: null,
+                        // village_id: null,
                         shopcode: null
                     };
 
@@ -4020,7 +4219,7 @@
                 const payload = {
                     district_id: drillState.district_id,
                     taluk_id: drillState.taluk_id,
-                    village_id: drillState.village_id,
+                    // village_id: drillState.village_id,
                     shopcode: null
                 };
 
@@ -4080,11 +4279,11 @@
                     title: {
                         text: getPieTitle(),
                         left: 'center',
-                        subtext: `Total Families: ${total}`,
-                        subtextStyle: {
-                            fontSize: 12,
-                            color: '#6b7280'
-                        }
+                        subtext: `Total Families: ${total.toLocaleString('en-IN')
+                            }`, subtextStyle: {
+                                fontSize: 12,
+                                color: '#6b7280'
+                            }
                     },
                     tooltip: {
                         trigger: 'item',
@@ -4092,14 +4291,18 @@
                             const percent = total
                                 ? ((p.value / total) * 100).toFixed(1)
                                 : 0;
-                            return `${p.name}<br/>Families: ${p.value} (${percent}%)`;
+                            return `${p.name} Families: ${p.value.toLocaleString('en-IN')} (${percent}%)`;
                         }
                     },
                     series: [{
                         type: 'pie',
                         radius: '60%',
                         data: pieData,
-                        label: { formatter: '{b}: {c}' }
+                        label: {
+                            formatter: params => {
+                                return `${params.name}: ${params.value.toLocaleString('en-IN')}`;
+                            }
+                        }
                     }]
                 });
 
