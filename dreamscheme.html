@@ -602,6 +602,65 @@
             right: 0;
             z-index: 999;
         }
+
+        /* Main container */
+        .scheme-desc-card {
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .scheme-desc-body {
+            background: #f9fafb;
+            padding: 10px;
+            min-height: 120px;
+            max-height: 280px;
+            /* reduced */
+            overflow-y: auto;
+        }
+
+        /* District container */
+        .district-block {
+            background: #fff;
+            border-radius: 6px;
+            padding: 8px 10px;
+            margin-bottom: 10px;
+            border-left: 3px solid #2563eb;
+        }
+
+        /* Header row */
+        .district-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .district-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        /* Count badge */
+        .remark-count {
+            font-size: 0.7rem;
+            background: #eef2ff;
+            color: #2563eb;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        /* Remarks */
+        .remark-item {
+            background: #f3f4f6;
+            border-radius: 5px;
+            padding: 6px 8px;
+            /* reduced */
+            margin-bottom: 4px;
+            font-size: 0.78rem;
+            line-height: 1.4;
+            color: #374151;
+        }
     </style>
 </head>
 
@@ -909,7 +968,7 @@
                                     </div>
                                 </div>
 
-                                <div class="row my-2">
+                                <!-- <div class="row my-2">
                                     <div class="col-lg-12">
                                         <div class="card p-3 shadow">
                                             <h5>Scheme Description</h5>
@@ -925,7 +984,30 @@
                                             </div>
                                         </div>
                                     </div>
+                                </div> -->
+                                <div class="card scheme-desc-card shadow-sm">
+                                    <div class="card-header bg-white border-bottom">
+                                        <h5 class="mb-0 fw-semibold text-primary">
+                                            <i class="bi bi-file-text me-2"></i>Scheme Description
+                                        </h5>
+                                    </div>
+
+                                    <div id="scheme_description_content" class="scheme-desc-body">
+                                        <div class="text-muted text-center py-4">
+                                            Select a District
+                                        </div>
+                                    </div>
+
+                                    <div class="text-center py-2" id="scheme_remarks_load_more_wrap"
+                                        style="display:none;">
+                                        <button type="button" class="btn btn-sm btn-outline-primary px-4"
+                                            id="btn_scheme_remarks_add_more">
+                                            Load more
+                                        </button>
+                                    </div>
                                 </div>
+
+
                             </div>
                         </div>
                     </div>
@@ -3218,24 +3300,46 @@
                 return Object.values(districtGroups);
             }
 
-            // Modified render function to show district once with all remarks
+            //         // Modified render function to show district once with all remarks
+            //         function renderDistrictGroup(districtGroup) {
+            //             const districtName = escapeHtml(districtGroup.name);
+            //             const count = districtGroup.count;
+            //             const remarksHtml = districtGroup.remarks.map(remark => {
+            //                 const formattedRemark = remark ? escapeHtml(String(remark)).replace(/\n/g, '<br/>') : '—';
+            //                 return `<div class="remark-item ps-3 ms-1 border-start border-secondary-subtle">${formattedRemark}</div>`;
+            //             }).join('');
+
+            //             return `
+            //     <div class="mb-4 pb-3 border-bottom border-light">
+            //         <div class="d-flex justify-content-between align-items-start mb-2">
+            //             <strong class="text-dark fs-5">${districtName}</strong>
+            //             <span class="badge bg-primary rounded-pill">${count} item${count !== 1 ? 's' : ''}</span>
+            //         </div>
+            //         <div class="remarks-list">
+            //             ${remarksHtml || '<div class="text-muted fst-italic">No remarks available</div>'}
+            //         </div>
+            //     </div>
+            // `;
+            //         }
+
             function renderDistrictGroup(districtGroup) {
                 const districtName = escapeHtml(districtGroup.name);
                 const count = districtGroup.count;
+
                 const remarksHtml = districtGroup.remarks.map(remark => {
-                    const formattedRemark = remark ? escapeHtml(String(remark)).replace(/\n/g, '<br/>') : '—';
-                    return `<div class="remark-item ps-3 ms-1 border-start border-secondary-subtle">${formattedRemark}</div>`;
+                    const text = remark
+                        ? escapeHtml(String(remark)).replace(/\n/g, '<br/>')
+                        : '—';
+                    return `<div class="remark-item">${text}</div>`;
                 }).join('');
 
                 return `
-        <div class="mb-4 pb-3 border-bottom border-light">
-            <div class="d-flex justify-content-between align-items-start mb-2">
-                <strong class="text-dark fs-5">${districtName}</strong>
-                <span class="badge bg-primary rounded-pill">${count} item${count !== 1 ? 's' : ''}</span>
+        <div class="district-block">
+            <div class="district-header">
+                <span class="district-name">${districtName}</span>
+                <span class="remark-count">${count}</span>
             </div>
-            <div class="remarks-list">
-                ${remarksHtml || '<div class="text-muted fst-italic">No remarks available</div>'}
-            </div>
+            ${remarksHtml}
         </div>
     `;
             }
@@ -3925,6 +4029,164 @@
                 };
             }
 
+            // function renderStackedBarChart(chartData) {
+            //     const chartElement = document.getElementById('family_status_bar');
+            //     if (!chartElement) {
+            //         console.error('Stacked bar chart element not found');
+            //         return;
+            //     }
+
+            //     let chart = charts.familyStatus;
+            //     if (!chart) {
+            //         chart = echarts.init(chartElement);
+            //         charts.familyStatus = chart;
+            //     }
+
+            //     const isFilteredByDropdown = $('#district').val() !== 'ALL';
+            //     const isFilteredByPieDrill = drillState.level === 'district' && drillState.district_name;
+            //     const chartTitle = (isFilteredByPieDrill || isFilteredByDropdown)
+            //         ? `Family Status Distribution in ${drillState.district_name || $('#district option:selected').text() || 'Selected District'}`
+            //         : 'Family Status Distribution by District';
+
+            //     const districtTotals = [];
+            //     for (let i = 0; i < chartData.districts.length; i++) {
+            //         let total = 0;
+            //         chartData.series.forEach(series => {
+            //             total += series.data[i] || 0;
+            //         });
+            //         districtTotals.push(total);
+            //     }
+
+            //     const option = {
+            //         title: {
+            //             // text: chartTitle,
+            //             left: 'center',
+            //             textStyle: {
+            //                 fontSize: 14,
+            //                 fontWeight: 'normal'
+            //             }
+            //         },
+            //         tooltip: {
+            //             trigger: 'axis',
+            //             axisPointer: {
+            //                 type: 'shadow'
+            //             },
+            //             formatter: function (params) {
+            //                 let result = `<div style="padding: 10px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            //             <strong style="color: #1f2937; font-size: 14px; margin-bottom: 8px; display: block;">${params[0].name}</strong>
+            //             <div style="margin: 8px 0;">`;
+
+            //                 let total = 0;
+            //                 params.forEach(item => {
+            //                     const value = item.value || 0;
+            //                     total += value;
+            //                     const percentage = districtTotals[params[0].dataIndex] > 0
+            //                         ? ((value / districtTotals[params[0].dataIndex]) * 100).toFixed(1)
+            //                         : 0;
+
+            //                     result += `<div style="display: flex; align-items: center; justify-content: space-between; margin: 6px 0;">
+            //                 <div style="display: flex; align-items: center;">
+            //                     <span style="display:inline-block;margin-right:8px;border-radius:3px;width:12px;height:12px;background-color:${item.color}"></span>
+            //                     <span style="font-size:13px; color: #6b7280;">${item.seriesName}</span>
+            //                 </div>
+            //                 <div style="text-align: right;">
+            //                     <strong style="color: #1f2937;">${value.toLocaleString()}</strong>
+            //                     <span style="font-size:11px; color: #9ca3af; margin-left: 5px;">(${percentage}%)</span>
+            //                 </div>
+            //             </div>`;
+            //                 });
+
+            //                 result += `</div>
+            //             <hr style="border:none;border-top:2px solid #e5e7eb;margin:10px 0;">
+            //             <div style="display:flex;justifycontent:space-between;align-items:center;">
+            //                 <span style="font-size:14px;color:#1f2937;font-weight:600;">Total:</span>
+            //                 <strong style="color: #1f2937; font-size: 16px;">${total.toLocaleString()}</strong>
+            //             </div>
+            //         </div>`;
+            //                 return result;
+            //             }
+            //         },
+            //         legend: {
+            //             top: 30,
+            //             data: chartData.series.map(series => series.name),
+            //             type: 'scroll'
+            //         },
+            //         grid: {
+            //             top: 80,
+            //             bottom: chartData.districts.length > 10 ? 120 : 60,
+            //             left: '3%',
+            //             right: '4%',
+            //             containLabel: true
+            //         },
+            //         xAxis: {
+            //             type: 'category',
+            //             data: chartData.districts,
+            //             axisLabel: {
+            //                 rotate: chartData.districts.length > 10 ? 45 : 0,
+            //                 interval: 0,
+            //                 fontSize: chartData.districts.length > 15 ? 10 : 12,
+            //                 color: '#374151',
+            //                 formatter: function (value) {
+            //                     return value.length > 15 ? value.substring(0, 15) + '...' : value;
+            //                 }
+            //             },
+            //             axisLine: {
+            //                 lineStyle: { color: '#d1d5db' }
+            //             },
+            //             axisTick: {
+            //                 alignWithLabel: true,
+            //                 lineStyle: { color: '#d1d5db' }
+            //             }
+            //         },
+            //         yAxis: {
+            //             type: 'value',
+            //             name: 'Family Count',
+            //             nameTextStyle: {
+            //                 padding: [0, 0, 0, 10],
+            //                 color: '#374151'
+            //             },
+            //             axisLine: {
+            //                 lineStyle: { color: '#d1d5db' }
+            //             },
+            //             splitLine: {
+            //                 lineStyle: {
+            //                     color: '#e5e7eb'
+            //                 }
+            //             }
+            //         },
+            //         dataZoom: chartData.districts.length > 10 ? [
+            //             {
+            //                 type: 'slider',
+            //                 bottom: 30,
+            //                 start: 0,
+            //                 end: 100,
+            //                 height: 20,
+            //                 backgroundColor: '#f9fafb',
+            //                 borderColor: '#d1d5db',
+            //                 fillerColor: 'rgba(79, 70, 229, 0.1)',
+            //                 borderWidth: 1
+            //             },
+            //             { type: 'inside' }
+            //         ] : [],
+            //         series: chartData.series.map(series => ({
+            //             name: series.name,
+            //             type: 'bar',
+            //             stack: 'status',
+            //             data: series.data,
+            //             itemStyle: {
+            //                 color: series.color,
+            //                 borderColor: '#ffffff',
+            //                 borderWidth: 1
+            //             },
+            //             emphasis: {
+            //                 focus: 'series'
+            //             }
+            //         }))
+            //     };
+
+            //     chart.setOption(option);
+            //     chart.resize();
+            // }
             function renderStackedBarChart(chartData) {
                 const chartElement = document.getElementById('family_status_bar');
                 if (!chartElement) {
@@ -3940,10 +4202,12 @@
 
                 const isFilteredByDropdown = $('#district').val() !== 'ALL';
                 const isFilteredByPieDrill = drillState.level === 'district' && drillState.district_name;
+
                 const chartTitle = (isFilteredByPieDrill || isFilteredByDropdown)
                     ? `Family Status Distribution in ${drillState.district_name || $('#district option:selected').text() || 'Selected District'}`
                     : 'Family Status Distribution by District';
 
+                /* ===================== CALCULATE TOTAL PER DISTRICT ===================== */
                 const districtTotals = [];
                 for (let i = 0; i < chartData.districts.length; i++) {
                     let total = 0;
@@ -3953,67 +4217,94 @@
                     districtTotals.push(total);
                 }
 
+                /* ===================== CALCULATE STATUS TOTALS ===================== */
+                const statusTotals = {};
+                chartData.series.forEach(series => {
+                    statusTotals[series.name] = series.data.reduce(
+                        (sum, v) => sum + (v || 0),
+                        0
+                    );
+                });
+
                 const option = {
                     title: {
-                        // text: chartTitle,
+                        text: chartTitle,
                         left: 'center',
                         textStyle: {
                             fontSize: 14,
                             fontWeight: 'normal'
                         }
                     },
+
+                    /* ===================== STATUS TOTALS INSIDE CHART ===================== */
+                    graphic: {
+                        type: 'group',
+                        right: 20,
+                        top: 60,
+                        children: chartData.series.map((series, index) => ({
+                            type: 'text',
+                            style: {
+                                text: `${series.name}: ${statusTotals[series.name].toLocaleString('en-IN')}`,
+                                font: '13px sans-serif',
+                                fill: series.color
+                            },
+                            top: index * 22
+                        }))
+                    },
+
                     tooltip: {
                         trigger: 'axis',
-                        axisPointer: {
-                            type: 'shadow'
-                        },
+                        axisPointer: { type: 'shadow' },
                         formatter: function (params) {
-                            let result = `<div style="padding: 10px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <strong style="color: #1f2937; font-size: 14px; margin-bottom: 8px; display: block;">${params[0].name}</strong>
-                        <div style="margin: 8px 0;">`;
+                            let html = `
+                <div style="padding:10px;border-radius:8px;">
+                    <strong style="font-size:14px;">${params[0].name}</strong>
+                    <div style="margin-top:8px;">`;
 
                             let total = 0;
+
                             params.forEach(item => {
                                 const value = item.value || 0;
                                 total += value;
-                                const percentage = districtTotals[params[0].dataIndex] > 0
-                                    ? ((value / districtTotals[params[0].dataIndex]) * 100).toFixed(1)
+
+                                const percent = districtTotals[item.dataIndex] > 0
+                                    ? ((value / districtTotals[item.dataIndex]) * 100).toFixed(1)
                                     : 0;
 
-                                result += `<div style="display: flex; align-items: center; justify-content: space-between; margin: 6px 0;">
-                            <div style="display: flex; align-items: center;">
-                                <span style="display:inline-block;margin-right:8px;border-radius:3px;width:12px;height:12px;background-color:${item.color}"></span>
-                                <span style="font-size:13px; color: #6b7280;">${item.seriesName}</span>
-                            </div>
-                            <div style="text-align: right;">
-                                <strong style="color: #1f2937;">${value.toLocaleString()}</strong>
-                                <span style="font-size:11px; color: #9ca3af; margin-left: 5px;">(${percentage}%)</span>
-                            </div>
-                        </div>`;
+                                html += `
+                    <div style="display:flex;justify-content:space-between;margin:6px 0;">
+                        <span>
+                            <span style="display:inline-block;width:10px;height:10px;background:${item.color};margin-right:6px;"></span>
+                            ${item.seriesName}
+                        </span>
+                        <strong>${value.toLocaleString('en-IN')} (${percent}%)</strong>
+                    </div>`;
                             });
 
-                            result += `</div>
-                        <hr style="border:none;border-top:2px solid #e5e7eb;margin:10px 0;">
-                        <div style="display:flex;justifycontent:space-between;align-items:center;">
-                            <span style="font-size:14px;color:#1f2937;font-weight:600;">Total:</span>
-                            <strong style="color: #1f2937; font-size: 16px;">${total.toLocaleString()}</strong>
-                        </div>
-                    </div>`;
-                            return result;
+                            html += `
+                    <hr style="margin:8px 0;">
+                    <div style="display:flex;justify-content:space-between;">
+                        <strong>Total</strong>
+                        <strong>${total.toLocaleString('en-IN')}</strong>
+                    </div>
+                </div>`;
+                            return html;
                         }
                     },
+
                     legend: {
                         top: 30,
-                        data: chartData.series.map(series => series.name),
                         type: 'scroll'
                     },
+
                     grid: {
-                        top: 80,
+                        top: 90,
                         bottom: chartData.districts.length > 10 ? 120 : 60,
                         left: '3%',
-                        right: '4%',
+                        right: 160,   // ⬅️ IMPORTANT: reserve space for totals
                         containLabel: true
                     },
+
                     xAxis: {
                         type: 'category',
                         data: chartData.districts,
@@ -4021,49 +4312,24 @@
                             rotate: chartData.districts.length > 10 ? 45 : 0,
                             interval: 0,
                             fontSize: chartData.districts.length > 15 ? 10 : 12,
-                            color: '#374151',
-                            formatter: function (value) {
-                                return value.length > 15 ? value.substring(0, 15) + '...' : value;
-                            }
-                        },
-                        axisLine: {
-                            lineStyle: { color: '#d1d5db' }
-                        },
-                        axisTick: {
-                            alignWithLabel: true,
-                            lineStyle: { color: '#d1d5db' }
+                            formatter: value => value.length > 15 ? value.substring(0, 15) + '...' : value
                         }
                     },
+
                     yAxis: {
                         type: 'value',
-                        name: 'Family Count',
-                        nameTextStyle: {
-                            padding: [0, 0, 0, 10],
-                            color: '#374151'
-                        },
-                        axisLine: {
-                            lineStyle: { color: '#d1d5db' }
-                        },
-                        splitLine: {
-                            lineStyle: {
-                                color: '#e5e7eb'
-                            }
-                        }
+                        name: 'Family Count'
                     },
+
                     dataZoom: chartData.districts.length > 10 ? [
                         {
                             type: 'slider',
                             bottom: 30,
-                            start: 0,
-                            end: 100,
-                            height: 20,
-                            backgroundColor: '#f9fafb',
-                            borderColor: '#d1d5db',
-                            fillerColor: 'rgba(79, 70, 229, 0.1)',
-                            borderWidth: 1
+                            height: 20
                         },
                         { type: 'inside' }
                     ] : [],
+
                     series: chartData.series.map(series => ({
                         name: series.name,
                         type: 'bar',
@@ -4071,12 +4337,10 @@
                         data: series.data,
                         itemStyle: {
                             color: series.color,
-                            borderColor: '#ffffff',
+                            borderColor: '#fff',
                             borderWidth: 1
                         },
-                        emphasis: {
-                            focus: 'series'
-                        }
+                        emphasis: { focus: 'series' }
                     }))
                 };
 
