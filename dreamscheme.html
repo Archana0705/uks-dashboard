@@ -9,6 +9,23 @@
     <link href="assets/css/font/bootstrap-icons.css" rel="stylesheet">
 
     <style>
+        /* #scheme-filter-btn {
+            width: 220px;
+        }
+
+        #scheme-filter-btn-text {
+            text-overflow: ellipsis;
+        } */
+
+        #scheme-filter-btn-text {
+            display: inline-block;
+            max-width: 140px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            vertical-align: middle;
+        }
+
         body {
             background: #f5f7fb;
             font-family: Inter, system-ui;
@@ -613,9 +630,24 @@
             background: #f9fafb;
             padding: 10px;
             min-height: 120px;
-            max-height: 280px;
+            max-height: 320px;
             /* reduced */
             overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        @media (max-width: 992px) {
+            .scheme-desc-body {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 576px) {
+            .scheme-desc-body {
+                grid-template-columns: 1fr;
+            }
         }
 
         /* District container */
@@ -661,6 +693,10 @@
             line-height: 1.4;
             color: #374151;
         }
+
+        .space-between {
+            justify-content: space-between;
+        }
     </style>
 </head>
 
@@ -705,7 +741,7 @@
             </div>
 
             <!-- Geographic Filter (Header Version) -->
-            <div class="d-flex align-items-center gap-2 header-filter">
+            <!-- <div class="d-flex align-items-center gap-2 header-filter">
                 <i class="bi bi-geo-alt text-light"></i>
 
                 <select id="district" class="form-select form-select-sm header-select">
@@ -719,7 +755,7 @@
                 <button class="btn btn-sm btn-outline-danger" onclick="resetAll()">
                     <i class="bi bi-arrow-counterclockwise"></i>
                 </button>
-            </div>
+            </div> -->
 
         </div>
 
@@ -833,34 +869,58 @@
                             </li>
                         </ul> -->
 
-                        <ul class="nav nav-tabs mt-2" id="uksDashboardTabs" role="tablist">
+                        <div class="col-lg-12 d-flex space-between">
 
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="family-profile-tab" data-bs-toggle="tab"
-                                    data-bs-target="#family-profile-pane" type="button" role="tab" aria-selected="true">
-                                    <i class="bi bi-people-fill me-1"></i>
-                                    Family Profile
+
+
+                            <ul class="nav nav-tabs mt-2" id="uksDashboardTabs" role="tablist">
+
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="family-profile-tab" data-bs-toggle="tab"
+                                        data-bs-target="#family-profile-pane" type="button" role="tab"
+                                        aria-selected="true">
+                                        <i class="bi bi-people-fill me-1"></i>
+                                        Family Profile
+                                    </button>
+                                </li>
+
+                                <li class="nav-item mx-2" role="presentation">
+                                    <button class="nav-link" id="beneficiary-details-tab" data-bs-toggle="tab"
+                                        data-bs-target="#beneficiary-details-pane" type="button" role="tab"
+                                        aria-selected="false">
+                                        <i class="bi bi-person-badge-fill me-1"></i>
+                                        Beneficiary &amp; Schemes
+                                    </button>
+                                </li>
+
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="dream-scheme-tab" data-bs-toggle="tab"
+                                        data-bs-target="#dream-scheme-pane" type="button" role="tab"
+                                        aria-selected="false">
+                                        <i class="bi bi-stars me-1"></i>
+                                        Dream Scheme
+                                    </button>
+                                </li>
+
+                            </ul>
+
+                            <div class="d-flex align-items-center gap-2 header-filter">
+                                <i class="bi bi-geo-alt text-light"></i>
+
+                                <select id="district" class="form-select form-select-sm header-select">
+                                    <option value="ALL" selected>All Districts</option>
+                                </select>
+
+                                <button class="btn btn-sm btn-primary" onclick="applyFilters()">
+                                    <i class="bi bi-funnel"></i>
                                 </button>
-                            </li>
 
-                            <li class="nav-item mx-2" role="presentation">
-                                <button class="nav-link" id="beneficiary-details-tab" data-bs-toggle="tab"
-                                    data-bs-target="#beneficiary-details-pane" type="button" role="tab"
-                                    aria-selected="false">
-                                    <i class="bi bi-person-badge-fill me-1"></i>
-                                    Beneficiary &amp; Schemes
+                                <button class="btn btn-sm btn-outline-danger" onclick="resetAll()">
+                                    <i class="bi bi-arrow-counterclockwise"></i>
                                 </button>
-                            </li>
+                            </div>
 
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="dream-scheme-tab" data-bs-toggle="tab"
-                                    data-bs-target="#dream-scheme-pane" type="button" role="tab" aria-selected="false">
-                                    <i class="bi bi-stars me-1"></i>
-                                    Dream Scheme
-                                </button>
-                            </li>
-
-                        </ul>
+                        </div>
 
 
                         <div class="tab-content mt-3">
@@ -901,16 +961,29 @@
                             <div class="tab-pane fade" id="beneficiary-details-pane">
 
                                 <div class="row g-3">
-                                    <div class="col-lg-6">
-                                        <div class="card p-3 shadow">
-                                            <h5>Age vs Gender<small>(Beneficiary Count)</small></h5>
+                                    <div class="col-lg-6 position-relative">
+                                        <div class="card p-3 shadow h-100">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <h5 class="mb-0">Age vs Gender<small>(Beneficiary Count)</small></h5>
+                                                <!-- <button type="button" class="ms-1 btn btn-sm btn-outline-secondary"
+                                                    onclick="resetAgeGenderChart()">
+                                                    Reset
+                                                </button> -->
+
+                                                <button class="ms-1 btn btn-sm btn-outline-danger"
+                                                    onclick="resetAgeGenderChart()">
+                                                    <i class="bi bi-arrow-counterclockwise"></i>
+                                                </button>
+
+
+                                            </div>
                                             <div id="age_gender_grouped_bar" style="height:350px;"></div>
                                         </div>
                                     </div>
 
                                     <div class="col-lg-6">
                                         <div class="card p-3 shadow">
-                                            <h5>Top 5 Schemes across All Districts</h5>
+                                            <h5>Top Schemes across All Districts</h5>
                                             <div id="scheme_count_bar" style="height:350px;"></div>
                                         </div>
                                     </div>
@@ -939,8 +1012,20 @@
                                     </div>
 
                                     <div class="col-lg-6">
-                                        <div class="card p-3 shadow">
-                                            <h5>District-wise Dream Scheme</h5>
+                                        <div class="card p-3 shadow position-relative">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <h5 class="mb-0">District-wise Dream Scheme</h5>
+                                                <div class="d-flex align-items-center" style="gap: 8px;">
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                        onclick="resetDreamSchemeDistrictChart()">
+                                                        Reset
+                                                    </button>
+                                                    <select id="dreamSchemeDistrictSelect"
+                                                        class="form-select form-select-sm" style="max-width: 220px;">
+                                                        <!-- options populated by JS -->
+                                                    </select>
+                                                </div>
+                                            </div>
                                             <div id="dream_scheme_district_pie" style="height:350px;"></div>
                                         </div>
                                     </div>
@@ -987,14 +1072,34 @@
                                 </div> -->
                                 <div class="card scheme-desc-card shadow-sm">
                                     <div class="card-header bg-white border-bottom">
-                                        <h5 class="mb-0 fw-semibold text-primary">
-                                            <i class="bi bi-file-text me-2"></i>Scheme Description
-                                        </h5>
+                                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                                            <h5 class="mb-0 fw-semibold text-primary">
+                                                <i class="bi bi-file-text me-2"></i>Scheme Description
+                                            </h5>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <!-- New Scheme Category Dropdown -->
+                                                <select id="scheme_category_dropdown" class="form-select form-select-sm"
+                                                    style="min-width: 180px;">
+                                                    <option value="">-- Category --</option>
+                                                </select>
+
+                                                <!-- Existing Scheme Dropdown -->
+                                                <select id="scheme_description_dropdown"
+                                                    class="form-select form-select-sm" style="min-width: 220px;">
+                                                    <option value="">-- Select Scheme --</option>
+                                                </select>
+
+                                                <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                    id="btn_scheme_description_reset">
+                                                    Reset
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div id="scheme_description_content" class="scheme-desc-body">
                                         <div class="text-muted text-center py-4">
-                                            Select a District
+                                            Select a District / Scheme to view description
                                         </div>
                                     </div>
 
@@ -1006,8 +1111,6 @@
                                         </button>
                                     </div>
                                 </div>
-
-
                             </div>
                         </div>
                     </div>
@@ -1069,7 +1172,7 @@
             };
 
             const API_CONFIG = {
-                // baseUrl: 'https://tngis.tnega.org/state_scholarship_portal_api/sfdb_survey/api/v1/dashboard2/',
+                //baseUrl: 'https://tngis.tnega.org/state_scholarship_portal_api/sfdb_survey/api/v1/dashboard2/',
                 baseUrl: 'https://sfdb-web.eba-xxzkshkf.ap-south-2.elasticbeanstalk.com/api/v1/analytics/',
                 endpoints: {
                     dynamic_input: 'dynamic_input',
@@ -1082,7 +1185,12 @@
                     get_schemecategory_count: 'get_schemecategory_count',
                     get_suggestionform_remarks_by_district: 'get_suggestionform_remarks_by_district',
                     get_scheme_filter: 'get_scheme_filter',
-                    get_scheme_age_gender_counts: 'get_scheme_age_gender_counts'
+                    get_scheme_age_gender_counts: 'get_scheme_age_gender_counts',
+                    // New endpoint for scheme-wise counts (state / district)
+                    get_scheme_wise_counts: 'get_scheme_wise_counts',
+                    get_scheme_category: 'get_scheme_category',
+                    get_scheme_name_by_dropdown: 'get_scheme_name_by_dropdown',
+                    get_scheme_remark_summary: 'get_scheme_remark_summary'
                 }
             };
 
@@ -1310,6 +1418,268 @@
                 renderAgeGenderChart();
             }
 
+            // function renderAgeGenderChart() {
+            //     const chartElement = document.getElementById('age_distribution_bar');
+            //     if (!chartElement) {
+            //         console.error('Age gender chart element not found');
+            //         return;
+            //     }
+
+            //     let chart = charts.familyAgeGender;
+            //     if (!chart) {
+            //         chart = echarts.init(chartElement);
+            //         charts.familyAgeGender = chart;
+            //     }
+
+            //     // Check if we have data
+            //     if (!API_DATA.ageGenderData) {
+            //         showEmptyAgeGenderChart();
+            //         return;
+            //     }
+
+            //     const { ageGroups, male, female, level } = API_DATA.ageGenderData;
+            //     const isFilteredByDropdown = $('#district').val() !== 'ALL';
+            //     const isFilteredByPieDrill = drillState.level === 'district' && drillState.district_name;
+
+            //     // Create chart title based on level and filters (dropdown or pie drill)
+            //     let chartTitle;
+            //     if (isFilteredByPieDrill || isFilteredByDropdown) {
+            //         chartTitle = `Age-wise Family Distribution in ${drillState.district_name || $('#district option:selected').text() || 'Selected District'}`;
+            //     } else if (level === 'STATE') {
+            //         chartTitle = 'Age-wise Family Distribution (State Level)';
+            //     } else {
+            //         chartTitle = 'Age-wise Family Distribution';
+            //     }
+
+            //     // Calculate totals for display
+            //     const totalMale = male.reduce((sum, val) => sum + val, 0);
+            //     const totalFemale = female.reduce((sum, val) => sum + val, 0);
+            //     const totalPopulation = totalMale + totalFemale;
+
+            //     const option = {
+            //         title: {
+            //             // text: chartTitle,
+            //             left: 'center',
+            //             textStyle: {
+            //                 fontSize: 16,
+            //                 fontWeight: 'bold'
+            //             },
+            //             subtext: `Total: ${totalPopulation.toLocaleString()} | Male: ${totalMale.toLocaleString()} | Female: ${totalFemale.toLocaleString()}`,
+            //             subtextStyle: {
+            //                 fontSize: 12,
+            //                 color: '#6b7280'
+            //             }
+            //         },
+            //         tooltip: {
+            //             trigger: 'axis',
+            //             axisPointer: {
+            //                 type: 'shadow'
+            //             },
+            //             formatter: function (params) {
+            //                 let result = `<div style="padding: 10px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            //             <strong style="color: #1f2937; font-size: 14px; margin-bottom: 8px; display: block;">${params[0].name}</strong>
+            //             <div style="margin: 8px 0;">`;
+
+            //                 let total = 0;
+            //                 params.forEach(item => {
+            //                     const value = item.value || 0;
+            //                     total += value;
+
+            //                     result += `<div style="display: flex; align-items: center; justify-content: space-between; margin: 6px 0;">
+            //                 <div style="display: flex; align-items: center;">
+            //                     <span style="display:inline-block;margin-right:8px;border-radius:3px;width:12px;height:12px;background-color:${item.color}"></span>
+            //                     <span style="font-size:13px; color: #6b7280;">${item.seriesName}</span>
+            //                 </div>
+            //                 <div style="text-align: right;">
+            //                     <strong style="color: #1f2937;">${value.toLocaleString()}</strong>
+            //                 </div>
+            //             </div>`;
+            //                 });
+
+            //                 result += `</div>
+            //             <hr style="border:none;border-top:2px solid #e5e7eb;margin:10px 0;">
+            //             <div style="display:flex;justify-content:space-between;align-items:center;">
+            //                 <span style="font-size:14px;color:#1f2937;font-weight:600;">Total:</span>
+            //                 <strong style="color: #1f2937; font-size: 16px;">${total.toLocaleString()}</strong>
+            //             </div>
+            //         </div>`;
+            //                 return result;
+            //             }
+            //         },
+            //         legend: {
+            //             top: 40,
+            //             data: ['Male', 'Female'],
+            //             textStyle: {
+            //                 fontSize: 12
+            //             },
+            //             itemGap: 15
+            //         },
+            //         grid: {
+            //             top: 90,
+            //             bottom: 30,
+            //             left: '10%',
+            //             right: '5%',
+            //             containLabel: true
+            //         },
+            //         xAxis: {
+            //             type: 'category',
+            //             data: ageGroups,
+            //             name: 'Age Groups',
+            //             nameTextStyle: {
+            //                 color: '#374151',
+            //                 fontSize: 12
+            //             },
+            //             axisLine: {
+            //                 lineStyle: {
+            //                     color: '#d1d5db',
+            //                     width: 1
+            //                 }
+            //             },
+            //             axisTick: {
+            //                 lineStyle: { color: '#d1d5db' }
+            //             },
+            //             axisLabel: {
+            //                 fontSize: 11,
+            //                 color: '#374151'
+            //             }
+            //         },
+            //         yAxis: {
+            //             type: 'value',
+            //             name: 'Family Count',
+            //             nameTextStyle: {
+            //                 padding: [0, 0, 0, 10],
+            //                 color: '#374151',
+            //                 fontSize: 12
+            //             },
+            //             axisLine: {
+            //                 lineStyle: {
+            //                     color: '#d1d5db',
+            //                     width: 1
+            //                 }
+            //             },
+            //             splitLine: {
+            //                 lineStyle: {
+            //                     color: '#e5e7eb',
+            //                     type: 'dashed'
+            //                 }
+            //             },
+            //             // axisLabel: {
+            //             //     formatter: function (value) {
+            //             //         // Format large numbers with K or M suffix
+            //             //         if (value >= 1000000) {
+            //             //             return (value / 1000000).toFixed(1) + 'M';
+            //             //         } else if (value >= 1000) {
+            //             //             return (value / 1000).toFixed(1) + 'K';
+            //             //         }
+            //             //         return value;
+            //             //     }
+            //             // }
+            //             axisLabel: {
+            //                 formatter: function (value) {
+            //                     if (value >= 10000000) {
+            //                         return (value / 10000000).toFixed(1) + ' Cr';
+            //                     } else if (value >= 100000) {
+            //                         return (value / 100000).toFixed(1) + ' L';
+            //                     }
+            //                     return value;
+            //                 }
+            //             }
+
+            //         },
+            //         series: [
+            //             {
+            //                 name: 'Male',
+            //                 type: 'bar',
+            //                 data: male,
+            //                 itemStyle: {
+            //                     color: '#3b82f6',
+            //                     borderColor: '#2563eb',
+            //                     borderWidth: 1,
+            //                     borderRadius: [2, 2, 0, 0]
+            //                 },
+            //                 emphasis: {
+            //                     itemStyle: {
+            //                         shadowBlur: 10,
+            //                         shadowOffsetX: 0,
+            //                         shadowColor: 'rgba(59, 130, 246, 0.5)'
+            //                     }
+            //                 },
+            //                 // label: {
+            //                 //     show: true,
+            //                 //     position: 'top',
+            //                 //     formatter: function (params) {
+            //                 //         // Only show label if value is significant
+            //                 //         return params.value > 1000 ? (params.value / 1000).toFixed(1) + 'K' : params.value;
+            //                 //     },
+            //                 //     fontSize: 10,
+            //                 //     color: '#1f2937'
+            //                 // }
+            //                 label: {
+            //                     show: true,
+            //                     position: 'top',
+            //                     formatter: function (params) {
+            //                         const val = params.value;
+            //                         if (val >= 10000000) return (val / 10000000).toFixed(1) + ' Cr';
+            //                         if (val >= 100000) return (val / 100000).toFixed(1) + ' L';
+            //                         return val;
+            //                     },
+            //                     fontSize: 10,
+            //                     color: '#1f2937'
+            //                 }
+            //             },
+            //             {
+            //                 name: 'Female',
+            //                 type: 'bar',
+            //                 data: female,
+            //                 itemStyle: {
+            //                     color: '#ec4899',
+            //                     borderColor: '#db2777',
+            //                     borderWidth: 1,
+            //                     borderRadius: [2, 2, 0, 0]
+            //                 },
+            //                 emphasis: {
+            //                     itemStyle: {
+            //                         shadowBlur: 10,
+            //                         shadowOffsetX: 0,
+            //                         shadowColor: 'rgba(236, 72, 153, 0.5)'
+            //                     }
+            //                 },
+            //                 // label: {
+            //                 //     show: true,
+            //                 //     position: 'top',
+            //                 //     formatter: function (params) {
+            //                 //         // Only show label if value is significant
+            //                 //         return params.value > 1000 ? (params.value / 1000).toFixed(1) + 'K' : params.value;
+            //                 //     },
+            //                 //     fontSize: 10,
+            //                 //     color: '#1f2937'
+            //                 // }
+            //                 label: {
+            //                     show: true,
+            //                     position: 'top',
+            //                     formatter: function (params) {
+            //                         const val = params.value;
+            //                         if (val >= 10000000) return (val / 10000000).toFixed(1) + ' Cr';
+            //                         if (val >= 100000) return (val / 100000).toFixed(1) + ' L';
+            //                         return val;
+            //                     },
+            //                     fontSize: 10,
+            //                     color: '#1f2937'
+            //                 }
+
+            //             }
+            //         ]
+            //     };
+
+            //     // Clear and set new options
+            //     chart.clear();
+            //     chart.setOption(option, true);
+
+            //     // Force a resize to ensure proper rendering
+            //     setTimeout(() => {
+            //         chart.resize();
+            //     }, 50);
+            // }
             function renderAgeGenderChart() {
                 const chartElement = document.getElementById('age_distribution_bar');
                 if (!chartElement) {
@@ -1323,17 +1693,16 @@
                     charts.familyAgeGender = chart;
                 }
 
-                // Check if we have data
                 if (!API_DATA.ageGenderData) {
                     showEmptyAgeGenderChart();
                     return;
                 }
 
                 const { ageGroups, male, female, level } = API_DATA.ageGenderData;
+
                 const isFilteredByDropdown = $('#district').val() !== 'ALL';
                 const isFilteredByPieDrill = drillState.level === 'district' && drillState.district_name;
 
-                // Create chart title based on level and filters (dropdown or pie drill)
                 let chartTitle;
                 if (isFilteredByPieDrill || isFilteredByDropdown) {
                     chartTitle = `Age-wise Family Distribution in ${drillState.district_name || $('#district option:selected').text() || 'Selected District'}`;
@@ -1343,20 +1712,28 @@
                     chartTitle = 'Age-wise Family Distribution';
                 }
 
-                // Calculate totals for display
                 const totalMale = male.reduce((sum, val) => sum + val, 0);
                 const totalFemale = female.reduce((sum, val) => sum + val, 0);
                 const totalPopulation = totalMale + totalFemale;
 
+                // Indian formatter function
+                function formatIndianNumber(value) {
+                    if (value >= 10000000) {
+                        return (value / 10000000).toFixed(2) + ' Cr';
+                    } else if (value >= 100000) {
+                        return (value / 100000).toFixed(2) + ' L';
+                    }
+                    return value.toLocaleString('en-IN');
+                }
+
                 const option = {
                     title: {
-                        // text: chartTitle,
                         left: 'center',
                         textStyle: {
                             fontSize: 16,
                             fontWeight: 'bold'
                         },
-                        subtext: `Total: ${totalPopulation.toLocaleString()} | Male: ${totalMale.toLocaleString()} | Female: ${totalFemale.toLocaleString()}`,
+                        subtext: `Total: ${totalPopulation.toLocaleString('en-IN')} | Male: ${totalMale.toLocaleString('en-IN')} | Female: ${totalFemale.toLocaleString('en-IN')}`,
                         subtextStyle: {
                             fontSize: 12,
                             color: '#6b7280'
@@ -1364,46 +1741,45 @@
                     },
                     tooltip: {
                         trigger: 'axis',
-                        axisPointer: {
-                            type: 'shadow'
-                        },
+                        axisPointer: { type: 'shadow' },
                         formatter: function (params) {
-                            let result = `<div style="padding: 10px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <strong style="color: #1f2937; font-size: 14px; margin-bottom: 8px; display: block;">${params[0].name}</strong>
-                        <div style="margin: 8px 0;">`;
-
                             let total = 0;
+
+                            let result = `
+                <div style="padding: 10px; background: white; border-radius: 8px;">
+                    <strong style="font-size:14px;">${params[0].name}</strong>
+                `;
+
                             params.forEach(item => {
                                 const value = item.value || 0;
                                 total += value;
 
-                                result += `<div style="display: flex; align-items: center; justify-content: space-between; margin: 6px 0;">
-                            <div style="display: flex; align-items: center;">
-                                <span style="display:inline-block;margin-right:8px;border-radius:3px;width:12px;height:12px;background-color:${item.color}"></span>
-                                <span style="font-size:13px; color: #6b7280;">${item.seriesName}</span>
-                            </div>
-                            <div style="text-align: right;">
-                                <strong style="color: #1f2937;">${value.toLocaleString()}</strong>
-                            </div>
-                        </div>`;
+                                result += `
+                        <div style="display:flex;justify-content:space-between;margin:6px 0;">
+                            <span>
+                                <span style="display:inline-block;width:12px;height:12px;background:${item.color};margin-right:6px;border-radius:3px;"></span>
+                                ${item.seriesName}
+                            </span>
+                            <strong>${formatIndianNumber(value)}</strong>
+                        </div>
+                    `;
                             });
 
-                            result += `</div>
-                        <hr style="border:none;border-top:2px solid #e5e7eb;margin:10px 0;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <span style="font-size:14px;color:#1f2937;font-weight:600;">Total:</span>
-                            <strong style="color: #1f2937; font-size: 16px;">${total.toLocaleString()}</strong>
+                            result += `
+                        <hr style="margin:8px 0;">
+                        <div style="display:flex;justify-content:space-between;">
+                            <span><strong>Total</strong></span>
+                            <strong>${formatIndianNumber(total)}</strong>
                         </div>
-                    </div>`;
+                </div>`;
+
                             return result;
                         }
                     },
                     legend: {
                         top: 40,
                         data: ['Male', 'Female'],
-                        textStyle: {
-                            fontSize: 12
-                        },
+                        textStyle: { fontSize: 12 },
                         itemGap: 15
                     },
                     grid: {
@@ -1417,23 +1793,9 @@
                         type: 'category',
                         data: ageGroups,
                         name: 'Age Groups',
-                        nameTextStyle: {
-                            color: '#374151',
-                            fontSize: 12
-                        },
-                        axisLine: {
-                            lineStyle: {
-                                color: '#d1d5db',
-                                width: 1
-                            }
-                        },
-                        axisTick: {
-                            lineStyle: { color: '#d1d5db' }
-                        },
-                        axisLabel: {
-                            fontSize: 11,
-                            color: '#374151'
-                        }
+                        nameTextStyle: { color: '#374151', fontSize: 12 },
+                        axisLine: { lineStyle: { color: '#d1d5db' } },
+                        axisLabel: { fontSize: 11, color: '#374151' }
                     },
                     yAxis: {
                         type: 'value',
@@ -1443,12 +1805,6 @@
                             color: '#374151',
                             fontSize: 12
                         },
-                        axisLine: {
-                            lineStyle: {
-                                color: '#d1d5db',
-                                width: 1
-                            }
-                        },
                         splitLine: {
                             lineStyle: {
                                 color: '#e5e7eb',
@@ -1457,13 +1813,7 @@
                         },
                         axisLabel: {
                             formatter: function (value) {
-                                // Format large numbers with K or M suffix
-                                if (value >= 1000000) {
-                                    return (value / 1000000).toFixed(1) + 'M';
-                                } else if (value >= 1000) {
-                                    return (value / 1000).toFixed(1) + 'K';
-                                }
-                                return value;
+                                return formatIndianNumber(value);
                             }
                         }
                     },
@@ -1478,19 +1828,11 @@
                                 borderWidth: 1,
                                 borderRadius: [2, 2, 0, 0]
                             },
-                            emphasis: {
-                                itemStyle: {
-                                    shadowBlur: 10,
-                                    shadowOffsetX: 0,
-                                    shadowColor: 'rgba(59, 130, 246, 0.5)'
-                                }
-                            },
                             label: {
                                 show: true,
                                 position: 'top',
                                 formatter: function (params) {
-                                    // Only show label if value is significant
-                                    return params.value > 1000 ? (params.value / 1000).toFixed(1) + 'K' : params.value;
+                                    return formatIndianNumber(params.value);
                                 },
                                 fontSize: 10,
                                 color: '#1f2937'
@@ -1506,19 +1848,11 @@
                                 borderWidth: 1,
                                 borderRadius: [2, 2, 0, 0]
                             },
-                            emphasis: {
-                                itemStyle: {
-                                    shadowBlur: 10,
-                                    shadowOffsetX: 0,
-                                    shadowColor: 'rgba(236, 72, 153, 0.5)'
-                                }
-                            },
                             label: {
                                 show: true,
                                 position: 'top',
                                 formatter: function (params) {
-                                    // Only show label if value is significant
-                                    return params.value > 1000 ? (params.value / 1000).toFixed(1) + 'K' : params.value;
+                                    return formatIndianNumber(params.value);
                                 },
                                 fontSize: 10,
                                 color: '#1f2937'
@@ -1527,11 +1861,9 @@
                     ]
                 };
 
-                // Clear and set new options
                 chart.clear();
                 chart.setOption(option, true);
 
-                // Force a resize to ensure proper rendering
                 setTimeout(() => {
                     chart.resize();
                 }, 50);
@@ -1631,6 +1963,22 @@
                     console.error('Error fetching age gender pyramid data:', error);
                     showEmptyAgeGenderPyramidChart();
                 }
+            }
+
+            // Reset only the Age vs Gender chart (scheme filter back to All Schemes)
+            function resetAgeGenderChart() {
+                // Reset scheme filter state
+                API_DATA.selectedSchemeId = 'ALL';
+                API_DATA.selectedSchemeName = 'All Schemes';
+
+                // Update scheme filter button text if present
+                const btnText = document.getElementById('scheme-filter-btn-text');
+                if (btnText) {
+                    btnText.textContent = API_DATA.selectedSchemeName;
+                }
+
+                // Refresh age vs gender data with current district but no scheme filter
+                fetchAgeGenderPyramidData();
             }
 
             async function makeAgeGenderPyramidApiRequest(payload) {
@@ -1848,7 +2196,13 @@
                             fontSize: 16,
                             fontWeight: 'bold'
                         },
-                        subtext: subtitle + (subtitle ? ' | ' : '') + `Total: ${totalPopulation.toLocaleString()} | Male: ${totalMale.toLocaleString()} | Female: ${totalFemale.toLocaleString()}`,
+                        // subtext: subtitle + (subtitle ? ' | ' : '') + `Total: ${totalPopulation.toLocaleString()} | Male: ${totalMale.toLocaleString()} | Female: ${totalFemale.toLocaleString()}`,
+
+                        subtext: [
+                            subtitle + (subtitle ? ' | ' : '') + `Total: ${totalPopulation.toLocaleString()} | Male: ${totalMale.toLocaleString()} | Female: ${totalFemale.toLocaleString()}`,
+                            'Total Beneficiaries (Non-Unique)'
+                        ].join('\n'),
+
                         subtextStyle: {
                             fontSize: 12,
                             color: '#6b7280'
@@ -1898,7 +2252,9 @@
         <span style="font-size:14px;color:#1f2937;font-weight:600;">Total:</span>
         <strong style="color: #1f2937; font-size: 16px;">${total.toLocaleString()}</strong>
     </div>
+   
 </div>`;
+
                         }
                     },
                     legend: {
@@ -2003,8 +2359,11 @@
                 chart.clear();
                 chart.setOption(option, true);
 
+
                 // Add scheme filter button BELOW the chart (outside ECharts)
                 addSchemeFilterButton(chartElement);
+
+
 
                 // Force a resize to ensure proper rendering
                 setTimeout(() => {
@@ -2024,27 +2383,26 @@
                 const container = document.createElement('div');
                 container.className = 'scheme-filter-container';
                 container.style.cssText = `
-        position: relative;
-        display: inline-block;
-        margin-left: 20px;
-    `;
+                    display: inline-block;
+                    margin-left: 20px;
+                `;
 
                 // Create button
                 const button = document.createElement('button');
                 button.id = 'scheme-filter-btn';
                 button.innerHTML = `Scheme: <span id="scheme-filter-btn-text">${API_DATA.selectedSchemeName}</span> ▼`;
                 button.style.cssText = `
-        padding: 4px 12px;
-        background: white;
-        border: 1px solid #ced4da;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 12px;
-        color: #495057;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    `;
+                    padding: 4px 12px;
+                    background: white;
+                    border: 1px solid #ced4da;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 12px;
+                    color: #495057;
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                `;
 
                 // Add hover effect
                 button.onmouseover = () => button.style.backgroundColor = '#f8f9fa';
@@ -2139,7 +2497,7 @@
                 } else {
                     // Insert at top right of chart container
                     chartElement.parentNode.insertBefore(container, chartElement);
-                    container.style.cssText += 'position: absolute; top: 10px; right: 10px;';
+                    container.style.cssText += 'position: absolute; top: 15px; right: 4rem;';
                 }
             }
             // Fixed scheme filter dropdown function - show in top right corner
@@ -2962,13 +3320,24 @@
                 const total = districtCountsByScheme.reduce((sum, row) =>
                     sum + row.reduce((s, c) => s + c, 0), 0);
 
+                // Row-wise totals for percentage calculation
+                const rowTotals = districtCountsByScheme.map(row =>
+                    row.reduce((s, c) => s + c, 0)
+                );
+
                 const shortSchemeNames = schemeNames.map(n => n.length > 30 ? n.substring(0, 30) + '...' : n);
+
+                // Build percentage data (each district row sums ~100%)
+                const percentMatrix = districtCountsByScheme.map((row, rowIdx) => {
+                    const rowTotal = rowTotals[rowIdx] || 0;
+                    return row.map(v => rowTotal > 0 ? +(v / rowTotal * 100).toFixed(2) : 0);
+                });
 
                 const series = shortSchemeNames.map((name, idx) => ({
                     name: name,
                     type: 'bar',
                     stack: 'total',
-                    data: districtCountsByScheme.map(row => row[idx] || 0),
+                    data: percentMatrix.map(row => row[idx] || 0),
                     itemStyle: { color: schemeColors[idx % schemeColors.length] },
                     emphasis: {
                         itemStyle: {
@@ -2992,19 +3361,25 @@
                         axisPointer: { type: 'shadow' },
                         formatter: function (params) {
                             const district = params[0].axisValue || '';
-                            const withValue = params.filter(p => (p.value || 0) > 0);
-                            let rowTotal = 0;
-                            withValue.forEach(p => { rowTotal += (p.value || 0); });
+                            const rowIndex = params[0].dataIndex;
+                            const withValue = params.filter(p => {
+                                const count = districtCountsByScheme[rowIndex][p.seriesIndex] || 0;
+                                return count > 0;
+                            });
+
+                            const rowTotal = rowTotals[rowIndex] || 0;
+
                             let html = `<div style="padding:10px;background:white;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
                                 <strong style="color:#1f2937;font-size:14px;">${district}</strong><br/>
                                 <span style="color:#6b7280;font-size:11px;">(Top 5 schemes in this district)</span><br/>`;
+
                             withValue.forEach(p => {
-                                const v = p.value || 0;
-                                const pct = rowTotal > 0 ? ((v / rowTotal) * 100).toFixed(1) : 0;
+                                const count = districtCountsByScheme[rowIndex][p.seriesIndex] || 0;
+                                const pct = rowTotal > 0 ? ((count / rowTotal) * 100).toFixed(1) : 0;
                                 html += `<div style="display:flex;align-items:center;margin:4px 0;">
                                     <span style="width:10px;height:10px;border-radius:2px;background:${p.color};margin-right:6px;flex-shrink:0;"></span>
                                     <span style="flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;">${p.seriesName}</span>
-                                    <strong>${v.toLocaleString('en-IN')}</strong>
+                                    <strong>${count.toLocaleString('en-IN')}</strong>
                                     <span style="font-size:11px;color:#9ca3af;margin-left:4px;">(${pct}%)</span>
                                 </div>`;
                             });
@@ -3036,18 +3411,17 @@
                     },
                     xAxis: {
                         type: 'value',
-                        name: 'Count',
+                        name: 'Percentage (%)',
                         nameLocation: 'middle',
                         nameGap: 25,
                         nameTextStyle: { color: '#374151', fontSize: 13 },
                         axisLine: { lineStyle: { color: '#d1d5db' } },
                         splitLine: { lineStyle: { color: '#e5e7eb', type: 'dashed' } },
+                        max: 100,
                         axisLabel: {
                             fontSize: 12,
                             formatter: function (v) {
-                                if (v >= 1000000) return (v / 1000000).toFixed(1) + 'M';
-                                if (v >= 1000) return (v / 1000).toFixed(0) + 'K';
-                                return v;
+                                return v + '%';
                             }
                         }
                     },
@@ -3215,53 +3589,248 @@
             // ================== SCHEME DESCRIPTION (get_scheme_filter + get_suggestionform_remarks_by_district) ==================
             let schemeRemarksCurrentPage = 1;
             const SCHEME_REMARKS_LIMIT = 10;
+            let allRemarksData = []; // Store all fetched data to prevent duplicates
+            let hasMoreData = true; // Flag to track if more data exists
+
+            // Updated function to populate scheme category dropdown with proper encryption
+            async function populateSchemeCategoryDropdown() {
+                debugger;
+                const sel = document.getElementById('scheme_category_dropdown');
+                if (!sel) return;
+
+                sel.innerHTML = '<option value="">-- Category --</option>';
+                sel.disabled = true;
+
+                try {
+                    const url = API_CONFIG.baseUrl + API_CONFIG.endpoints.get_scheme_category;
+                    console.log("API URL:", url);
+
+                    const response = await $.ajax({
+                        url: url,
+                        type: "POST",
+                        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                        dataType: "json",
+                        data: { data: encryptData({}) }
+                    });
+
+                    console.log("Category API Response:", response);
+
+                    if (response && response.success === 1) {
+                        let categories;
+
+                        // Check if data is encrypted
+                        if (response.data && typeof response.data === 'string' && response.data.length > 0) {
+                            try {
+                                const decrypted = decryptData(response.data);
+                                console.log("Decrypted categories:", decrypted);
+                                categories = typeof decrypted === 'string' ? JSON.parse(decrypted) : decrypted;
+                            } catch (e) {
+                                console.error('Error decrypting category data:', e);
+                                categories = [];
+                            }
+                        } else {
+                            // If not encrypted, use as is
+                            categories = response.data || [];
+                        }
+
+                        if (Array.isArray(categories) && categories.length > 0) {
+                            categories.forEach(cat => {
+                                const id = cat.id;
+                                const name = (cat.display_text_tamil || cat.display_text_tamil || '').trim() || ('Category ' + id);
+                                const opt = document.createElement('option');
+                                opt.value = id;
+                                opt.textContent = name.length > 60 ? name.substring(0, 60) + '...' : name;
+                                sel.appendChild(opt);
+                            });
+                            sel.disabled = false;
+                            console.log(`Loaded ${categories.length} categories`);
+                        } else {
+                            console.log("No categories found");
+                            sel.innerHTML = '<option value="">No categories available</option>';
+                        }
+                    } else {
+                        console.error('API returned error:', response?.message);
+                        sel.innerHTML = '<option value="">Error loading categories</option>';
+                    }
+                } catch (error) {
+                    console.error('Error fetching scheme categories:', error);
+                    sel.innerHTML = '<option value="">Error loading categories</option>';
+                }
+            }
 
             function populateSchemeDescriptionDropdown() {
                 const sel = document.getElementById('scheme_description_dropdown');
                 if (!sel) return;
-                const schemes = API_DATA.schemes || [];
+
+                // Clear and disable scheme dropdown initially
                 sel.innerHTML = '<option value="">-- Select Scheme --</option>';
-                schemes.forEach(s => {
-                    const id = s.scheme_id != null ? s.scheme_id : s.id;
-                    const name = (s.scheme_name || s.name || '').trim() || ('Scheme ' + id);
-                    const opt = document.createElement('option');
-                    opt.value = id;
-                    opt.textContent = name.length > 60 ? name.substring(0, 60) + '...' : name;
-                    sel.appendChild(opt);
-                });
+                sel.disabled = true;
+            }
+
+            // Function to fetch schemes by category with encrypted payload
+            async function fetchSchemesByCategory(categoryId) {
+                const sel = document.getElementById('scheme_description_dropdown');
+                if (!sel) return;
+
+                if (!categoryId) {
+                    sel.innerHTML = '<option value="">-- Select Scheme --</option>';
+                    sel.disabled = true;
+                    return;
+                }
+
+                sel.innerHTML = '<option value="">Loading schemes...</option>';
+                sel.disabled = true;
+
+                try {
+                    const payload = {
+                        category_id: Number(categoryId)
+                    };
+
+                    console.log("Fetching schemes with payload:", payload);
+
+                    const encryptedPayload = encryptData(payload);
+                    const url = API_CONFIG.baseUrl + API_CONFIG.endpoints.get_scheme_name_by_dropdown;
+
+                    const response = await $.ajax({
+                        url: url,
+                        type: "POST",
+                        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                        dataType: "json",
+                        data: { data: encryptedPayload }
+                    });
+
+                    console.log("Schemes API Response:", response);
+
+                    if (response && response.success === 1) {
+                        let schemes;
+
+                        // Check if data is encrypted
+                        if (response.data && typeof response.data === 'string' && response.data.length > 0) {
+                            try {
+                                const decrypted = decryptData(response.data);
+                                console.log("Decrypted schemes:", decrypted);
+                                schemes = typeof decrypted === 'string' ? JSON.parse(decrypted) : decrypted;
+                            } catch (e) {
+                                console.error('Error decrypting scheme data:', e);
+                                schemes = [];
+                            }
+                        } else {
+                            // If not encrypted, use as is
+                            schemes = response.data || [];
+                        }
+
+                        sel.innerHTML = '<option value="">-- Select Scheme --</option>';
+
+                        if (Array.isArray(schemes) && schemes.length > 0) {
+                            schemes.forEach(s => {
+                                const id = s.scheme_id != null ? s.scheme_id : s.id;
+                                const name = (s.scheme_name_tamil || s.scheme_name_tamil || '').trim() || ('Scheme ' + id);
+                                const opt = document.createElement('option');
+                                opt.value = id;
+                                opt.textContent = name.length > 60 ? name.substring(0, 60) + '...' : name;
+                                sel.appendChild(opt);
+                            });
+                            sel.disabled = false;
+                            console.log(`Loaded ${schemes.length} schemes`);
+                        } else {
+                            console.log("No schemes found");
+                            sel.innerHTML = '<option value="">No schemes available</option>';
+                        }
+                    } else {
+                        console.error('API returned error:', response?.message);
+                        sel.innerHTML = '<option value="">Error loading schemes</option>';
+                    }
+                } catch (error) {
+                    console.error('Error fetching schemes:', error);
+                    sel.innerHTML = '<option value="">Error loading schemes</option>';
+                }
+            }
+
+            // Reset all stored data when filters change
+            function resetRemarksData() {
+                allRemarksData = [];
+                hasMoreData = true;
+                schemeRemarksCurrentPage = 1;
             }
 
             async function fetchSuggestionformRemarks(page) {
-                debugger
                 const contentEl = document.getElementById('scheme_description_content');
                 const wrapEl = document.getElementById('scheme_remarks_load_more_wrap');
                 const addMoreBtn = document.getElementById('btn_scheme_remarks_add_more');
                 const isFirstPage = (page == null || page === 1);
-                if (isFirstPage && contentEl) contentEl.innerHTML = '<span class="text-muted">Loading...</span>';
+
+                if (isFirstPage && contentEl) {
+                    contentEl.innerHTML = '<span class="text-muted">Loading...</span>';
+                    resetRemarksData(); // Reset stored data on first page
+                }
+
                 if (wrapEl) wrapEl.style.display = 'none';
                 if (addMoreBtn) addMoreBtn.disabled = true;
+
+                // Update current page
                 schemeRemarksCurrentPage = page == null ? 1 : page;
+
                 const districtId = $('#district').val();
+                const categorySelect = document.getElementById('scheme_category_dropdown');
+                const schemeSelect = document.getElementById('scheme_description_dropdown');
+
+                const categoryId = categorySelect && categorySelect.value ? Number(categorySelect.value) : null;
+                const schemeId = schemeSelect && schemeSelect.value ? Number(schemeSelect.value) : null;
+
+                // Include pagination parameters
                 const payload = {
-                    district_id: districtId !== 'ALL' ? Number(districtId) : null,
+                    // district_id: districtId !== 'ALL' ? Number(districtId) : null,
+                    category_id: categoryId,
+                    scheme_id: schemeId,
                     page: schemeRemarksCurrentPage,
                     limit: SCHEME_REMARKS_LIMIT
                 };
+
                 console.log("Fetching scheme description (remarks) with payload:", payload);
+
                 try {
                     const response = await makeSuggestionformRemarksApiRequest(payload);
+
+                    // Check if we got data
+                    if (response && response.success === 1) {
+                        const newData = extractDataFromResponse(response);
+
+                        if (newData && newData.length > 0) {
+                            // Filter out duplicates based on unique identifier
+                            const uniqueNewData = newData.filter(newItem => {
+                                return !allRemarksData.some(existingItem =>
+                                    existingItem.type_id === newItem.type_id &&
+                                    existingItem.scheme_id === newItem.scheme_id
+                                );
+                            });
+
+                            // Add unique new data to stored data
+                            allRemarksData = [...allRemarksData, ...uniqueNewData];
+
+                            // Check if we got less than the limit (means no more data)
+                            if (newData.length < SCHEME_REMARKS_LIMIT) {
+                                hasMoreData = false;
+                            }
+                        } else {
+                            hasMoreData = false;
+                        }
+                    }
+
                     handleSuggestionformRemarksApiResponse(response, !isFirstPage);
                 } catch (error) {
                     console.error('Error fetching scheme description:', error);
                     if (contentEl && isFirstPage) contentEl.innerHTML = '<span class="text-danger">Failed to load description.</span>';
                 }
-                if (addMoreBtn) addMoreBtn.disabled = false;
+
+                if (addMoreBtn) {
+                    addMoreBtn.disabled = false;
+                }
             }
 
             async function makeSuggestionformRemarksApiRequest(payload) {
                 try {
                     const encryptedPayload = encryptData(payload);
-                    const url = API_CONFIG.baseUrl + API_CONFIG.endpoints.get_suggestionform_remarks_by_district;
+                    const url = API_CONFIG.baseUrl + API_CONFIG.endpoints.get_scheme_remark_summary;
                     return await $.ajax({
                         url: url,
                         type: "POST",
@@ -3275,156 +3844,228 @@
                 }
             }
 
-            // New function to group remarks by district
-            function groupRemarksByDistrict(remarksList) {
-                const districtGroups = {};
+            // Helper function to extract data from response
+            function extractDataFromResponse(response) {
+                if (!response || response.success !== 1) return [];
+
+                try {
+                    let data;
+                    // Check if data is encrypted
+                    if (response.data && typeof response.data === 'string' && response.data.length > 0) {
+                        const decrypted = decryptData(response.data);
+                        data = typeof decrypted === 'string' ? JSON.parse(decrypted) : decrypted;
+                    } else {
+                        data = response.data || [];
+                    }
+
+                    if (typeof data === 'string') data = JSON.parse(data);
+
+                    // Get the raw list of remarks
+                    return Array.isArray(data) ? data : (data.data && Array.isArray(data.data) ? data.data : []);
+                } catch (e) {
+                    console.error('Error extracting data:', e);
+                    return [];
+                }
+            }
+
+            // Function to render remarks - shows type/scheme once with all remarks underneath
+            function renderRemarksList(remarksList) {
+                if (!remarksList || remarksList.length === 0) {
+                    return '<div class="text-muted text-center py-4">No remarks available</div>';
+                }
+
+                // Group remarks by type_id and scheme_id combination
+                const groupedRemarks = {};
 
                 remarksList.forEach(item => {
-                    const districtName = (item.district_name || item.districtName || item.district || 'Unknown District').trim();
-                    const remarks = item.suggestion_remarks || item.suggestionRemarks || item.remarks || item.description || item.text || '';
+                    const typeId = item.type_id || '';
+                    const typeName = item.type_name || 'N/A';
+                    const schemeId = item.scheme_id || '';
+                    const schemeName = item.scheme_name || 'N/A';
+                    const remarks = item.suggestion_remarks || '—';
 
-                    if (!districtGroups[districtName]) {
-                        districtGroups[districtName] = {
-                            name: districtName,
-                            remarks: [],
-                            count: 0
+                    // Create a unique key for each type+scheme combination
+                    const groupKey = `${typeId}_${schemeId}`;
+
+                    if (!groupedRemarks[groupKey]) {
+                        groupedRemarks[groupKey] = {
+                            typeId: typeId,
+                            typeName: typeName,
+                            schemeId: schemeId,
+                            schemeName: schemeName,
+                            remarks: []
                         };
                     }
 
-                    if (remarks) {
-                        districtGroups[districtName].remarks.push(remarks);
-                        districtGroups[districtName].count++;
+                    // Add remark if it's not empty
+                    if (remarks && remarks !== '—') {
+                        groupedRemarks[groupKey].remarks.push(remarks);
                     }
                 });
 
-                return Object.values(districtGroups);
-            }
+                // Generate HTML for each group
+                return Object.values(groupedRemarks).map(group => {
+                    const typeName = escapeHtml(group.typeName);
+                    const schemeName = escapeHtml(group.schemeName);
 
-            //         // Modified render function to show district once with all remarks
-            //         function renderDistrictGroup(districtGroup) {
-            //             const districtName = escapeHtml(districtGroup.name);
-            //             const count = districtGroup.count;
-            //             const remarksHtml = districtGroup.remarks.map(remark => {
-            //                 const formattedRemark = remark ? escapeHtml(String(remark)).replace(/\n/g, '<br/>') : '—';
-            //                 return `<div class="remark-item ps-3 ms-1 border-start border-secondary-subtle">${formattedRemark}</div>`;
-            //             }).join('');
+                    // Generate remarks HTML
+                    const remarksHtml = group.remarks.length > 0
+                        ? group.remarks.map(remark =>
+                            `<div class="remark-item small text-muted mb-1 pb-1 border-bottom border-light">
+                    ${escapeHtml(String(remark)).replace(/\n/g, '<br/>')}
+                </div>`
+                        ).join('')
+                        : '<div class="remark-item small text-muted">—</div>';
 
-            //             return `
-            //     <div class="mb-4 pb-3 border-bottom border-light">
-            //         <div class="d-flex justify-content-between align-items-start mb-2">
-            //             <strong class="text-dark fs-5">${districtName}</strong>
-            //             <span class="badge bg-primary rounded-pill">${count} item${count !== 1 ? 's' : ''}</span>
-            //         </div>
-            //         <div class="remarks-list">
-            //             ${remarksHtml || '<div class="text-muted fst-italic">No remarks available</div>'}
-            //         </div>
-            //     </div>
-            // `;
-            //         }
-
-            function renderDistrictGroup(districtGroup) {
-                const districtName = escapeHtml(districtGroup.name);
-                const count = districtGroup.count;
-
-                const remarksHtml = districtGroup.remarks.map(remark => {
-                    const text = remark
-                        ? escapeHtml(String(remark)).replace(/\n/g, '<br/>')
-                        : '—';
-                    return `<div class="remark-item">${text}</div>`;
-                }).join('');
-
-                return `
-        <div class="district-block">
-            <div class="district-header">
-                <span class="district-name">${districtName}</span>
-                <span class="remark-count">${count}</span>
+                    return `
+            <div class="remark-group mb-3 p-2 border rounded" data-type-id="${group.typeId}" data-scheme-id="${group.schemeId}">
+                <div class="d-flex align-items-center mb-2 bg-light p-2 rounded">
+                    <span class="fw-semibold">${schemeName}</span>
+                </div>
+                <div class="remarks-container ps-2">
+                    ${remarksHtml}
+                </div>
             </div>
-            ${remarksHtml}
-        </div>
-    `;
+        `;
+                }).join('');
             }
-
-            function renderRemarksItem(districtName, remarks) {
-                const d = (districtName || '').trim() || 'District';
-                const r = (remarks != null && remarks !== '') ? escapeHtml(String(remarks)).replace(/\n/g, '<br/>') : '—';
-                return `<div class="mb-3 pb-3 border-bottom border-light"><strong class="d-block text-dark mb-1">${escapeHtml(d)}</strong><div class="text-muted">${r}</div></div>`;
-            }
-
             function escapeHtml(s) {
+                if (s === null || s === undefined) return '';
                 const div = document.createElement('div');
                 div.textContent = s;
                 return div.innerHTML;
             }
 
-
-
+            // Handle API response without district grouping
             function handleSuggestionformRemarksApiResponse(response, append) {
                 const contentEl = document.getElementById('scheme_description_content');
                 const wrapEl = document.getElementById('scheme_remarks_load_more_wrap');
+                const addMoreBtn = document.getElementById('btn_scheme_remarks_add_more');
+
                 if (!contentEl) return;
 
                 if (!response || response.success !== 1) {
-                    if (!append) contentEl.innerHTML = '<span class="text-muted">No description available.</span>';
-                    if (wrapEl) wrapEl.style.display = 'none';
-                    return;
-                }
-
-                let data;
-                try {
-                    const decrypted = decryptData(response.data);
-                    data = typeof decrypted === 'string' ? JSON.parse(decrypted) : decrypted;
-                    if (typeof data === 'string') data = JSON.parse(data);
-                } catch (e) {
-                    if (!append) contentEl.innerHTML = '<span class="text-muted">No description available.</span>';
+                    if (!append) contentEl.innerHTML = '<div class="text-muted text-center py-4">No description available.</div>';
                     if (wrapEl) wrapEl.style.display = 'none';
                     return;
                 }
 
                 // Get the raw list of remarks
-                const list = Array.isArray(data) ? data : (data.data && Array.isArray(data.data) ? data.data : []);
+                const list = extractDataFromResponse(response);
 
-                if (list.length === 0) {
-                    if (!append) contentEl.innerHTML = '<span class="text-muted">No description available.</span>';
+                console.log('Remarks list:', list);
+                console.log('All stored data:', allRemarksData);
+
+                if (allRemarksData.length === 0) {
+                    if (!append) contentEl.innerHTML = '<div class="text-muted text-center py-4">No description available.</div>';
                     if (wrapEl) wrapEl.style.display = 'none';
                     return;
                 }
 
-                // Group remarks by district
-                const districtGroups = groupRemarksByDistrict(list);
-
-                // Generate HTML for each district group
-                const html = districtGroups.map(districtGroup => renderDistrictGroup(districtGroup)).join('');
+                // Generate HTML using the stored data (NO duplicates)
+                const html = renderRemarksList(allRemarksData);
 
                 if (append) {
-                    // For pagination append, we need to handle merging of existing districts
-                    const existingHtml = contentEl.innerHTML;
-                    if (existingHtml.includes('<span class="text-muted">No description available.</span>') ||
-                        existingHtml.includes('<span class="text-muted">Loading...</span>')) {
-                        contentEl.innerHTML = html;
-                    } else {
-                        // For pagination: you might want to merge districts or simply append
-                        // This simple approach just appends all new groups
-                        contentEl.insertAdjacentHTML('beforeend', html);
-                    }
+                    // For pagination append - replace entire content with all stored data
+                    contentEl.innerHTML = html;
                 } else {
+                    // For first page - set content
                     contentEl.innerHTML = html;
                 }
 
-                if (wrapEl) wrapEl.style.display = list.length >= SCHEME_REMARKS_LIMIT ? 'block' : 'none';
+                // Show/hide load more button based on hasMoreData flag
+                if (wrapEl) {
+                    if (hasMoreData) {
+                        wrapEl.style.display = 'block';
+                        if (addMoreBtn) addMoreBtn.disabled = false;
+                    } else {
+                        wrapEl.style.display = 'none';
+                        if (addMoreBtn) addMoreBtn.disabled = true;
+                    }
+                }
             }
 
             function onSchemeRemarksAddMore() {
-                fetchSuggestionformRemarks(schemeRemarksCurrentPage + 1);
+                // Only fetch if there might be more data
+                if (hasMoreData) {
+                    const nextPage = schemeRemarksCurrentPage + 1;
+                    console.log(`Loading more: page ${nextPage}`);
+                    fetchSuggestionformRemarks(nextPage);
+                }
+            }
+
+            function resetSchemeDescriptionFilters() {
+                const categorySelect = document.getElementById('scheme_category_dropdown');
+                const schemeSelect = document.getElementById('scheme_description_dropdown');
+
+                if (categorySelect) {
+                    categorySelect.value = '';
+                }
+
+                if (schemeSelect) {
+                    schemeSelect.innerHTML = '<option value="">-- Select Scheme --</option>';
+                    schemeSelect.disabled = true;
+                }
+
+                resetRemarksData(); // Reset stored data
+                fetchSuggestionformRemarks(1);
             }
 
             function setupSchemeDescriptionListeners() {
-                const btn = document.getElementById('btn_load_scheme_description');
-                if (btn) btn.addEventListener('click', () => fetchSuggestionformRemarks(1));
                 const addMoreBtn = document.getElementById('btn_scheme_remarks_add_more');
-                if (addMoreBtn) addMoreBtn.addEventListener('click', onSchemeRemarksAddMore);
+                if (addMoreBtn) {
+                    addMoreBtn.removeEventListener('click', onSchemeRemarksAddMore);
+                    addMoreBtn.addEventListener('click', onSchemeRemarksAddMore);
+                }
+
+                const categorySelect = document.getElementById('scheme_category_dropdown');
+                if (categorySelect) {
+                    categorySelect.removeEventListener('change', categoryChangeHandler);
+                    categorySelect.addEventListener('change', categoryChangeHandler);
+                }
+
+                const schemeSelect = document.getElementById('scheme_description_dropdown');
+                if (schemeSelect) {
+                    schemeSelect.removeEventListener('change', schemeChangeHandler);
+                    schemeSelect.addEventListener('change', schemeChangeHandler);
+                }
+
+                const resetBtn = document.getElementById('btn_scheme_description_reset');
+                if (resetBtn) {
+                    resetBtn.removeEventListener('click', resetHandler);
+                    resetBtn.addEventListener('click', resetHandler);
+                }
             }
 
+            // Separate handlers for better event management
+            function categoryChangeHandler(e) {
+                const categoryId = e.target.value;
+                fetchSchemesByCategory(categoryId);
+                // Reset to first page when category changes
+                resetRemarksData();
+                // fetchSuggestionformRemarks(1);
+            }
 
+            function schemeChangeHandler() {
+                // Reset to first page when scheme changes
+                resetRemarksData();
+                fetchSuggestionformRemarks(1);
+            }
+
+            function resetHandler() {
+                resetSchemeDescriptionFilters();
+            }
+
+            // Initialize everything when document is ready
+            $(document).ready(function () {
+                console.log("Document ready, initializing scheme description...");
+                console.log("API_CONFIG:", API_CONFIG);
+
+                // Populate category dropdown first with encrypted payload
+                populateSchemeCategoryDropdown();
+                populateSchemeDescriptionDropdown(); // Initialize scheme dropdown as disabled
+                setupSchemeDescriptionListeners();
+            });
             // ================== TOP 3 DREAM SCHEME API ==================
 
             async function fetchTop3DreamSchemeData() {
@@ -3544,7 +4185,6 @@
                     districtNames, schemeNames, districtCountsByScheme, donutData
                 };
                 renderTop3DreamSchemeChart();
-                renderDreamSchemeDonutChart();
             }
 
             // function renderTop3DreamSchemeChart() {
@@ -3696,24 +4336,62 @@
                     '#84cc16', '#ec4899', '#6366f1'
                 ];
 
+                // Row-wise totals for percentage calculation
+                const rowTotals = districtCountsByScheme.map(row =>
+                    row.reduce((s, c) => s + c, 0)
+                );
+
                 // 🔹 Map full & short names
                 const legendMap = schemeNames.map(name => ({
                     full: name,
                     short: name.length > 18 ? name.slice(0, 18) + '…' : name
                 }));
 
+                // Percentage matrix (each district row ≈ 100%)
+                const percentMatrix = districtCountsByScheme.map((row, rowIdx) => {
+                    const rowTotal = rowTotals[rowIdx] || 0;
+                    return row.map(v => rowTotal > 0 ? +(v / rowTotal * 100).toFixed(2) : 0);
+                });
+
                 const series = schemeNames.map((name, idx) => ({
                     name,
                     type: 'bar',
                     stack: 'total',
-                    data: districtCountsByScheme.map(row => row[idx] || 0),
+                    data: percentMatrix.map(row => row[idx] || 0),
                     itemStyle: { color: schemeColors[idx % schemeColors.length] }
                 }));
 
                 const option = {
                     tooltip: {
                         trigger: 'axis',
-                        axisPointer: { type: 'shadow' }
+                        axisPointer: { type: 'shadow' },
+                        formatter: function (params) {
+                            const district = params[0].axisValue || '';
+                            const rowIndex = params[0].dataIndex;
+                            const withValue = params.filter(p => {
+                                const count = districtCountsByScheme[rowIndex][p.seriesIndex] || 0;
+                                return count > 0;
+                            });
+
+                            const rowTotal = rowTotals[rowIndex] || 0;
+
+                            let html = `<div style="padding:10px;background:white;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+                                <strong style="color:#1f2937;font-size:14px;">${district}</strong><br/>
+                                <span style="color:#6b7280;font-size:11px;">(Top 3 dream schemes in this district)</span><br/>`;
+
+                            withValue.forEach(p => {
+                                const count = districtCountsByScheme[rowIndex][p.seriesIndex] || 0;
+                                const pct = rowTotal > 0 ? ((count / rowTotal) * 100).toFixed(1) : 0;
+                                html += `<div style="display:flex;align-items:center;margin:4px 0;">
+                                    <span style="width:10px;height:10px;border-radius:2px;background:${p.color};margin-right:6px;flex-shrink:0;"></span>
+                                    <span style="flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;">${p.seriesName}</span>
+                                    <strong>${count.toLocaleString('en-IN')}</strong>
+                                    <span style="font-size:11px;color:#9ca3af;margin-left:4px;">(${pct}%)</span>
+                                </div>`;
+                            });
+                            html += `<div style="border-top:1px solid #e5e7eb;margin-top:6px;padding-top:6px;font-weight:bold;">Total: ${rowTotal.toLocaleString('en-IN')}</div></div>`;
+                            return html;
+                        }
                     },
 
                     legend: {
@@ -3739,7 +4417,12 @@
                     },
 
                     xAxis: {
-                        type: 'value'
+                        type: 'value',
+                        name: 'Percentage (%)',
+                        max: 100,
+                        axisLabel: {
+                            formatter: function (v) { return v + '%'; }
+                        }
                     },
 
                     yAxis: {
@@ -3830,24 +4513,119 @@
             }
 
 
+            // Render District-wise Dream Scheme chart (Top schemes for state / selected district)
             function renderDreamSchemeDonutChart() {
-                if (!API_DATA.top3DreamSchemeData || !API_DATA.top3DreamSchemeData.donutData || !charts.dreamPie) return;
-                const donutData = API_DATA.top3DreamSchemeData.donutData;
-                const colorList = ['#4f46e5', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e', '#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#3b82f6', '#2563eb', '#1d4ed8'];
-                charts.dreamPie.setOption({
-                    tooltip: { trigger: 'item' },
+                const chartElement = document.getElementById('dream_scheme_district_pie');
+                if (!chartElement) return;
+
+                let chart = charts.dreamPie;
+                if (!chart) {
+                    chart = echarts.init(chartElement);
+                    charts.dreamPie = chart;
+                }
+
+                if (!API_DATA.dreamSchemeDistrictChartData ||
+                    !API_DATA.dreamSchemeDistrictChartData.schemeNames ||
+                    API_DATA.dreamSchemeDistrictChartData.schemeNames.length === 0) {
+                    showEmptyDreamSchemeDonutChart();
+                    return;
+                }
+
+                const { schemeNames, schemeCounts, currentDistrictId } = API_DATA.dreamSchemeDistrictChartData;
+
+                const total = schemeCounts.reduce((sum, c) => sum + c, 0);
+
+                // Resolve district name from cached districts
+                let districtName = 'All Districts';
+                if (currentDistrictId != null) {
+                    const match = (API_DATA.districts || []).find(d => {
+                        const id = d.district_id || d.id;
+                        return String(id) === String(currentDistrictId);
+                    });
+                    if (match && (match.district_name || match.name)) {
+                        districtName = match.district_name || match.name;
+                    }
+                }
+
+                const schemeColors = [
+                    '#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+                    '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1'
+                ];
+
+                const chartData = schemeNames.map((name, index) => ({
+                    name,
+                    value: schemeCounts[index],
+                    itemStyle: { color: schemeColors[index % schemeColors.length] }
+                }));
+
+                const option = {
+                    // title: {
+                    //     text: currentDistrictId != null
+                    //         ? `Top Schemes in ${districtName}`
+                    //         : 'Top Schemes (All Districts)',
+                    //     left: 'center',
+                    //     textStyle: { fontSize: 16, fontWeight: 'bold' },
+                    //     subtext: `Total Members: ${total.toLocaleString('en-IN')}`,
+                    //     subtextStyle: { fontSize: 12, color: '#6b7280' }
+                    // },
+                    tooltip: {
+                        trigger: 'item',
+                        formatter: function (params) {
+                            const value = params.value || 0;
+                            const percent = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                            const formattedValue = value.toLocaleString('en-IN');
+                            return `
+<div style="padding: 10px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+  <div style="display: flex; align-items: center; margin-bottom: 8px;">
+    <span style="display:inline-block;margin-right:8px;border-radius:3px;width:12px;height:12px;background-color:${params.color}"></span>
+    <strong style="color: #1f2937; font-size: 14px;">${params.name}</strong>
+  </div>
+  <div style="color: #6b7280; font-size: 13px;">
+    Total Members: <strong style="color: #1f2937;">${formattedValue}</strong>
+  </div>
+  <div style="color: #6b7280; font-size: 13px;">
+    Percentage: <strong style="color: #1f2937;">${percent}%</strong>
+  </div>
+</div>`;
+                        }
+                    },
+                    // legend: {
+                    //     orient: 'vertical',
+                    //     right: 10,
+                    //     top: 'middle',
+                    //     formatter: function (name) {
+                    //         if (name.length > 18) {
+                    //             return name.substring(0, 18) + '...';
+                    //         }
+                    //         return name;
+                    //     }
+                    // },
                     series: [{
+                        name: 'Schemes',
                         type: 'pie',
-                        radius: ['40%', '70%'],
-                        data: donutData,
-                        itemStyle: {
-                            color: (params) => colorList[params.dataIndex % colorList.length],
-                            borderColor: '#ffffff',
-                            borderWidth: 2
+                        radius: ['40%', '65%'],
+                        center: ['50%', '55%'],
+                        data: chartData,
+                        label: {
+                            formatter: function (params) {
+                                const value = params.value || 0;
+                                const percent = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                const name = params.name && params.name.length > 15
+                                    ? params.name.substring(0, 15) + '...'
+                                    : params.name;
+                                return `${name}\n${value.toLocaleString('en-IN')} (${percent}%)`;
+                            },
+                            fontSize: 11
                         },
-                        emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.3)' } }
+                        labelLine: {
+                            length: 10,
+                            length2: 6
+                        }
                     }]
-                }, true);
+                };
+
+                chart.clear();
+                chart.setOption(option, true);
             }
 
             function showEmptyTop3DreamSchemeChart() {
@@ -3865,12 +4643,204 @@
             }
 
             function showEmptyDreamSchemeDonutChart() {
-                if (!charts.dreamPie) return;
-                charts.dreamPie.setOption({
-                    title: { text: 'District-wise Dream Scheme', left: 'center', subtext: 'No data available', subtextStyle: { fontSize: 12, color: '#6b7280' } },
-                    tooltip: { trigger: 'item' },
-                    series: [{ type: 'pie', radius: ['40%', '70%'], data: [], itemStyle: { color: '#e5e7eb' } }]
+                const chartElement = document.getElementById('dream_scheme_district_pie');
+                if (!chartElement) return;
+
+                let chart = charts.dreamPie;
+                if (!chart) {
+                    chart = echarts.init(chartElement);
+                    charts.dreamPie = chart;
+                }
+
+                chart.setOption({
+                    title: {
+                        text: 'Top Schemes (All Districts)',
+                        left: 'center',
+                        subtext: 'No data available',
+                        subtextStyle: { fontSize: 12, color: '#6b7280' }
+                    },
+                    tooltip: { show: false },
+                    legend: { show: false },
+                    series: [{
+                        name: 'No data',
+                        type: 'pie',
+                        radius: ['40%', '70%'],
+                        center: ['50%', '55%'],
+                        data: [{ value: 1, name: 'No data', itemStyle: { color: '#e5e7eb' } }],
+                        label: { show: false },
+                        labelLine: { show: false }
+                    }]
                 }, true);
+            }
+
+            // Populate the district dropdown inside the "District-wise Dream Scheme" card
+            function populateDreamSchemeDistrictDropdown() {
+                const select = document.getElementById('dreamSchemeDistrictSelect');
+                if (!select) return;
+
+                // Clear existing options
+                select.innerHTML = '';
+
+                // Default option (state-level)
+                const allOption = document.createElement('option');
+                allOption.value = '';
+                allOption.textContent = 'All Districts';
+                select.appendChild(allOption);
+
+                // Add districts from API_DATA
+                if (Array.isArray(API_DATA.districts) && API_DATA.districts.length > 0) {
+                    API_DATA.districts.forEach(d => {
+                        const id = d.district_id || d.id;
+                        const name = d.district_name || d.name || `District ${id}`;
+                        if (!id) return;
+                        const opt = document.createElement('option');
+                        opt.value = String(id);
+                        opt.textContent = name;
+                        select.appendChild(opt);
+                    });
+                }
+
+                // Change handler: reload chart with selected district
+                select.onchange = function () {
+                    const val = this.value;
+                    const districtId = val ? Number(val) : null;
+                    fetchDreamSchemeDistrictData(districtId);
+                };
+            }
+
+            // Reset button handler for District-wise Dream Scheme chart
+            function resetDreamSchemeDistrictChart() {
+                const select = document.getElementById('dreamSchemeDistrictSelect');
+                if (select) {
+                    // Reset to "All Districts"
+                    select.value = '';
+                }
+                // Reload chart at state level (district_id = null)
+                fetchDreamSchemeDistrictData(null);
+            }
+
+            // ================== SCHEME-WISE COUNTS (STATE / DISTRICT) ==================
+
+            async function fetchDreamSchemeDistrictData(districtId) {
+                try {
+                    const payload = {
+                        district_id: districtId != null ? Number(districtId) : null
+                    };
+
+                    console.log("Fetching scheme-wise counts for dream scheme chart with payload:", payload);
+
+                    const response = await makeSchemeWiseCountsApiRequest(payload);
+                    handleSchemeWiseCountsResponse(response, districtId);
+                } catch (error) {
+                    console.error('Error fetching scheme-wise counts for dream scheme chart:', error);
+                    showEmptyDreamSchemeDonutChart();
+                }
+            }
+
+            async function makeSchemeWiseCountsApiRequest(payload) {
+                try {
+                    const encryptedPayload = encryptData(payload);
+                    const url = API_CONFIG.baseUrl + API_CONFIG.endpoints.get_scheme_wise_counts;
+
+                    return await $.ajax({
+                        url: url,
+                        type: "POST",
+                        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                        dataType: "json",
+                        data: { data: encryptedPayload }
+                    });
+                } catch (error) {
+                    console.error('Scheme-wise counts API Request Error:', error);
+                    return null;
+                }
+            }
+
+            function handleSchemeWiseCountsResponse(response, districtId) {
+                if (!response || response.success !== 1) {
+                    console.warn('No data or API error for scheme-wise counts:', response);
+                    showEmptyDreamSchemeDonutChart();
+                    return;
+                }
+
+                let apiData;
+                try {
+                    const decrypted = decryptData(response.data);
+                    apiData = typeof decrypted === 'string' ? JSON.parse(decrypted) : decrypted;
+
+                    if (typeof apiData === 'string') {
+                        apiData = JSON.parse(apiData);
+                    }
+                } catch (e) {
+                    console.error('Decrypt/parse failed for scheme-wise counts data', e);
+                    showEmptyDreamSchemeDonutChart();
+                    return;
+                }
+
+                // Normalise decrypted shape:
+                // - New API may return an array directly
+                // - Or an object with a `raw` array for debugging
+                let items;
+                if (Array.isArray(apiData)) {
+                    items = apiData;
+                } else if (apiData && Array.isArray(apiData.raw)) {
+                    items = apiData.raw;
+                } else {
+                    console.log('No scheme-wise counts data available (unexpected shape)', apiData);
+                    API_DATA.dreamSchemeDistrictChartData = {
+                        schemeNames: [],
+                        schemeCounts: [],
+                        currentDistrictId: districtId
+                    };
+                    showEmptyDreamSchemeDonutChart();
+                    return;
+                }
+
+                if (items.length === 0) {
+                    console.log('No scheme-wise counts data available');
+                    API_DATA.dreamSchemeDistrictChartData = {
+                        schemeNames: [],
+                        schemeCounts: [],
+                        currentDistrictId: districtId
+                    };
+                    showEmptyDreamSchemeDonutChart();
+                    return;
+                }
+
+                // Aggregate counts per scheme (grouped by scheme name).
+                const schemeMap = {};
+                items.forEach((item, index) => {
+                    let schemeName = (item.scheme_name || item.scheme || '').trim();
+                    const count = Number(
+                        // Use total_member_count as the primary metric for Y-axis,
+                        // with sensible fallbacks for backward compatibility.
+                        item.total_member_count ||
+                        item.total_count ||
+                        item.beneficiary_count ||
+                        item.total_familycount ||
+                        item.count ||
+                        0
+                    );
+
+                    if (!schemeName) {
+                        schemeName = `Scheme ${index + 1}`;
+                    }
+
+                    if (!schemeMap[schemeName]) {
+                        schemeMap[schemeName] = { name: schemeName, count: 0 };
+                    }
+                    schemeMap[schemeName].count += count;
+                });
+
+                const allSchemes = Object.values(schemeMap).sort((a, b) => b.count - a.count);
+                const topSchemes = allSchemes.slice(0, 10); // Top 10 schemes
+
+                API_DATA.dreamSchemeDistrictChartData = {
+                    schemeNames: topSchemes.map(s => s.name),
+                    schemeCounts: topSchemes.map(s => s.count),
+                    currentDistrictId: districtId
+                };
+
+                renderDreamSchemeDonutChart();
             }
 
             // ================== STACKED BAR CHART FUNCTIONS ==================
@@ -4217,7 +5187,7 @@
                     districtTotals.push(total);
                 }
 
-                /* ===================== CALCULATE STATUS TOTALS ===================== */
+                /* ===================== CALCULATE STATUS TOTALS (COUNTS) ===================== */
                 const statusTotals = {};
                 chartData.series.forEach(series => {
                     statusTotals[series.name] = series.data.reduce(
@@ -4225,6 +5195,17 @@
                         0
                     );
                 });
+
+                /* ===================== BUILD PERCENTAGE DATA PER DISTRICT ===================== */
+                const percentSeriesData = chartData.series.map(series => ({
+                    name: series.name,
+                    color: series.color,
+                    data: series.data.map((value, idx) => {
+                        const total = districtTotals[idx] || 0;
+                        const count = value || 0;
+                        return total > 0 ? +(count / total * 100).toFixed(2) : 0;
+                    })
+                }));
 
                 const option = {
                     title: {
@@ -4261,14 +5242,10 @@
                     <strong style="font-size:14px;">${params[0].name}</strong>
                     <div style="margin-top:8px;">`;
 
-                            let total = 0;
-
                             params.forEach(item => {
-                                const value = item.value || 0;
-                                total += value;
-
+                                const count = chartData.series[item.seriesIndex].data[item.dataIndex] || 0;
                                 const percent = districtTotals[item.dataIndex] > 0
-                                    ? ((value / districtTotals[item.dataIndex]) * 100).toFixed(1)
+                                    ? ((count / districtTotals[item.dataIndex]) * 100).toFixed(1)
                                     : 0;
 
                                 html += `
@@ -4277,7 +5254,7 @@
                             <span style="display:inline-block;width:10px;height:10px;background:${item.color};margin-right:6px;"></span>
                             ${item.seriesName}
                         </span>
-                        <strong>${value.toLocaleString('en-IN')} (${percent}%)</strong>
+                        <strong>${count.toLocaleString('en-IN')} (${percent}%)</strong>
                     </div>`;
                             });
 
@@ -4285,7 +5262,7 @@
                     <hr style="margin:8px 0;">
                     <div style="display:flex;justify-content:space-between;">
                         <strong>Total</strong>
-                        <strong>${total.toLocaleString('en-IN')}</strong>
+                        <strong>${districtTotals[params[0].dataIndex].toLocaleString('en-IN')}</strong>
                     </div>
                 </div>`;
                             return html;
@@ -4318,7 +5295,11 @@
 
                     yAxis: {
                         type: 'value',
-                        name: 'Family Count'
+                        name: 'Percentage (%)',
+                        max: 100,
+                        axisLabel: {
+                            formatter: function (v) { return v + '%'; }
+                        }
                     },
 
                     dataZoom: chartData.districts.length > 10 ? [
@@ -4330,7 +5311,7 @@
                         { type: 'inside' }
                     ] : [],
 
-                    series: chartData.series.map(series => ({
+                    series: percentSeriesData.map(series => ({
                         name: series.name,
                         type: 'bar',
                         stack: 'status',
@@ -4535,73 +5516,73 @@
 
                 const total = pieData.reduce((sum, i) => sum + i.value, 0);
 
-                const chart = initDistrictPieChart();
-                if (!chart) return;
+                // Render table instead of pie chart inside the same container
+                const container = document.getElementById('district_distribution_pie');
+                if (!container) return;
 
-                chart.clear();
-                chart.setOption({
-                    title: {
-                        text: getPieTitle(),
-                        left: 'center',
-                        subtext: `Total Families: ${total.toLocaleString('en-IN')
-                            }`, subtextStyle: {
-                                fontSize: 12,
-                                color: '#6b7280'
-                            }
-                    },
-                    tooltip: {
-                        trigger: 'item',
-                        formatter: p => {
-                            const percent = total
-                                ? ((p.value / total) * 100).toFixed(1)
-                                : 0;
-                            return `${p.name} Families: ${p.value.toLocaleString('en-IN')} (${percent}%)`;
-                        }
-                    },
-                    series: [{
-                        type: 'pie',
-                        radius: '60%',
-                        data: pieData,
-                        label: {
-                            formatter: params => {
-                                return `${params.name}: ${params.value.toLocaleString('en-IN')}`;
-                            }
-                        }
-                    }]
+                // Build sorted rows (highest families first)
+                const sorted = [...pieData].sort((a, b) => b.value - a.value);
+
+                let rowsHtml = '';
+                sorted.forEach((row, index) => {
+                    const percent = total ? ((row.value / total) * 100).toFixed(1) : '0.0';
+                    rowsHtml += `
+                        <tr class="district-table-row" data-id="${row.id}" data-name="${row.name}">
+                            <td class="text-center">${index + 1}</td>
+                            <td>${row.name}</td>
+                            <td class="text-end">${row.value.toLocaleString('en-IN')}</td>
+                            <td class="text-end">${percent}%</td>
+                        </tr>`;
                 });
 
-                chart.resize();
+                container.innerHTML = `
+                    <div class="table-responsive" style="max-height:350px; overflow:auto;">
+                        <table class="table table-sm table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center" style="width:60px;">SNO</th>
+                                    <th>District</th>
+                                    <th class="text-end">Families</th>
+                                    <th class="text-end">Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rowsHtml}
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-light">
+                                    <th></th>
+                                    <th>Total</th>
+                                    <th class="text-end">${total.toLocaleString('en-IN')}</th>
+                                    <th class="text-end">100%</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>`;
+
+                // Make table rows clickable to preserve drill-down behaviour
+                const tableRows = container.querySelectorAll('.district-table-row');
+                tableRows.forEach(rowEl => {
+                    rowEl.addEventListener('click', () => {
+                        const id = rowEl.getAttribute('data-id');
+                        const name = rowEl.getAttribute('data-name') || '';
+                        if (!id) return;
+                        // Reuse existing handler logic by faking the params object
+                        handlePieChartClick({ data: { id: id, name: name } });
+                    });
+                });
             }
 
             function showEmptyPieChart() {
-                const chart = initDistrictPieChart();
-                if (!chart) return;
+                const container = document.getElementById('district_distribution_pie');
+                if (!container) return;
 
-                chart.setOption({
-                    title: {
-                        text: getPieTitle(),
-                        left: 'center',
-                        subtext: 'No data available',
-                        subtextStyle: {
-                            fontSize: 12,
-                            color: '#6b7280'
-                        }
-                    },
-                    tooltip: {
-                        trigger: 'item'
-                    },
-                    series: [{
-                        type: 'pie',
-                        radius: '60%',
-                        data: [],
-                        itemStyle: {
-                            color: '#e5e7eb'
-                        },
-                        label: {
-                            show: false
-                        }
-                    }]
-                });
+                container.innerHTML = `
+                    <div class="d-flex flex-column justify-content-center align-items-center h-100 text-muted">
+                        <i class="bi bi-pie-chart fs-1 mb-2"></i>
+                        <p class="mb-0">No family distribution data available</p>
+                        <small>Try changing filters or selecting a different region</small>
+                    </div>`;
             }
 
             // ================== FILTER FUNCTIONS ==================
@@ -4758,11 +5739,20 @@
             /* =====================================================
                DREAM SCHEME - API: get_top5_suggestionform_by_district
             ===================================================== */
-            function initDreamSchemeCharts() {
+            async function initDreamSchemeCharts() {
                 if (tabFetched.dreamScheme) return;
                 tabFetched.dreamScheme = true;
 
                 console.log("Fetching Dream Scheme tab APIs...");
+
+                // Ensure districts are loaded for the district dropdown
+                try {
+                    if (!API_DATA.districts || API_DATA.districts.length === 0) {
+                        await loadDistricts();
+                    }
+                } catch (e) {
+                    console.error('Error loading districts for dream scheme charts:', e);
+                }
 
                 if (!charts.dreamBar) {
                     const chartElement = document.getElementById('dream_scheme_bar');
@@ -4785,6 +5775,13 @@
                     }
                 }
 
+                // Populate district dropdown for dream scheme chart
+                populateDreamSchemeDistrictDropdown();
+
+                // Initial load: state-level (district_id = null)
+                fetchDreamSchemeDistrictData(null);
+
+                // Top 3 dream schemes (existing)
                 fetchTop3DreamSchemeData();
 
                 populateSchemeDescriptionDropdown();
